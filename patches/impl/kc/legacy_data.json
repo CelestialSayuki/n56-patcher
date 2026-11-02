@@ -1,0 +1,65 @@
+{
+  "description": "Existing N56 iOS13 DataB decryption compatibility from the working kernel",
+  "patches": [
+    {
+      "address": "0xfffffff005f31c40",
+      "owner": "__PLK_TEXT_EXEC",
+      "before": "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "after": "ff8300d1fd7b01a9fd430091e30305aae40306aae50307aae61f42a9e82743a9e82700a90ab32294fd7b41a9ff830091c0035fd6ff8300d1fd7b01a9fd430091e50307aae61f42a9e82743a9e82700a91fb42294fd7b41a9ff830091c0035fd6ff0301d1fd7b03a9fdc30091e40306aae50307aae61f4829e8a744a9eaaf45a9ec3740f9e82700a9ea2f01a9ec1300f93aa52294fd7b43a9ff030191c0035fd6ff0301d1fd7b03a9fdc30091e30305aae40306aae50307aae64340b9e72740f9e82745a9ea6340b9ebb346a9ed3f40f9e82700a9ea1300b9ebb301a9ed1700f935a72294fd7b43a9ff030191c0035fd6ff4301d1fd7b04a9fd030191e40306aae50307aae62b40f9e75b40b9e82746a9ea2f47a9ec3748a9ee3f49a9e82700a9ea2f01a9ec3702a9ee3f03a9fba72294fd7b44a9ff430191c0035fd6"
+    },
+    {
+      "address": "0xfffffff0067d1048",
+      "owner": "com.apple.driver.AppleSEPKeyStore/__TEXT_EXEC",
+      "before": "d32a0094",
+      "after": "2683dd97"
+    },
+    {
+      "address": "0xfffffff0067d11a8",
+      "owner": "com.apple.driver.AppleSEPKeyStore/__TEXT_EXEC",
+      "before": "8d2b0094",
+      "after": "e282dd97"
+    },
+    {
+      "address": "0xfffffff0067d13d8",
+      "owner": "com.apple.driver.AppleSEPKeyStore/__TEXT_EXEC",
+      "before": "f3270094",
+      "after": "3282dd97"
+    },
+    {
+      "address": "0xfffffff0067d1474",
+      "owner": "com.apple.driver.AppleSEPKeyStore/__TEXT_EXEC",
+      "before": "cc270094",
+      "after": "0b82dd97"
+    },
+    {
+      "address": "0xfffffff0067d1c00",
+      "owner": "com.apple.driver.AppleSEPKeyStore/__TEXT_EXEC",
+      "before": "c0040054",
+      "after": "26000014"
+    },
+    {
+      "address": "0xfffffff0067d354c",
+      "owner": "com.apple.driver.AppleSEPKeyStore/__TEXT_EXEC",
+      "before": "5e2d0094",
+      "after": "bd79dd97"
+    },
+    {
+      "address": "0xfffffff0067d360c",
+      "owner": "com.apple.driver.AppleSEPKeyStore/__TEXT_EXEC",
+      "before": "342e0094",
+      "after": "9a79dd97"
+    },
+    {
+      "address": "0xfffffff006904154",
+      "owner": "com.apple.filesystems.apfs/__TEXT_EXEC",
+      "before": "1c000094",
+      "after": "20008052"
+    },
+    {
+      "address": "0xfffffff00690429c",
+      "owner": "com.apple.filesystems.apfs/__TEXT_EXEC",
+      "before": "caffff97",
+      "after": "20008052"
+    }
+  ]
+}

@@ -1,0 +1,760 @@
+{
+  "source": "donors/extracted/n56ap_ios12/kernelcache.release.iphone7.decompressed",
+  "target": "build/kernelcache.legacy-sep.raw",
+  "counts": {
+    "kernel": 32,
+    "com.apple.driver.AppleARMPlatform": 2
+  },
+  "confirmed": {
+    "0xfffffff007671510": {
+      "id": "memcpy / memmove",
+      "to": "0xfffffff0070b5510",
+      "provider": "kernel",
+      "how": "唯一 PC 相对字段屏蔽匹配，前 41 条一致；调用现场为 dst、src、len。",
+      "target_symbols": [
+        "_memcpy",
+        "_memmove"
+      ],
+      "call_sites": [
+        "0xfffffff0086f4ca0",
+        "0xfffffff0086f4d20",
+        "0xfffffff0086f6ab8"
+      ]
+    },
+    "0xfffffff007671740": {
+      "id": "memset",
+      "to": "0xfffffff0070b5740",
+      "provider": "kernel",
+      "how": "符号 _memset；骨架 30/30",
+      "target_symbols": [
+        "_memset"
+      ],
+      "call_sites": [
+        "0xfffffff0086f4ce0"
+      ]
+    },
+    "0xfffffff007680650": {
+      "id": "__stack_chk_fail：以 'Kernel stack memory corruption detected' panic",
+      "to": "0xfffffff0070c4650",
+      "provider": "kernel",
+      "how": "符号 ___stack_chk_fail；panic 串与 xnu 原文一致，语义等价",
+      "target_symbols": [
+        "___stack_chk_fail"
+      ],
+      "call_sites": [
+        "0xfffffff0086f0224",
+        "0xfffffff0086f285c",
+        "0xfffffff0086f3044",
+        "0xfffffff0086f3444",
+        "0xfffffff0086f38c8",
+        "0xfffffff0086f39c4",
+        "0xfffffff0086f417c",
+        "0xfffffff0086f4554",
+        "0xfffffff0086f4a7c",
+        "0xfffffff0086f6cb8",
+        "0xfffffff0086f74f8"
+      ]
+    },
+    "0xfffffff0076b4890": {
+      "id": "clock_delay_until(deadline)",
+      "to": "0xfffffff0070efa7c",
+      "provider": "kernel",
+      "how": "读 cntpct_el0 与 CPU 时钟偏移后比较 deadline，长等待走 assert_wait/thread_block，短等待走 wfe；13 的 thread->cpu_data 偏移为 0x490。",
+      "target_symbols": [
+        "_clock_delay_until"
+      ],
+      "call_sites": [
+        "0xfffffff0086f22e0",
+        "0xfffffff0086f2998"
+      ]
+    },
+    "0xfffffff0076b4c08": {
+      "id": "clock_interval_to_deadline(interval,scale,out)",
+      "to": "0xfffffff0070efd64",
+      "provider": "kernel",
+      "how": "纳秒转换乘法常量与三参数一致，结果存入 [x2]；音频调用以 interval=50、scale=1000000 写入对象+0x258。",
+      "target_symbols": [
+        "_clock_interval_to_deadline"
+      ],
+      "call_sites": [
+        "0xfffffff0086f22a8"
+      ]
+    },
+    "0xfffffff0076bb268": {
+      "id": "panic (vararg)",
+      "to": "0xfffffff0076a972c",
+      "provider": "kernel",
+      "how": "符号 _panic；入口骨架前12条一致",
+      "target_symbols": [
+        "_panic"
+      ],
+      "call_sites": [
+        "0xfffffff0086f0534",
+        "0xfffffff0086f073c",
+        "0xfffffff0086f1b14"
+      ]
+    },
+    "0xfffffff007b2c1b8": {
+      "id": "kernel_debug(debugid,arg1,arg2,arg3,arg4,arg5)",
+      "to": "0xfffffff007491bbc",
+      "provider": "kernel",
+      "how": "12/13 入口均从 tpidr_el1 读取 thread id 放入 x5、x6=0，再进入相同五事件参数框架；13 thread id 偏移为 0x440。",
+      "target_symbols": [
+        "_kernel_debug"
+      ],
+      "call_sites": [
+        "0xfffffff0086f6750",
+        "0xfffffff0086f68a0",
+        "0xfffffff0086f697c",
+        "0xfffffff0086f6a00",
+        "0xfffffff0086f6c30",
+        "0xfffffff0086f6e48",
+        "0xfffffff0086f6f38",
+        "0xfffffff0086f6fc4",
+        "0xfffffff0086f70f8",
+        "0xfffffff0086f715c",
+        "0xfffffff0086f7208",
+        "0xfffffff0086f72dc",
+        "0xfffffff0086f73dc",
+        "0xfffffff0086f74bc",
+        "0xfffffff0086f7554",
+        "0xfffffff0086f75c0",
+        "0xfffffff0086f7638",
+        "0xfffffff0086f76e0",
+        "0xfffffff0086f773c",
+        "0xfffffff0086f77a4",
+        "0xfffffff0086f7848",
+        "0xfffffff0086f7a80",
+        "0xfffffff0086f7b38",
+        "0xfffffff0086f7c34",
+        "0xfffffff0086f7cac",
+        "0xfffffff0086f7d20",
+        "0xfffffff0086f7dc0",
+        "0xfffffff0086f8028",
+        "0xfffffff0086f80a8",
+        "0xfffffff0086f80e0",
+        "0xfffffff0086f8218",
+        "0xfffffff0086f8384",
+        "0xfffffff0086f83e4",
+        "0xfffffff0086f938c",
+        "0xfffffff0086f949c"
+      ]
+    },
+    "0xfffffff007bc8178": {
+      "id": "snprintf(buffer,size,format,...)",
+      "to": "0xfffffff0074f5b58",
+      "provider": "kernel",
+      "how": "24 条主体保持相同栈变参、字符回调和结尾 NUL 写入；调用现场 buffer=sp+8、size=32、format=%s-intmic。",
+      "target_symbols": [
+        "_snprintf"
+      ],
+      "call_sites": [
+        "0xfffffff0086eff90",
+        "0xfffffff0086f0000"
+      ]
+    },
+    "0xfffffff007cb0d60": {
+      "id": "OSMetaClass::OSMetaClass(this,name,super,size)",
+      "to": "0xfffffff0075b846c",
+      "provider": "kernel",
+      "how": "符号 __ZN11OSMetaClassC2EPKcPKS_j + GOT；骨架一致",
+      "target_symbols": [
+        "__ZN11OSMetaClassC2EPKcPKS_j"
+      ],
+      "call_sites": [
+        "0xfffffff0086f5514",
+        "0xfffffff0086f65d4",
+        "0xfffffff0086f6604",
+        "0xfffffff0086f95fc",
+        "0xfffffff0086f9628",
+        "0xfffffff0086f9654",
+        "0xfffffff0086f9684"
+      ]
+    },
+    "0xfffffff007cb0ee0": {
+      "id": "OSMetaClassBase::_ptmf2ptf",
+      "to": "0xfffffff0075b85dc",
+      "provider": "kernel",
+      "how": "唯一屏蔽匹配，完整 5 条指令一致；音频把直接回调地址放入 x1、x2=0，返回值传事件源工厂。",
+      "target_symbols": [
+        "__ZN15OSMetaClassBase9_ptmf2ptfEPKS_MS_FvvEm"
+      ],
+      "call_sites": [
+        "0xfffffff0086efe14",
+        "0xfffffff0086f01a4",
+        "0xfffffff0086f66c0",
+        "0xfffffff0086f6d8c",
+        "0xfffffff0086f6e9c",
+        "0xfffffff0086f7240"
+      ]
+    },
+    "0xfffffff007cb0ef4": {
+      "id": "OSMetaClassBase::safeMetaCast(obj,meta)",
+      "to": "0xfffffff0075b85f0",
+      "provider": "kernel",
+      "how": "符号 __ZN15OSMetaClassBase12safeMetaCastEPKS_PK11OSMetaClass；骨架 19/19",
+      "target_symbols": [
+        "__ZN15OSMetaClassBase12safeMetaCastEPKS_PK11OSMetaClass"
+      ],
+      "call_sites": [
+        "0xfffffff0086effac",
+        "0xfffffff0086f001c",
+        "0xfffffff0086f0174",
+        "0xfffffff0086f4e24",
+        "0xfffffff0086f5104",
+        "0xfffffff0086f6cf4",
+        "0xfffffff0086f7d88",
+        "0xfffffff0086f7f94",
+        "0xfffffff0086f85b0",
+        "0xfffffff0086f8ca4",
+        "0xfffffff0086f8ce4"
+      ]
+    },
+    "0xfffffff007cb1a68": {
+      "id": "OSMetaClass::~OSMetaClass (D2)",
+      "to": "0xfffffff0075b8c30",
+      "provider": "kernel",
+      "how": "符号 __ZN11OSMetaClassD2Ev；骨架一致",
+      "target_symbols": [
+        "__ZN11OSMetaClassD2Ev"
+      ],
+      "call_sites": [
+        "0xfffffff0086efd38",
+        "0xfffffff0086f4d84",
+        "0xfffffff0086f5064",
+        "0xfffffff0086f5484",
+        "0xfffffff0086f54c8",
+        "0xfffffff0086f54d4",
+        "0xfffffff0086f6640",
+        "0xfffffff0086f664c",
+        "0xfffffff0086f665c",
+        "0xfffffff0086f6660",
+        "0xfffffff0086f814c",
+        "0xfffffff0086f815c",
+        "0xfffffff0086f8408",
+        "0xfffffff0086f95b0",
+        "0xfffffff0086f95c4",
+        "0xfffffff0086f95c8",
+        "0xfffffff0086f95cc",
+        "0xfffffff0086f96b4",
+        "0xfffffff0086f96c0",
+        "0xfffffff0086f96cc",
+        "0xfffffff0086f96dc"
+      ]
+    },
+    "0xfffffff007cb24b4": {
+      "id": "OSMetaClass::instanceConstructed() const",
+      "to": "0xfffffff0075b93c0",
+      "provider": "kernel",
+      "how": "符号 __ZNK11OSMetaClass19instanceConstructedEv；骨架 9/9",
+      "target_symbols": [
+        "__ZNK11OSMetaClass19instanceConstructedEv"
+      ],
+      "call_sites": [
+        "0xfffffff0086efda4",
+        "0xfffffff0086f00d0",
+        "0xfffffff0086f035c",
+        "0xfffffff0086f4df0",
+        "0xfffffff0086f50d0",
+        "0xfffffff0086f7b04",
+        "0xfffffff0086f8474"
+      ]
+    },
+    "0xfffffff007cb4a64": {
+      "id": "OSObject::operator delete(void*,size_t)",
+      "to": "0xfffffff0075baaa4",
+      "provider": "kernel",
+      "how": "符号 __ZN8OSObjectdlEPvm；骨架一致",
+      "target_symbols": [
+        "__ZN8OSObjectdlEPvm"
+      ],
+      "call_sites": [
+        "0xfffffff0086efd58",
+        "0xfffffff0086f4da4",
+        "0xfffffff0086f5084",
+        "0xfffffff0086f8428"
+      ]
+    },
+    "0xfffffff007cb4b54": {
+      "id": "OSObject::operator new(size_t)",
+      "to": "0xfffffff0075bab14",
+      "provider": "kernel",
+      "how": "符号 __ZN8OSObjectnwEm；骨架一致",
+      "target_symbols": [
+        "__ZN8OSObjectnwEm"
+      ],
+      "call_sites": [
+        "0xfffffff0086efd78",
+        "0xfffffff0086f00a4",
+        "0xfffffff0086f0330",
+        "0xfffffff0086f4dc4",
+        "0xfffffff0086f50a4",
+        "0xfffffff0086f7ad8",
+        "0xfffffff0086f8448"
+      ]
+    },
+    "0xfffffff007cb6534": {
+      "id": "OSArray::withCapacity(capacity)",
+      "to": "0xfffffff0075bbe50",
+      "provider": "kernel",
+      "how": "12 metaclass 初始化名为 OSArray；两版分配 0x28，调用 initWithCapacity（12 +0xc8 / 13 +0xd0），失败 release、成功返回对象。",
+      "target_symbols": [
+        "__ZN7OSArray12withCapacityEj"
+      ],
+      "call_sites": [
+        "0xfffffff0086f5268"
+      ],
+      "class_evidence": {
+        "source_meta": "0xfffffff008a5b698",
+        "source_vtable": "0xfffffff00749c388",
+        "name": "OSArray",
+        "initializer": "0xfffffff007cb60f4",
+        "target_vtable": "0xfffffff00709e288"
+      }
+    },
+    "0xfffffff007cb6630": {
+      "id": "OSArray::withObjects(objects,count,capacity)",
+      "to": "0xfffffff0075bbee8",
+      "provider": "kernel",
+      "how": "与 withCapacity 共用 OSArray vtable；三参数转交 initWithObjects（12 +0xd0 / 13 +0xd8）；调用现场为单个对象、count=1、capacity=0。",
+      "target_symbols": [
+        "__ZN7OSArray11withObjectsEPPK8OSObjectjj"
+      ],
+      "call_sites": [
+        "0xfffffff0086f3380",
+        "0xfffffff0086f33ec",
+        "0xfffffff0086f3508",
+        "0xfffffff0086f35ac",
+        "0xfffffff0086f35fc"
+      ],
+      "class_evidence": {
+        "source_meta": "0xfffffff008a5b698",
+        "source_vtable": "0xfffffff00749c388",
+        "name": "OSArray",
+        "initializer": "0xfffffff007cb60f4",
+        "target_vtable": "0xfffffff00709e288"
+      }
+    },
+    "0xfffffff007cb920c": {
+      "id": "OSCollectionIterator::withCollection",
+      "to": "0xfffffff0075bd720",
+      "provider": "kernel",
+      "how": "12 metaclass 初始化名为 OSCollectionIterator；两版分配 0x28、用 collection 调 initWithCollection（12 +0x88 / 13 +0x90）。",
+      "target_symbols": [
+        "__ZN20OSCollectionIterator14withCollectionEPK12OSCollection"
+      ],
+      "call_sites": [
+        "0xfffffff0086f7f5c",
+        "0xfffffff0086f8c7c"
+      ],
+      "class_evidence": {
+        "source_meta": "0xfffffff008a5b710",
+        "source_vtable": "0xfffffff00749c810",
+        "name": "OSCollectionIterator",
+        "initializer": "0xfffffff007cb8dcc",
+        "target_vtable": "0xfffffff00709e740"
+      }
+    },
+    "0xfffffff007cd9b1c": {
+      "id": "OSNumber::withNumber(value,bits)",
+      "to": "0xfffffff0075d5a44",
+      "provider": "kernel",
+      "how": "12 metaclass 初始化名为 OSNumber；两版分配 0x18、保留 value 与 bits，调用 init(value,bits)（12 +0x70 / 13 +0x78）；音频 bits=64。",
+      "target_symbols": [
+        "__ZN8OSNumber10withNumberEyj"
+      ],
+      "call_sites": [
+        "0xfffffff0086f5294",
+        "0xfffffff0086f5560",
+        "0xfffffff0086f5578",
+        "0xfffffff0086f5588",
+        "0xfffffff0086f559c"
+      ],
+      "class_evidence": {
+        "source_meta": "0xfffffff008a5b808",
+        "source_vtable": "0xfffffff00749d140",
+        "name": "OSNumber",
+        "initializer": "0xfffffff007cd96dc",
+        "target_vtable": "0xfffffff00709f1a0"
+      }
+    },
+    "0xfffffff007cdbfc4": {
+      "id": "operator new[](size_t)",
+      "to": "0xfffffff0075d773c",
+      "provider": "kernel",
+      "how": "28 条主体逐段对应，size=0 时统一分配 1 字节，kalloc 后记账并清零；源镜像前一组 0x7cdbf10/0x7cdbf84 是标量 new/delete。",
+      "target_symbols": [
+        "__Znam"
+      ],
+      "call_sites": [
+        "0xfffffff0086f4b14"
+      ]
+    },
+    "0xfffffff007cdc034": {
+      "id": "operator delete[](void*)",
+      "to": "0xfffffff0075d77ac",
+      "provider": "kernel",
+      "how": "完整入口对应：空指针直接返回，读取分配大小、扣除同一计数器、尾跳释放；与 0x7cdbfc4 数组分配器配对。",
+      "target_symbols": [
+        "__ZdaPv"
+      ],
+      "call_sites": [
+        "0xfffffff0086f4c0c"
+      ]
+    },
+    "0xfffffff007ce343c": {
+      "id": "OSSymbol::withCString",
+      "to": "0xfffffff0075dc0f0",
+      "provider": "kernel",
+      "how": "锁住符号表查找、创建 OSSymbol、复制字符串再插入表；12 调 0x7cdff94（分配 length+1 并 memcpy），13 调 OSString::initWithCString=0x75da12c。",
+      "target_symbols": [
+        "__ZN8OSSymbol11withCStringEPKc"
+      ],
+      "call_sites": [
+        "0xfffffff0086f5530",
+        "0xfffffff0086f5544"
+      ]
+    },
+    "0xfffffff007cecc44": {
+      "id": "_os_log_internal(dso,log,type,format,...)",
+      "to": "0xfffffff0075e3394",
+      "provider": "kernel",
+      "how": "调用现场均为 Mach header、os_log、type、format 与栈变参；13 包装把 log/type/format/va_list 转交 0x75e33d8，保留空串检查、0x500 过滤和日志默认对象判断。",
+      "target_symbols": [
+        "__os_log_internal"
+      ],
+      "call_sites": [
+        "0xfffffff0086f2b88",
+        "0xfffffff0086f4c00",
+        "0xfffffff0086f6918",
+        "0xfffffff0086f6a30",
+        "0xfffffff0086f6c7c",
+        "0xfffffff0086f7eb8",
+        "0xfffffff0086f85a0",
+        "0xfffffff0086f8690",
+        "0xfffffff0086f8714",
+        "0xfffffff0086f88cc",
+        "0xfffffff0086f894c",
+        "0xfffffff0086f8a1c",
+        "0xfffffff0086f8ae8",
+        "0xfffffff0086f8c00",
+        "0xfffffff0086f8e34"
+      ]
+    },
+    "0xfffffff007cfc4b4": {
+      "id": "IOSleep(milliseconds)",
+      "to": "0xfffffff0075f82e4",
+      "provider": "kernel",
+      "how": "两版完整 3 条包装一致：w1=1000000 后尾跳 delay_for_interval；13 直接入口为 0x75f82e4，尾跳 0x70efbc8。",
+      "target_symbols": [
+        "_IOSleep"
+      ],
+      "call_sites": [
+        "0xfffffff0086f0570",
+        "0xfffffff0086f676c"
+      ]
+    },
+    "0xfffffff007cfc594": {
+      "id": "IOLog(fmt,...)",
+      "to": "0xfffffff0075f830c",
+      "provider": "kernel",
+      "how": "符号 _IOLog；调用现场 26 处、格式串+压栈变参",
+      "target_symbols": [
+        "_IOLog"
+      ],
+      "call_sites": [
+        "0xfffffff0086f2bac",
+        "0xfffffff0086f6954",
+        "0xfffffff0086f6a3c",
+        "0xfffffff0086f6ca0",
+        "0xfffffff0086f7f08",
+        "0xfffffff0086f86bc",
+        "0xfffffff0086f873c",
+        "0xfffffff0086f8978",
+        "0xfffffff0086f8a44",
+        "0xfffffff0086f8c30"
+      ]
+    },
+    "0xfffffff007d1d688": {
+      "id": "IOService::isInactive",
+      "to": "0xfffffff00761118c",
+      "provider": "kernel",
+      "how": "完整 8 条一致，唯一虚槽变化 12 +0x290 / 13 +0x298；返回 getState() & 1。",
+      "target_symbols": [
+        "__ZNK9IOService10isInactiveEv"
+      ],
+      "call_sites": [
+        "0xfffffff0086f93b8"
+      ]
+    },
+    "0xfffffff007d33210": {
+      "id": "IOService::registerInterestedDriver",
+      "to": "0xfffffff007622518",
+      "provider": "kernel",
+      "how": "两版检查 PM 字段 +0x68/+0x60/+0x38、锁 +0xd8、创建 capacity=4 的 OSSet 放入 +0x238、把 interested driver 加入集合。",
+      "target_symbols": [
+        "__ZN9IOService24registerInterestedDriverEPS_"
+      ],
+      "call_sites": [
+        "0xfffffff0086f8a7c"
+      ]
+    },
+    "0xfffffff007d33474": {
+      "id": "IOService::deRegisterInterestedDriver",
+      "to": "0xfffffff0076226ac",
+      "provider": "kernel",
+      "how": "与注册函数相同 PM 结构与锁；从 +0x238 集合移除 driver，并遍历 +0x38 下的 powerInformee 列表。音频传对象+0x198 作 driver。",
+      "target_symbols": [
+        "__ZN9IOService26deRegisterInterestedDriverEPS_"
+      ],
+      "call_sites": [
+        "0xfffffff0086f8d48"
+      ]
+    },
+    "0xfffffff007d336c8": {
+      "id": "IOService::acknowledgePowerChange",
+      "to": "0xfffffff007622828",
+      "provider": "kernel",
+      "how": "唯一前 24 条屏蔽匹配；参数 driver 被 retain 后存入 PM 请求+0x68，请求类型 0x81，返回值保持 IOReturn。",
+      "target_symbols": [
+        "__ZN9IOService22acknowledgePowerChangeEPS_"
+      ],
+      "call_sites": [
+        "0xfffffff0086f6e54",
+        "0xfffffff0086f8d98"
+      ]
+    },
+    "0xfffffff007d44cb0": {
+      "id": "IOWorkLoop::workLoop",
+      "to": "0xfffffff00762bb60",
+      "provider": "kernel",
+      "how": "12 metaclass 初始化名为 IOWorkLoop；两版分配 0x48、调用 init（12 +0x60 / 13 +0x68），失败 release。",
+      "target_symbols": [
+        "__ZN10IOWorkLoop8workLoopEv"
+      ],
+      "call_sites": [
+        "0xfffffff0086f66a8"
+      ],
+      "class_evidence": {
+        "source_meta": "0xfffffff008a5c6d0",
+        "source_vtable": "0xfffffff0074a1198",
+        "name": "IOWorkLoop",
+        "initializer": "0xfffffff007d44870",
+        "target_vtable": "0xfffffff0070a4098"
+      }
+    },
+    "0xfffffff007d4747c": {
+      "id": "IOInterruptEventSource::interruptEventSource(owner,action,provider,index)",
+      "to": "0xfffffff00762d298",
+      "provider": "kernel",
+      "how": "12 metaclass 初始化名为 IOInterruptEventSource；分配 0x68，四参数按原顺序调用 init（12 +0xd0 / 13 +0xd8）；音频 provider 与 index=0 对应。",
+      "target_symbols": [
+        "__ZN22IOInterruptEventSource20interruptEventSourceEP8OSObjectPFvS1_PS_iEP9IOServicei"
+      ],
+      "call_sites": [
+        "0xfffffff0086efe28"
+      ],
+      "class_evidence": {
+        "source_meta": "0xfffffff008a5c720",
+        "source_vtable": "0xfffffff0074a14c8",
+        "name": "IOInterruptEventSource",
+        "initializer": "0xfffffff007d46fe0",
+        "target_vtable": "0xfffffff0070a43e8"
+      }
+    },
+    "0xfffffff007d4e390": {
+      "id": "IOTimerEventSource::timerEventSource(owner,action)",
+      "to": "0xfffffff007631490",
+      "provider": "kernel",
+      "how": "12 metaclass 初始化名为 IOTimerEventSource；分配 0x60，固定 options=1 并转交 owner/action 调 init（12 +0x138 / 13 +0x140）。",
+      "target_symbols": [
+        "__ZN18IOTimerEventSource16timerEventSourceEP8OSObjectPFvS1_PS_E"
+      ],
+      "call_sites": [
+        "0xfffffff0086f01b0",
+        "0xfffffff0086f66cc"
+      ],
+      "class_evidence": {
+        "source_meta": "0xfffffff008a5c810",
+        "source_vtable": "0xfffffff0074a1e30",
+        "name": "IOTimerEventSource",
+        "initializer": "0xfffffff007d4dc5c",
+        "target_vtable": "0xfffffff0070a4db0"
+      }
+    },
+    "0xfffffff007e6caa0": {
+      "id": "AppleARMPlatform::getFunction",
+      "to": "0xfffffff005fbe7ac",
+      "provider": "com.apple.driver.AppleARMPlatform",
+      "how": "完整 20 条屏蔽匹配；按 name 查对象并调用虚槽 +0x28。",
+      "target_symbols": [],
+      "call_sites": [
+        "0xfffffff0086eff3c"
+      ]
+    },
+    "0xfffffff007e6f5e0": {
+      "id": "AppleARMIISDevice factory(service,provider)",
+      "to": "0xfffffff005fc19c4",
+      "provider": "com.apple.driver.AppleARMPlatform",
+      "how": "两版分配 0xc0、调用 IOService::C2(meta)、写 AppleARMIISDevice vtable、调用 instanceConstructed；service/provider 保持两参数顺序，init 虚槽 12 +0x538 / 13 +0x540。",
+      "target_symbols": [],
+      "call_sites": [
+        "0xfffffff0086f8834"
+      ],
+      "class_evidence": {
+        "source_meta": "0xfffffff008a5e668",
+        "source_vtable": "0xfffffff0074d3b10",
+        "name": "AppleARMIISDevice",
+        "initializer": "0xfffffff007e70a98",
+        "target_meta": "0xfffffff0077f0530",
+        "target_vtable": "0xfffffff006dce530",
+        "target_initializer": "0xfffffff005fc313c"
+      }
+    }
+  },
+  "map": {
+    "0xfffffff007671510": "0xfffffff0070b5510",
+    "0xfffffff007671740": "0xfffffff0070b5740",
+    "0xfffffff007680650": "0xfffffff0070c4650",
+    "0xfffffff0076b4890": "0xfffffff0070efa7c",
+    "0xfffffff0076b4c08": "0xfffffff0070efd64",
+    "0xfffffff0076bb268": "0xfffffff0076a972c",
+    "0xfffffff007b2c1b8": "0xfffffff007491bbc",
+    "0xfffffff007bc8178": "0xfffffff0074f5b58",
+    "0xfffffff007cb0d60": "0xfffffff0075b846c",
+    "0xfffffff007cb0ee0": "0xfffffff0075b85dc",
+    "0xfffffff007cb0ef4": "0xfffffff0075b85f0",
+    "0xfffffff007cb1a68": "0xfffffff0075b8c30",
+    "0xfffffff007cb24b4": "0xfffffff0075b93c0",
+    "0xfffffff007cb4a64": "0xfffffff0075baaa4",
+    "0xfffffff007cb4b54": "0xfffffff0075bab14",
+    "0xfffffff007cb6534": "0xfffffff0075bbe50",
+    "0xfffffff007cb6630": "0xfffffff0075bbee8",
+    "0xfffffff007cb920c": "0xfffffff0075bd720",
+    "0xfffffff007cd9b1c": "0xfffffff0075d5a44",
+    "0xfffffff007cdbfc4": "0xfffffff0075d773c",
+    "0xfffffff007cdc034": "0xfffffff0075d77ac",
+    "0xfffffff007ce343c": "0xfffffff0075dc0f0",
+    "0xfffffff007cecc44": "0xfffffff0075e3394",
+    "0xfffffff007cfc4b4": "0xfffffff0075f82e4",
+    "0xfffffff007cfc594": "0xfffffff0075f830c",
+    "0xfffffff007d1d688": "0xfffffff00761118c",
+    "0xfffffff007d33210": "0xfffffff007622518",
+    "0xfffffff007d33474": "0xfffffff0076226ac",
+    "0xfffffff007d336c8": "0xfffffff007622828",
+    "0xfffffff007d44cb0": "0xfffffff00762bb60",
+    "0xfffffff007d4747c": "0xfffffff00762d298",
+    "0xfffffff007d4e390": "0xfffffff007631490",
+    "0xfffffff007e6caa0": "0xfffffff005fbe7ac",
+    "0xfffffff007e6f5e0": "0xfffffff005fc19c4"
+  },
+  "unresolved": [],
+  "iosleep": {
+    "source": "0xfffffff007cfc4b4",
+    "target": "0xfffffff0075f82e4",
+    "scale": 1000000,
+    "source_delay": "0xfffffff0076b4a5c",
+    "target_delay": "0xfffffff0070efbc8"
+  },
+  "data_globals": {
+    "0xfffffff008a5b95c": {
+      "id": "_os_log_default",
+      "kind": "address",
+      "to": "0xfffffff007733414",
+      "target_symbol": "__os_log_default",
+      "reference_pcs": [
+        "0xfffffff0086f2b78",
+        "0xfffffff0086f4bf0",
+        "0xfffffff0086f6908",
+        "0xfffffff0086f6a20",
+        "0xfffffff0086f6c6c",
+        "0xfffffff0086f7ea8",
+        "0xfffffff0086f8590",
+        "0xfffffff0086f8680",
+        "0xfffffff0086f8704",
+        "0xfffffff0086f88bc",
+        "0xfffffff0086f893c",
+        "0xfffffff0086f8a0c",
+        "0xfffffff0086f8ad8",
+        "0xfffffff0086f8bf0",
+        "0xfffffff0086f8e24"
+      ],
+      "how": "音频以此地址作为 _os_log_internal 的 log 参数。12 的 0x7cecc30 与 13 的 _os_log_create=0x75e3388 各用三指令返回默认日志对象地址。"
+    },
+    "0xfffffff008a12080": {
+      "id": "__stack_chk_guard",
+      "kind": "value_address",
+      "to": "0xfffffff0076eb000",
+      "target_symbol": "___stack_chk_guard",
+      "reference_pcs": [
+        "0xfffffff0086efe00",
+        "0xfffffff0086f01f8",
+        "0xfffffff0086f07c8",
+        "0xfffffff0086f282c",
+        "0xfffffff0086f2efc",
+        "0xfffffff0086f3020",
+        "0xfffffff0086f3348",
+        "0xfffffff0086f3420",
+        "0xfffffff0086f3774",
+        "0xfffffff0086f38b0",
+        "0xfffffff0086f38e0",
+        "0xfffffff0086f3920",
+        "0xfffffff0086f3948",
+        "0xfffffff0086f3fd0",
+        "0xfffffff0086f4150",
+        "0xfffffff0086f43dc",
+        "0xfffffff0086f4438",
+        "0xfffffff0086f4588",
+        "0xfffffff0086f4a48",
+        "0xfffffff0086f6714",
+        "0xfffffff0086f698c",
+        "0xfffffff0086f72a0",
+        "0xfffffff0086f74cc"
+      ],
+      "how": "音频从此地址读取 64 位 stack guard；13 导出 ___stack_chk_guard=0x76eb000。"
+    },
+    "0xfffffff00749c928": {
+      "id": "OSData::metaClass pointer",
+      "kind": "metaclass_pointer_slot",
+      "source_pointee": "0xfffffff008a5b738",
+      "target_pointee": "0xfffffff0077331f0",
+      "target_gmeta_symbol": "__ZN6OSData10gMetaClassE",
+      "target_existing_pointer_slot": "0xfffffff00709e868",
+      "reference_pcs": [
+        "0xfffffff0086eff5c",
+        "0xfffffff0086f7f78"
+      ],
+      "source_class_initializer": "0xfffffff007cba6d0",
+      "how": "旧 RO 槽指向 OSData 的 gMetaClass；名称由源 OSMetaClass 初始化实参确认，13 原生 metaClass 指针槽读回同一目标 gMetaClass。",
+      "resolution": "在注入 RO 段写入 target_pointee，并把旧 LDR 槽地址映射到新槽。"
+    },
+    "0xfffffff00749d120": {
+      "id": "OSNumber::metaClass pointer",
+      "kind": "metaclass_pointer_slot",
+      "source_pointee": "0xfffffff008a5b808",
+      "target_pointee": "0xfffffff0077332c0",
+      "target_gmeta_symbol": "__ZN8OSNumber10gMetaClassE",
+      "target_existing_pointer_slot": "0xfffffff00709f180",
+      "reference_pcs": [
+        "0xfffffff0086f8c9c"
+      ],
+      "source_class_initializer": "0xfffffff007cd96dc",
+      "how": "旧 RO 槽指向 OSNumber 的 gMetaClass；名称由源 OSMetaClass 初始化实参确认，13 原生 metaClass 指针槽读回同一目标 gMetaClass。",
+      "resolution": "在注入 RO 段写入 target_pointee，并把旧 LDR 槽地址映射到新槽。"
+    },
+    "0xfffffff00749dea8": {
+      "id": "IORegistryEntry::metaClass pointer",
+      "kind": "metaclass_pointer_slot",
+      "source_pointee": "0xfffffff008a5c098",
+      "target_pointee": "0xfffffff007733c40",
+      "target_gmeta_symbol": "__ZN15IORegistryEntry10gMetaClassE",
+      "target_existing_pointer_slot": "0xfffffff0070a0648",
+      "reference_pcs": [
+        "0xfffffff0086f85cc"
+      ],
+      "source_class_initializer": "0xfffffff007d08c28",
+      "how": "旧 RO 槽指向 IORegistryEntry 的 gMetaClass；名称由源 OSMetaClass 初始化实参确认，13 原生 metaClass 指针槽读回同一目标 gMetaClass。",
+      "resolution": "在注入 RO 段写入 target_pointee，并把旧 LDR 槽地址映射到新槽。"
+    }
+  }
+}

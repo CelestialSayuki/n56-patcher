@@ -1,0 +1,692 @@
+{
+  "start": "0xfffffff0086efd38",
+  "size": 39392,
+  "instructions": 9739,
+  "external_branches": [
+    {
+      "target": "0xfffffff007671510",
+      "call_sites": [
+        "0xfffffff0086f4ca0",
+        "0xfffffff0086f4d20",
+        "0xfffffff0086f6ab8"
+      ],
+      "provider": "kernel"
+    },
+    {
+      "target": "0xfffffff007671740",
+      "call_sites": [
+        "0xfffffff0086f4ce0"
+      ],
+      "provider": "kernel",
+      "existing_mapping": {
+        "id": "memset",
+        "to": "0xfffffff0070b5740",
+        "how": "\u7b26\u53f7 _memset\uff1b\u9aa8\u67b6 30/30"
+      }
+    },
+    {
+      "target": "0xfffffff007680650",
+      "call_sites": [
+        "0xfffffff0086f0224",
+        "0xfffffff0086f285c",
+        "0xfffffff0086f3044",
+        "0xfffffff0086f3444",
+        "0xfffffff0086f38c8",
+        "0xfffffff0086f39c4",
+        "0xfffffff0086f417c",
+        "0xfffffff0086f4554",
+        "0xfffffff0086f4a7c",
+        "0xfffffff0086f6cb8",
+        "0xfffffff0086f74f8"
+      ],
+      "provider": "kernel",
+      "existing_mapping": {
+        "id": "__stack_chk_fail\uff1a\u4ee5 'Kernel stack memory corruption detected' panic",
+        "to": "0xfffffff0070c4650",
+        "how": "\u7b26\u53f7 ___stack_chk_fail\uff1bpanic \u4e32\u4e0e xnu \u539f\u6587\u4e00\u81f4\uff0c\u8bed\u4e49\u7b49\u4ef7"
+      }
+    },
+    {
+      "target": "0xfffffff0076b4890",
+      "call_sites": [
+        "0xfffffff0086f22e0",
+        "0xfffffff0086f2998"
+      ],
+      "provider": "kernel"
+    },
+    {
+      "target": "0xfffffff0076b4c08",
+      "call_sites": [
+        "0xfffffff0086f22a8"
+      ],
+      "provider": "kernel"
+    },
+    {
+      "target": "0xfffffff0076bb268",
+      "call_sites": [
+        "0xfffffff0086f0534",
+        "0xfffffff0086f073c",
+        "0xfffffff0086f1b14"
+      ],
+      "provider": "kernel",
+      "existing_mapping": {
+        "id": "panic (vararg)",
+        "to": "0xfffffff0076a972c",
+        "how": "\u7b26\u53f7 _panic\uff1b\u5165\u53e3\u9aa8\u67b6\u524d12\u6761\u4e00\u81f4"
+      }
+    },
+    {
+      "target": "0xfffffff007b2c1b8",
+      "call_sites": [
+        "0xfffffff0086f6750",
+        "0xfffffff0086f68a0",
+        "0xfffffff0086f697c",
+        "0xfffffff0086f6a00",
+        "0xfffffff0086f6c30",
+        "0xfffffff0086f6e48",
+        "0xfffffff0086f6f38",
+        "0xfffffff0086f6fc4",
+        "0xfffffff0086f70f8",
+        "0xfffffff0086f715c",
+        "0xfffffff0086f7208",
+        "0xfffffff0086f72dc",
+        "0xfffffff0086f73dc",
+        "0xfffffff0086f74bc",
+        "0xfffffff0086f7554",
+        "0xfffffff0086f75c0",
+        "0xfffffff0086f7638",
+        "0xfffffff0086f76e0",
+        "0xfffffff0086f773c",
+        "0xfffffff0086f77a4",
+        "0xfffffff0086f7848",
+        "0xfffffff0086f7a80",
+        "0xfffffff0086f7b38",
+        "0xfffffff0086f7c34",
+        "0xfffffff0086f7cac",
+        "0xfffffff0086f7d20",
+        "0xfffffff0086f7dc0",
+        "0xfffffff0086f8028",
+        "0xfffffff0086f80a8",
+        "0xfffffff0086f80e0",
+        "0xfffffff0086f8218",
+        "0xfffffff0086f8384",
+        "0xfffffff0086f83e4",
+        "0xfffffff0086f938c",
+        "0xfffffff0086f949c"
+      ],
+      "provider": "kernel"
+    },
+    {
+      "target": "0xfffffff007bc8178",
+      "call_sites": [
+        "0xfffffff0086eff90",
+        "0xfffffff0086f0000"
+      ],
+      "provider": "kernel"
+    },
+    {
+      "target": "0xfffffff007cb0d60",
+      "call_sites": [
+        "0xfffffff0086f5514",
+        "0xfffffff0086f65d4",
+        "0xfffffff0086f6604",
+        "0xfffffff0086f95fc",
+        "0xfffffff0086f9628",
+        "0xfffffff0086f9654",
+        "0xfffffff0086f9684"
+      ],
+      "provider": "kernel",
+      "existing_mapping": {
+        "id": "OSMetaClass::OSMetaClass(this,name,super,size)",
+        "to": "0xfffffff0075b846c",
+        "how": "\u7b26\u53f7 __ZN11OSMetaClassC2EPKcPKS_j + GOT\uff1b\u9aa8\u67b6\u4e00\u81f4"
+      }
+    },
+    {
+      "target": "0xfffffff007cb0ee0",
+      "call_sites": [
+        "0xfffffff0086efe14",
+        "0xfffffff0086f01a4",
+        "0xfffffff0086f66c0",
+        "0xfffffff0086f6d8c",
+        "0xfffffff0086f6e9c",
+        "0xfffffff0086f7240"
+      ],
+      "provider": "kernel"
+    },
+    {
+      "target": "0xfffffff007cb0ef4",
+      "call_sites": [
+        "0xfffffff0086effac",
+        "0xfffffff0086f001c",
+        "0xfffffff0086f0174",
+        "0xfffffff0086f4e24",
+        "0xfffffff0086f5104",
+        "0xfffffff0086f6cf4",
+        "0xfffffff0086f7d88",
+        "0xfffffff0086f7f94",
+        "0xfffffff0086f85b0",
+        "0xfffffff0086f8ca4",
+        "0xfffffff0086f8ce4"
+      ],
+      "provider": "kernel",
+      "existing_mapping": {
+        "id": "OSMetaClassBase::safeMetaCast(obj,meta)",
+        "to": "0xfffffff0075b85f0",
+        "how": "\u7b26\u53f7 __ZN15OSMetaClassBase12safeMetaCastEPKS_PK11OSMetaClass\uff1b\u9aa8\u67b6 19/19"
+      }
+    },
+    {
+      "target": "0xfffffff007cb1a68",
+      "call_sites": [
+        "0xfffffff0086efd38",
+        "0xfffffff0086f4d84",
+        "0xfffffff0086f5064",
+        "0xfffffff0086f5484",
+        "0xfffffff0086f54c8",
+        "0xfffffff0086f54d4",
+        "0xfffffff0086f6640",
+        "0xfffffff0086f664c",
+        "0xfffffff0086f665c",
+        "0xfffffff0086f6660",
+        "0xfffffff0086f814c",
+        "0xfffffff0086f815c",
+        "0xfffffff0086f8408",
+        "0xfffffff0086f95b0",
+        "0xfffffff0086f95c4",
+        "0xfffffff0086f95c8",
+        "0xfffffff0086f95cc",
+        "0xfffffff0086f96b4",
+        "0xfffffff0086f96c0",
+        "0xfffffff0086f96cc",
+        "0xfffffff0086f96dc"
+      ],
+      "provider": "kernel",
+      "existing_mapping": {
+        "id": "OSMetaClass::~OSMetaClass (D2)",
+        "to": "0xfffffff0075b8c30",
+        "how": "\u7b26\u53f7 __ZN11OSMetaClassD2Ev\uff1b\u9aa8\u67b6\u4e00\u81f4"
+      }
+    },
+    {
+      "target": "0xfffffff007cb24b4",
+      "call_sites": [
+        "0xfffffff0086efda4",
+        "0xfffffff0086f00d0",
+        "0xfffffff0086f035c",
+        "0xfffffff0086f4df0",
+        "0xfffffff0086f50d0",
+        "0xfffffff0086f7b04",
+        "0xfffffff0086f8474"
+      ],
+      "provider": "kernel",
+      "existing_mapping": {
+        "id": "OSMetaClass::instanceConstructed() const",
+        "to": "0xfffffff0075b93c0",
+        "how": "\u7b26\u53f7 __ZNK11OSMetaClass19instanceConstructedEv\uff1b\u9aa8\u67b6 9/9"
+      }
+    },
+    {
+      "target": "0xfffffff007cb4a64",
+      "call_sites": [
+        "0xfffffff0086efd58",
+        "0xfffffff0086f4da4",
+        "0xfffffff0086f5084",
+        "0xfffffff0086f8428"
+      ],
+      "provider": "kernel",
+      "existing_mapping": {
+        "id": "OSObject::operator delete(void*,size_t)",
+        "to": "0xfffffff0075baaa4",
+        "how": "\u7b26\u53f7 __ZN8OSObjectdlEPvm\uff1b\u9aa8\u67b6\u4e00\u81f4"
+      }
+    },
+    {
+      "target": "0xfffffff007cb4b54",
+      "call_sites": [
+        "0xfffffff0086efd78",
+        "0xfffffff0086f00a4",
+        "0xfffffff0086f0330",
+        "0xfffffff0086f4dc4",
+        "0xfffffff0086f50a4",
+        "0xfffffff0086f7ad8",
+        "0xfffffff0086f8448"
+      ],
+      "provider": "kernel",
+      "existing_mapping": {
+        "id": "OSObject::operator new(size_t)",
+        "to": "0xfffffff0075bab14",
+        "how": "\u7b26\u53f7 __ZN8OSObjectnwEm\uff1b\u9aa8\u67b6\u4e00\u81f4"
+      }
+    },
+    {
+      "target": "0xfffffff007cb6534",
+      "call_sites": [
+        "0xfffffff0086f5268"
+      ],
+      "provider": "kernel"
+    },
+    {
+      "target": "0xfffffff007cb6630",
+      "call_sites": [
+        "0xfffffff0086f3380",
+        "0xfffffff0086f33ec",
+        "0xfffffff0086f3508",
+        "0xfffffff0086f35ac",
+        "0xfffffff0086f35fc"
+      ],
+      "provider": "kernel"
+    },
+    {
+      "target": "0xfffffff007cb920c",
+      "call_sites": [
+        "0xfffffff0086f7f5c",
+        "0xfffffff0086f8c7c"
+      ],
+      "provider": "kernel"
+    },
+    {
+      "target": "0xfffffff007cd9b1c",
+      "call_sites": [
+        "0xfffffff0086f5294",
+        "0xfffffff0086f5560",
+        "0xfffffff0086f5578",
+        "0xfffffff0086f5588",
+        "0xfffffff0086f559c"
+      ],
+      "provider": "kernel"
+    },
+    {
+      "target": "0xfffffff007cdbfc4",
+      "call_sites": [
+        "0xfffffff0086f4b14"
+      ],
+      "provider": "kernel"
+    },
+    {
+      "target": "0xfffffff007cdc034",
+      "call_sites": [
+        "0xfffffff0086f4c0c"
+      ],
+      "provider": "kernel"
+    },
+    {
+      "target": "0xfffffff007ce343c",
+      "call_sites": [
+        "0xfffffff0086f5530",
+        "0xfffffff0086f5544"
+      ],
+      "provider": "kernel"
+    },
+    {
+      "target": "0xfffffff007cecc44",
+      "call_sites": [
+        "0xfffffff0086f2b88",
+        "0xfffffff0086f4c00",
+        "0xfffffff0086f6918",
+        "0xfffffff0086f6a30",
+        "0xfffffff0086f6c7c",
+        "0xfffffff0086f7eb8",
+        "0xfffffff0086f85a0",
+        "0xfffffff0086f8690",
+        "0xfffffff0086f8714",
+        "0xfffffff0086f88cc",
+        "0xfffffff0086f894c",
+        "0xfffffff0086f8a1c",
+        "0xfffffff0086f8ae8",
+        "0xfffffff0086f8c00",
+        "0xfffffff0086f8e34"
+      ],
+      "provider": "kernel"
+    },
+    {
+      "target": "0xfffffff007cfc4b4",
+      "call_sites": [
+        "0xfffffff0086f0570",
+        "0xfffffff0086f676c"
+      ],
+      "provider": "kernel"
+    },
+    {
+      "target": "0xfffffff007cfc594",
+      "call_sites": [
+        "0xfffffff0086f2bac",
+        "0xfffffff0086f6954",
+        "0xfffffff0086f6a3c",
+        "0xfffffff0086f6ca0",
+        "0xfffffff0086f7f08",
+        "0xfffffff0086f86bc",
+        "0xfffffff0086f873c",
+        "0xfffffff0086f8978",
+        "0xfffffff0086f8a44",
+        "0xfffffff0086f8c30"
+      ],
+      "provider": "kernel",
+      "existing_mapping": {
+        "id": "IOLog(fmt,...)",
+        "to": "0xfffffff0075f830c",
+        "how": "\u7b26\u53f7 _IOLog\uff1b\u8c03\u7528\u73b0\u573a 26 \u5904\u3001\u683c\u5f0f\u4e32+\u538b\u6808\u53d8\u53c2"
+      }
+    },
+    {
+      "target": "0xfffffff007d1d688",
+      "call_sites": [
+        "0xfffffff0086f93b8"
+      ],
+      "provider": "kernel"
+    },
+    {
+      "target": "0xfffffff007d33210",
+      "call_sites": [
+        "0xfffffff0086f8a7c"
+      ],
+      "provider": "kernel"
+    },
+    {
+      "target": "0xfffffff007d33474",
+      "call_sites": [
+        "0xfffffff0086f8d48"
+      ],
+      "provider": "kernel"
+    },
+    {
+      "target": "0xfffffff007d336c8",
+      "call_sites": [
+        "0xfffffff0086f6e54",
+        "0xfffffff0086f8d98"
+      ],
+      "provider": "kernel"
+    },
+    {
+      "target": "0xfffffff007d44cb0",
+      "call_sites": [
+        "0xfffffff0086f66a8"
+      ],
+      "provider": "kernel"
+    },
+    {
+      "target": "0xfffffff007d4747c",
+      "call_sites": [
+        "0xfffffff0086efe28"
+      ],
+      "provider": "kernel"
+    },
+    {
+      "target": "0xfffffff007d4e390",
+      "call_sites": [
+        "0xfffffff0086f01b0",
+        "0xfffffff0086f66cc"
+      ],
+      "provider": "kernel"
+    },
+    {
+      "target": "0xfffffff007e6caa0",
+      "call_sites": [
+        "0xfffffff0086eff3c"
+      ],
+      "provider": "com.apple.driver.AppleARMPlatform",
+      "existing_mapping": {
+        "id": "getFunction(this,name)\uff1a\u6309\u540d\u67e5\u5bf9\u8c61\u3001\u8c03\u5176\u865a\u8868+0x28",
+        "to": "0xfffffff005fbe7ac",
+        "how": "AppleARMPlatform \u5185\u7ed3\u6784\u5b9a\u4f4d\uff1b\u9aa8\u67b6 20/20"
+      }
+    },
+    {
+      "target": "0xfffffff007e6f5e0",
+      "call_sites": [
+        "0xfffffff0086f8834"
+      ],
+      "provider": "com.apple.driver.AppleARMPlatform"
+    },
+    {
+      "target": "0xfffffff00801afb4",
+      "call_sites": [
+        "0xfffffff0086f2f90"
+      ],
+      "provider": "com.apple.iokit.IOAudio2Family"
+    },
+    {
+      "target": "0xfffffff00801b148",
+      "call_sites": [
+        "0xfffffff0086f336c",
+        "0xfffffff0086f33b4",
+        "0xfffffff0086f33d4",
+        "0xfffffff0086f34f4",
+        "0xfffffff0086f3598",
+        "0xfffffff0086f35e8"
+      ],
+      "provider": "com.apple.iokit.IOAudio2Family"
+    },
+    {
+      "target": "0xfffffff00801b274",
+      "call_sites": [
+        "0xfffffff0086f2fd4"
+      ],
+      "provider": "com.apple.iokit.IOAudio2Family"
+    },
+    {
+      "target": "0xfffffff00801b598",
+      "call_sites": [
+        "0xfffffff0086f2fa0"
+      ],
+      "provider": "com.apple.iokit.IOAudio2Family"
+    },
+    {
+      "target": "0xfffffff00801ba40",
+      "call_sites": [
+        "0xfffffff0086f2fe0"
+      ],
+      "provider": "com.apple.iokit.IOAudio2Family"
+    },
+    {
+      "target": "0xfffffff00801e52c",
+      "call_sites": [
+        "0xfffffff0086f7aec",
+        "0xfffffff0086f845c"
+      ],
+      "provider": "com.apple.iokit.AppleARMIISAudio"
+    },
+    {
+      "target": "0xfffffff00801e554",
+      "call_sites": [
+        "0xfffffff0086f8410",
+        "0xfffffff0086f841c"
+      ],
+      "provider": "com.apple.iokit.AppleARMIISAudio"
+    },
+    {
+      "target": "0xfffffff008022c34",
+      "call_sites": [
+        "0xfffffff0086f0bcc"
+      ],
+      "provider": "com.apple.iokit.AppleARMIISAudio"
+    },
+    {
+      "target": "0xfffffff00802b474",
+      "call_sites": [
+        "0xfffffff0086f40d8"
+      ],
+      "provider": "com.apple.driver.AppleEmbeddedAudio"
+    },
+    {
+      "target": "0xfffffff00802b4cc",
+      "call_sites": [
+        "0xfffffff0086f0710"
+      ],
+      "provider": "com.apple.driver.AppleEmbeddedAudio"
+    },
+    {
+      "target": "0xfffffff00802c228",
+      "call_sites": [
+        "0xfffffff0086f369c",
+        "0xfffffff0086f36fc"
+      ],
+      "provider": "com.apple.driver.AppleEmbeddedAudio"
+    },
+    {
+      "target": "0xfffffff00802c84c",
+      "call_sites": [
+        "0xfffffff0086f00e8",
+        "0xfffffff0086f0b94"
+      ],
+      "provider": "com.apple.driver.AppleEmbeddedAudio"
+    },
+    {
+      "target": "0xfffffff00802cbf8",
+      "call_sites": [
+        "0xfffffff0086f007c",
+        "0xfffffff0086f0090"
+      ],
+      "provider": "com.apple.driver.AppleEmbeddedAudio"
+    },
+    {
+      "target": "0xfffffff00802cd8c",
+      "call_sites": [
+        "0xfffffff0086f07d8",
+        "0xfffffff0086f0804"
+      ],
+      "provider": "com.apple.driver.AppleEmbeddedAudio"
+    },
+    {
+      "target": "0xfffffff00802ce04",
+      "call_sites": [
+        "0xfffffff0086f07e8",
+        "0xfffffff0086f0814"
+      ],
+      "provider": "com.apple.driver.AppleEmbeddedAudio"
+    },
+    {
+      "target": "0xfffffff00802ce90",
+      "call_sites": [
+        "0xfffffff0086f0cbc",
+        "0xfffffff0086f128c"
+      ],
+      "provider": "com.apple.driver.AppleEmbeddedAudio"
+    },
+    {
+      "target": "0xfffffff00802d8c4",
+      "call_sites": [
+        "0xfffffff0086f4a98",
+        "0xfffffff0086f4ab4",
+        "0xfffffff0086f53f4",
+        "0xfffffff0086f5434",
+        "0xfffffff0086f5460"
+      ],
+      "provider": "com.apple.driver.AppleEmbeddedAudio"
+    },
+    {
+      "target": "0xfffffff00802fc14",
+      "call_sites": [
+        "0xfffffff0086efd8c"
+      ],
+      "provider": "com.apple.driver.AppleEmbeddedAudio"
+    },
+    {
+      "target": "0xfffffff00802fc38",
+      "call_sites": [
+        "0xfffffff0086efd40",
+        "0xfffffff0086efd4c"
+      ],
+      "provider": "com.apple.driver.AppleEmbeddedAudio"
+    },
+    {
+      "target": "0xfffffff008034a34",
+      "call_sites": [
+        "0xfffffff0086f38a0",
+        "0xfffffff0086f39bc"
+      ],
+      "provider": "com.apple.driver.AppleEmbeddedAudio"
+    },
+    {
+      "target": "0xfffffff008041770",
+      "call_sites": [
+        "0xfffffff0086f26c4",
+        "0xfffffff0086f2db4"
+      ],
+      "provider": "com.apple.driver.AppleCSEmbeddedAudio"
+    },
+    {
+      "target": "0xfffffff008041a08",
+      "call_sites": [
+        "0xfffffff0086f0784",
+        "0xfffffff0086f2ad8",
+        "0xfffffff0086f4e8c"
+      ],
+      "provider": "com.apple.driver.AppleCSEmbeddedAudio"
+    },
+    {
+      "target": "0xfffffff0080422b4",
+      "call_sites": [
+        "0xfffffff0086f2ae0"
+      ],
+      "provider": "com.apple.driver.AppleCSEmbeddedAudio"
+    },
+    {
+      "target": "0xfffffff008042c58",
+      "call_sites": [
+        "0xfffffff0086f0250"
+      ],
+      "provider": "com.apple.driver.AppleCSEmbeddedAudio"
+    },
+    {
+      "target": "0xfffffff00804370c",
+      "call_sites": [
+        "0xfffffff0086f0344",
+        "0xfffffff0086f4dd8"
+      ],
+      "provider": "com.apple.driver.AppleCSEmbeddedAudio"
+    },
+    {
+      "target": "0xfffffff008043730",
+      "call_sites": [
+        "0xfffffff0086f4d8c",
+        "0xfffffff0086f4d98"
+      ],
+      "provider": "com.apple.driver.AppleCSEmbeddedAudio"
+    },
+    {
+      "target": "0xfffffff008043a88",
+      "call_sites": [
+        "0xfffffff0086f0660"
+      ],
+      "provider": "com.apple.driver.AppleCSEmbeddedAudio"
+    },
+    {
+      "target": "0xfffffff008044084",
+      "call_sites": [
+        "0xfffffff0086f8168"
+      ],
+      "provider": "com.apple.iokit.IOMikeyBusFamily"
+    },
+    {
+      "target": "0xfffffff0080440a8",
+      "call_sites": [
+        "0xfffffff0086f8184"
+      ],
+      "provider": "com.apple.iokit.IOMikeyBusFamily"
+    },
+    {
+      "target": "0xfffffff008047dc0",
+      "call_sites": [
+        "0xfffffff0086f83a0"
+      ],
+      "provider": "com.apple.iokit.IOMikeyBusFamily"
+    },
+    {
+      "target": "0xfffffff008047fc0",
+      "call_sites": [
+        "0xfffffff0086f83ec"
+      ],
+      "provider": "com.apple.iokit.IOMikeyBusFamily"
+    },
+    {
+      "target": "0xfffffff00804a594",
+      "call_sites": [
+        "0xfffffff0086f532c",
+        "0xfffffff0086f5388",
+        "0xfffffff0086f8070"
+      ],
+      "provider": "com.apple.iokit.IOMikeyBusFamily"
+    }
+  ]
+}

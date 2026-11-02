@@ -1,0 +1,57 @@
+{
+  "com.apple.driver.AppleCSEmbeddedAudio": {
+    "requested": "1.1",
+    "present_in_current13": true,
+    "available_version": "436.20"
+  },
+  "com.apple.kpi.bsd": {
+    "requested": "8.0",
+    "present_in_current13": true,
+    "available_version": "19.6.0"
+  },
+  "com.apple.iokit.IOMikeyBusFamily": {
+    "requested": "1.0",
+    "present_in_current13": true,
+    "available_version": "1.0.0"
+  },
+  "com.apple.iokit.IOHIDFamily": {
+    "requested": "1.5",
+    "present_in_current13": true,
+    "available_version": "2.0.0"
+  },
+  "com.apple.kpi.iokit": {
+    "requested": "8.0",
+    "present_in_current13": true,
+    "available_version": "19.6.0"
+  },
+  "com.apple.kpi.libkern": {
+    "requested": "8.0",
+    "present_in_current13": true,
+    "available_version": "19.6.0"
+  },
+  "com.apple.kpi.mach": {
+    "requested": "8.0",
+    "present_in_current13": true,
+    "available_version": "19.6.0"
+  },
+  "com.apple.driver.AppleARMPlatform": {
+    "requested": "1.0",
+    "present_in_current13": true,
+    "available_version": "1.0.2"
+  },
+  "com.apple.iokit.AppleARMIISAudio": {
+    "requested": "1.0",
+    "present_in_current13": true,
+    "available_version": "80.26"
+  },
+  "com.apple.iokit.IOAudio2Family": {
+    "requested": "1.0",
+    "present_in_current13": true,
+    "available_version": "1.0"
+  },
+  "com.apple.driver.AppleEmbeddedAudio": {
+    "requested": "1.1.0",
+    "present_in_current13": true,
+    "available_version": "436.20"
+  }
+}

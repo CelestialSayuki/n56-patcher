@@ -1,0 +1,60 @@
+{
+ "note": "j96 \u4fa7\u5df2\u786e\u8ba4\u7684\u7b26\u53f7/\u951a\u70b9\u5730\u5740 (17H35)\u3002\u57fa\u7c7b vtable \u7b26\u53f7\u5730\u5740\u4e0e n66 \u76f8\u540c\u4f46\u5185\u5bb9(\u65b9\u6cd5\u6307\u9488)\u4e0d\u540c,\u987b\u6309\u7d22\u5f15\u6620\u5c04\u3002",
+ "base_vtables": {
+  "__ZTV9IOService": "0xfffffff0070a0c00",
+  "__ZTV8OSObject": "0xfffffff00709e150",
+  "__ZTV15OSMetaClassBase": "0xfffffff00709dfb0",
+  "__ZTV16AppleARMFunction": "0xfffffff006dcc500"
+ },
+ "kpi": {
+  "_IOLockAlloc": "0xfffffff0075f87d0",
+  "_IOLockFree": "0xfffffff0075f87e0",
+  "_lck_mtx_lock": "0xfffffff0071f3d24",
+  "_lck_mtx_unlock": "0xfffffff0071f4690",
+  "_PE_i_can_has_debugger": "0xfffffff00768d154",
+  "__ZN11OSMetaClassC2EPKcPKS_j": "0xfffffff0075b846c",
+  "__ZN11OSMetaClassD2Ev": "0xfffffff0075b8c30",
+  "__ZN15OSMetaClassBase12safeMetaCastEPKS_PK11OSMetaClass": "0xfffffff0075b85f0",
+  "__ZN6OSData9metaClassE": "0xfffffff00709e868",
+  "__ZN8OSObjectdlEPvm": "0xfffffff0075baaa4",
+  "__ZN8OSObjectnwEm": "0xfffffff0075bab14",
+  "__ZN9IOService10gMetaClassE": "0xfffffff007733d00",
+  "__ZN9IOServiceC2EPK11OSMetaClass": "0xfffffff007610a5c",
+  "__ZN9IOServiceD2Ev": "0xfffffff007610a8c",
+  "__ZNK11OSMetaClass19instanceConstructedEv": "0xfffffff0075b93c0",
+  "_kprintf": "0xfffffff00768d4a8",
+  "___cxa_pure_virtual": "0xfffffff0075d6e3c",
+  "__ZN8OSObject8DispatchE5IORPC": "0xfffffff0075ee654",
+  "__ZN15OSMetaClassBase8DispatchE5IORPC": "0xfffffff0076646d8",
+  "__ZNK11OSMetaClass7releaseEi": "0xfffffff0075b83e4",
+  "__ZN8OSObject10gMetaClassE": "0xfffffff007733128",
+  "_gIODTPHandleKey": "0xfffffff007733c18"
+ },
+ "AppleARMFunction": {
+  "metaclass_ctor": "0xfffffff005fbe4dc",
+  "object_ctor_C2": "0xfffffff005fbe50c",
+  "class_vtable": "0xfffffff006dcc500",
+  "metaclass_vtable": "0xfffffff006dcc5a0",
+  "osmetaclass_ctor_stub": "0xfffffff005febdd8",
+  "obj_ctor_inner": "0xfffffff005fec084",
+  "vtable_slot0": "0xfffffff005fbe508",
+  "vtable_slot1": "0xfffffff005fbf07c",
+  "TODO": [
+   "dtor D2 (n66 got11 0x602254c)",
+   "helper (n66 got9 0x6022680, reads gIODTPHandleKey)",
+   "gMetaClass instance (n66 got8 0x77ec3c8)"
+  ]
+ },
+ "kaslr": {
+  "table_in_file_at": "0x1f9f3e5",
+  "format": "[u32 count][count x u32]; offset base = 0xfffffff0059d8000 (__PRELINK_TEXT vm); slot=base+off holds abs ptr",
+  "count": 284581
+ },
+ "prelink_bases": {
+  "__PRELINK_TEXT_vm": "0xfffffff0059d8000",
+  "__PLK_TEXT_EXEC_vm": "0xfffffff005f1c000",
+  "__PLK_DATA_CONST_vm": "0xfffffff006da8000",
+  "__PRELINK_DATA_vm": "0xfffffff0077ec000",
+  "__PRELINK_INFO_foff": "0x1eb4000"
+ }
+}

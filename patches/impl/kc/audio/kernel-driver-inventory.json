@@ -1,0 +1,1768 @@
+{
+  "native12": {
+    "com.apple.driver.AppleEmbeddedAudio": {
+      "version": "432.70",
+      "dependencies": {
+        "com.apple.kpi.bsd": "8.0",
+        "com.apple.kpi.libkern": "8.0",
+        "com.apple.kpi.mach": "8.0",
+        "com.apple.iokit.IOHIDFamily": "1.5",
+        "com.apple.kpi.iokit": "8.0",
+        "com.apple.kpi.unsupported": "8.0",
+        "com.apple.driver.AppleARMPlatform": "1.0.0",
+        "com.apple.iokit.IOAudio2Family": "1.0",
+        "com.apple.iokit.AppleARMIISAudio": "1.0"
+      },
+      "personalities": {
+        "AppleTapAudio": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Tap",
+          "IONameMatch": "audio-data,audio-tap",
+          "device name": "Tap"
+        },
+        "AppleVoiceAudio": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Voice",
+          "IONameMatch": "audio-data,voice",
+          "device name": "Voice"
+        },
+        "AppleBasebandVoice": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleBasebandVoiceAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Baseband Voice",
+          "IONameMatch": "audio-data,baseband-voice",
+          "device name": "Baseband Voice"
+        },
+        "AppleHawkingAudio": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Hawking",
+          "IONameMatch": "audio-data,hawking",
+          "device name": "Hawking"
+        },
+        "AppleVirtualSecondary": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Virtual Secondary Device",
+          "IONameMatch": "audio-data,virtual-secondary",
+          "device name": "Virtual Secondary"
+        },
+        "AppleMikeyBusSecondaryAudio": {
+          "IOClass": "AppleSecondaryAudio",
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IONameMatch": "audio-data,mikeybus-secondary",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Mikeybus Secondary",
+          "device name": "Mikeybus Secondary"
+        },
+        "AppleLoopbackAudio": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Loopback",
+          "IONameMatch": "audio-data,audio-loopback",
+          "device name": "Loopback"
+        },
+        "AppleExternalAudio": {
+          "IOClass": "AppleExternalSecondaryAudio",
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IONameMatch": "audio-data,external",
+          "IOProviderClass": "AppleARMIISDevice"
+        },
+        "ApplePCA9539ADevice": {
+          "IOClass": "ApplePCA9539ADevice",
+          "IONameMatch": [
+            "gpio-expander,pca9539a"
+          ],
+          "IOProviderClass": "AppleARMIICDevice"
+        },
+        "AppleMaggieDebugAudio": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "MaggieDebug",
+          "IONameMatch": "audio-data,maggie-debug",
+          "device name": "MaggieDebug"
+        },
+        "AppleDSPDebug2": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "DSP Debug2",
+          "IONameMatch": "audio-data,dsp-debug2",
+          "device name": "DSP Debug2"
+        },
+        "AppleD2481Haptic": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleD2481SecondaryDevice",
+          "IOClass": "AppleD2481SecondaryDevice",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Actuator",
+          "IONameMatch": "audio-data,d2481hap",
+          "device name": "Actuator"
+        },
+        "AppleReferenceAudio": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Reference",
+          "IONameMatch": "audio-data,reference",
+          "device name": "Reference"
+        },
+        "AppleBasebandAudio": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleBasebandAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Baseband",
+          "IONameMatch": "audio-data,baseband",
+          "device name": "Baseband"
+        },
+        "AppleExtendedHapticDebug": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Extended Haptic Debug",
+          "IONameMatch": "audio-data,ext-haptic-debug",
+          "device name": "Extended Haptic Debug"
+        },
+        "AppleHapticDebug": {
+          "IOClass": "AppleSecondaryAudio",
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IONameMatch": "audio-data,haptic-debug",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Haptic Debug",
+          "device name": "Hapctic Debug"
+        },
+        "AppleHalogen": {
+          "IOClass": "AppleSecondaryAudio",
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IONameMatch": "audio-data,halogen",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Halogen",
+          "device name": "Halogen"
+        },
+        "AppleDSPDebug1": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "DSP Debug1",
+          "IONameMatch": "audio-data,dsp-debug1",
+          "device name": "DSP Debug1"
+        },
+        "AppleActuatorAudio": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IOClass": "AppleActuatorSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Actuator",
+          "IONameMatch": "audio-data,actuator",
+          "device name": "Actuator"
+        },
+        "AppleBluetoothVoice": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleBluetoothVoiceAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Bluetooth Voice",
+          "IONameMatch": "audio-data,bluetooth-voice",
+          "device name": "Bluetooth Voice"
+        }
+      },
+      "load": "0x0"
+    },
+    "com.apple.driver.AppleCSEmbeddedAudio": {
+      "version": "432.70",
+      "dependencies": {
+        "com.apple.kpi.bsd": "8.0",
+        "com.apple.kpi.libkern": "8.0",
+        "com.apple.kpi.mach": "8.0",
+        "com.apple.iokit.IOHIDFamily": "1.5",
+        "com.apple.kpi.iokit": "8.0",
+        "com.apple.driver.AppleARMPlatform": "1.0.0",
+        "com.apple.iokit.IOAudio2Family": "1.0",
+        "com.apple.driver.AppleEmbeddedAudio": "1.1",
+        "com.apple.iokit.AppleARMIISAudio": "1.0"
+      },
+      "personalities": {},
+      "load": "0x0"
+    },
+    "com.apple.iokit.IOMikeyBusFamily": {
+      "version": "1.0.0",
+      "dependencies": {
+        "com.apple.kpi.mach": "8.0",
+        "com.apple.kpi.libkern": "8.0",
+        "com.apple.iokit.IOAccessoryManager": "1.0.0",
+        "com.apple.iokit.IOHIDFamily": "2.0.0",
+        "com.apple.kpi.iokit": "8.0",
+        "com.apple.kpi.unsupported": "8.0",
+        "com.apple.driver.AppleARMPlatform": "1.0.0"
+      },
+      "personalities": {
+        "IOMikeyBusHIDDevice": {
+          "IOClass": "IOMikeyBusHIDDevice",
+          "IOMikeyBusMatchFunctionGroupType": 6,
+          "HIDDefaultBehavior": "",
+          "IOProviderClass": "IOMikeyBusFunctionGroup"
+        },
+        "IOMikeyBusEAInterface": {
+          "IOClass": "IOMikeyBusEAInterface",
+          "IOMikeyBusMatchFunctionGroupType": 5,
+          "IOProviderClass": "IOMikeyBusFunctionGroup"
+        }
+      },
+      "load": "0x0"
+    },
+    "com.apple.driver.AppleEmbeddedMikeyBus": {
+      "version": "1.0.0d1",
+      "dependencies": {
+        "com.apple.kpi.bsd": "8.0",
+        "com.apple.iokit.IOAccessoryManager": "1.0.0",
+        "com.apple.driver.AppleTriStar": "1.0.0",
+        "com.apple.driver.AppleARMPlatform": "1.0.0",
+        "com.apple.driver.AppleCSEmbeddedAudio": "1.1",
+        "com.apple.kpi.unsupported": "8.0",
+        "com.apple.kpi.iokit": "8.0",
+        "com.apple.iokit.IOAudio2Family": "1.0",
+        "com.apple.kpi.mach": "8.0",
+        "com.apple.iokit.IOHIDFamily": "2.0.0",
+        "com.apple.iokit.IOMikeyBusFamily": "1.0.0",
+        "com.apple.kpi.libkern": "8.0"
+      },
+      "personalities": {
+        "hydra": {
+          "IOName": "tristar",
+          "compatible": "l21-tristar,cbtl1612",
+          "IOProviderClass": "AppleCSI2CController",
+          "IOClass": "AppleCSI2CDevice",
+          "TriStarICClass": "AppleCBTL1612",
+          "OTPI2CMatch": 4,
+          "reg": "b'\\x1a\\x00\\x00\\x00\\xc4\\t\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00'"
+        },
+        "AppleCS46L21Dock9Pin": {
+          "IOClass": "AppleCS46L21Dock9Pin",
+          "IONameMatch": [
+            "l21-tristar,cbtl1608",
+            "l21-tristar,cbtl1610",
+            "l21-tristar,cbtl1612"
+          ],
+          "IOProviderClass": "AppleARMIICDevice"
+        },
+        "authcp": {
+          "IOClass": "AppleCSI2CDevice",
+          "IOName": "authcp",
+          "IOProviderClass": "AppleCSI2CController",
+          "OTPI2CMatch": 0,
+          "reg": "b'\\x10\\x00\\x00\\x00\\xc4\\t\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00'",
+          "compatible": "authcp,2c"
+        },
+        "AppleCS46L21Device": {
+          "IOClass": "AppleCS46L21Device",
+          "IOMikeyBusMatchDeviceClass": 3,
+          "IOMikeyBusMatchDeviceAnyConfiguration": true,
+          "IOMikeyBusMatchDeviceSubclass": 1,
+          "IOProbeScore": 1000,
+          "IOProviderClass": "IOMikeyBusDevice"
+        },
+        "tristar": {
+          "IOName": "tristar",
+          "compatible": "l21-tristar,cbtl1608",
+          "IOProviderClass": "AppleCSI2CController",
+          "IOClass": "AppleCSI2CDevice",
+          "TriStarICClass": "AppleTHS7383",
+          "OTPI2CMatch": 1,
+          "reg": "b'\\x1a\\x00\\x00\\x00\\xc4\\t\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00'"
+        },
+        "AppleCS46L21IDBD": {
+          "IOClass": "AppleCS46L21IDBD",
+          "IOProviderClass": "IOAccessoryIDBusBulkDataEndpoint",
+          "IOProbeScore": 1000,
+          "IOAccessoryIDBusBulkDataEndpointFunction": 3
+        },
+        "tristar2": {
+          "IOName": "tristar",
+          "compatible": "l21-tristar,cbtl1610",
+          "IOProviderClass": "AppleCSI2CController",
+          "IOClass": "AppleCSI2CDevice",
+          "TriStarICClass": "AppleCBTL1610",
+          "OTPI2CMatch": 2,
+          "reg": "b'\\x1a\\x00\\x00\\x00\\xc4\\t\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00'"
+        }
+      },
+      "load": "0x0"
+    },
+    "com.apple.driver.AppleMikeyBusAudio": {
+      "version": "1.0.0",
+      "dependencies": {
+        "com.apple.kpi.bsd": "8.0",
+        "com.apple.iokit.IOAccessoryManager": "1.0.0",
+        "com.apple.driver.AppleARMPlatform": "1.0.0",
+        "com.apple.kpi.unsupported": "8.0",
+        "com.apple.driver.AppleCSEmbeddedAudio": "1.1",
+        "com.apple.kpi.iokit": "8.0",
+        "com.apple.iokit.IOAudio2Family": "1.0",
+        "com.apple.driver.AppleEmbeddedAudio": "1.1",
+        "com.apple.kpi.mach": "8.0",
+        "com.apple.iokit.IOHIDFamily": "2.0.0",
+        "com.apple.iokit.IOMikeyBusFamily": "1.0.0",
+        "com.apple.driver.AppleEmbeddedMikeyBus": "1.0.0d1",
+        "com.apple.kpi.libkern": "8.0"
+      },
+      "personalities": {
+        "AppleCS46L04Device": {
+          "IOClass": "AppleCS46L0xDevice",
+          "IOMikeyBusMatchDeviceClass": 2,
+          "IOMikeyBusMatchDeviceAnyConfiguration": true,
+          "IOMikeyBusMatchDeviceSubclass": 3,
+          "IOProbeScore": 1000,
+          "IOProviderClass": "IOMikeyBusDevice"
+        },
+        "AppleCS46L07Device": {
+          "IOClass": "AppleCS46L0xDevice",
+          "IOMikeyBusMatchDeviceClass": 2,
+          "IOMikeyBusMatchDeviceAnyConfiguration": true,
+          "IOMikeyBusMatchDeviceSubclass": 6,
+          "IOProviderClass": "IOMikeyBusDevice",
+          "MaxHPGain": [
+            {
+              "MaxdB_Generic": 2,
+              "ProductID": 442,
+              "EU_Compliant": false
+            },
+            {
+              "MaxdB_Generic": 1,
+              "ProductID": 442,
+              "EU_Compliant": true
+            }
+          ]
+        },
+        "temperature": {
+          "IOClass": "AppleCSI2CDevice",
+          "IOName": "tmp103",
+          "IOProviderClass": "AppleCSI2CController",
+          "OTPI2CMatch": 3,
+          "reg": "b'p\\x00\\x00\\x00\\xc4\\t\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00'",
+          "compatible": "temperature,tmp103"
+        },
+        "AppleCS46L05Device": {
+          "IOMikeyBusMatchDeviceSubclass": 4,
+          "IOProbeScore": 1001,
+          "IOProviderClass": "IOMikeyBusDevice",
+          "IOClass": "AppleCS46L0xDevice",
+          "MaxHPGain": [
+            {
+              "MaxdB_Generic": 2,
+              "ProductID": 204,
+              "EU_Compliant": false
+            },
+            {
+              "MaxdB_Generic": 1,
+              "ProductID": 225,
+              "EU_Compliant": false
+            },
+            {
+              "MaxdB_Generic": 1,
+              "ProductID": 204,
+              "EU_Compliant": true
+            },
+            {
+              "MaxdB_Generic": 1,
+              "ProductID": 225,
+              "EU_Compliant": true
+            }
+          ],
+          "IOMikeyBusMatchDeviceClass": 2,
+          "IOMikeyBusMatchDeviceAnyConfiguration": true
+        }
+      },
+      "load": "0x0"
+    },
+    "com.apple.driver.AppleCS42L67Audio": {
+      "version": "432.70",
+      "dependencies": {
+        "com.apple.driver.AppleCSEmbeddedAudio": "1.1",
+        "com.apple.kpi.bsd": "8.0",
+        "com.apple.iokit.IOMikeyBusFamily": "1.0",
+        "com.apple.iokit.IOHIDFamily": "1.5",
+        "com.apple.kpi.iokit": "8.0",
+        "com.apple.kpi.libkern": "8.0",
+        "com.apple.kpi.mach": "8.0",
+        "com.apple.driver.AppleARMPlatform": "1.0",
+        "com.apple.iokit.AppleARMIISAudio": "1.0",
+        "com.apple.iokit.IOAudio2Family": "1.0",
+        "com.apple.driver.AppleEmbeddedAudio": "1.1.0"
+      },
+      "personalities": {
+        "AppleCS42L67Audio": {
+          "IOClass": "AppleCS42L67Audio",
+          "IONameMatch": [
+            "audio-control,cs42l67"
+          ],
+          "IOProviderClass": "AppleARMSPIDevice"
+        }
+      },
+      "load": "0x0"
+    }
+  },
+  "ipad13": {
+    "com.apple.driver.AppleEmbeddedAudioLibs": {
+      "version": "1.12",
+      "dependencies": {
+        "com.apple.kpi.mach": "8.0",
+        "com.apple.kpi.libkern": "8.0",
+        "com.apple.kpi.bsd": "8.0",
+        "com.apple.kpi.iokit": "8.0",
+        "com.apple.driver.AppleFirmwareUpdateKext": "1.0",
+        "com.apple.driver.AppleARMPlatform": "1.0.0",
+        "com.apple.kpi.unsupported": "8.0"
+      },
+      "personalities": {},
+      "load": "0xfffffff005a3df00"
+    },
+    "com.apple.driver.AppleEmbeddedAudio": {
+      "version": "436.20",
+      "dependencies": {
+        "com.apple.kpi.bsd": "8.0",
+        "com.apple.driver.AppleEmbeddedAudioLibs": "1.0",
+        "com.apple.kpi.libkern": "8.0",
+        "com.apple.iokit.IOHIDFamily": "1.5",
+        "com.apple.kpi.iokit": "8.0",
+        "com.apple.kpi.mach": "8.0",
+        "com.apple.kpi.unsupported": "8.0",
+        "com.apple.driver.AppleARMPlatform": "1.0.0",
+        "com.apple.iokit.IOAudio2Family": "1.0",
+        "com.apple.iokit.AppleARMIISAudio": "1.0"
+      },
+      "personalities": {
+        "AppleTapAudio": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Tap",
+          "IONameMatch": "audio-data,audio-tap",
+          "device name": "Tap"
+        },
+        "AppleVoiceAudio": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Voice",
+          "IONameMatch": "audio-data,voice",
+          "device name": "Voice"
+        },
+        "AppleBasebandVoice": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleBasebandVoiceAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Baseband Voice",
+          "IONameMatch": "audio-data,baseband-voice",
+          "device name": "Baseband Voice"
+        },
+        "AppleHawkingAudio": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Hawking",
+          "IONameMatch": "audio-data,hawking",
+          "device name": "Hawking"
+        },
+        "AppleVirtualSecondary": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Virtual Secondary Device",
+          "IONameMatch": "audio-data,virtual-secondary",
+          "device name": "Virtual Secondary"
+        },
+        "AppleMikeyBusSecondaryAudio": {
+          "IOClass": "AppleSecondaryAudio",
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IONameMatch": "audio-data,mikeybus-secondary",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Mikeybus Secondary",
+          "device name": "Mikeybus Secondary"
+        },
+        "AppleLoopbackAudio": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Loopback",
+          "IONameMatch": "audio-data,audio-loopback",
+          "device name": "Loopback"
+        },
+        "AppleExternalAudio": {
+          "IOClass": "AppleExternalSecondaryAudio",
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IONameMatch": "audio-data,external",
+          "IOProviderClass": "AppleARMIISDevice"
+        },
+        "ApplePCA9539ADevice": {
+          "IOClass": "ApplePCA9539ADevice",
+          "IONameMatch": [
+            "gpio-expander,pca9539a"
+          ],
+          "IOProviderClass": "AppleARMIICDevice"
+        },
+        "AppleMaggieDebugAudio": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "MaggieDebug",
+          "IONameMatch": "audio-data,maggie-debug",
+          "device name": "MaggieDebug"
+        },
+        "AppleDSPDebug2": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "DSP Debug2",
+          "IONameMatch": "audio-data,dsp-debug2",
+          "device name": "DSP Debug2"
+        },
+        "AppleD2481Haptic": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleD2481SecondaryDevice",
+          "IOClass": "AppleD2481SecondaryDevice",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Actuator",
+          "IONameMatch": "audio-data,d2481hap",
+          "device name": "Actuator"
+        },
+        "AppleReferenceAudio": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Reference",
+          "IONameMatch": "audio-data,reference",
+          "device name": "Reference"
+        },
+        "AppleBasebandAudio": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleBasebandAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Baseband",
+          "IONameMatch": "audio-data,baseband",
+          "device name": "Baseband"
+        },
+        "AppleHapticDebug": {
+          "IOClass": "AppleSecondaryAudio",
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IONameMatch": "audio-data,haptic-debug",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Haptic Debug",
+          "device name": "Hapctic Debug"
+        },
+        "AppleExtendedHapticDebug": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Extended Haptic Debug",
+          "IONameMatch": "audio-data,ext-haptic-debug",
+          "device name": "Extended Haptic Debug"
+        },
+        "AppleHalogen": {
+          "IOClass": "AppleSecondaryAudio",
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IONameMatch": "audio-data,halogen",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Halogen",
+          "device name": "Halogen"
+        },
+        "AppleDSPDebug1": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "DSP Debug1",
+          "IONameMatch": "audio-data,dsp-debug1",
+          "device name": "DSP Debug1"
+        },
+        "AppleCS42L83InputAudio": {
+          "IOClass": "AppleSecondaryAudio",
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IONameMatch": "audio-data,cs42l83-input",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Codec Input",
+          "device name": "CS42L83 Input"
+        },
+        "AppleActuatorAudio": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IOClass": "AppleActuatorSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Actuator",
+          "IONameMatch": "audio-data,actuator",
+          "device name": "Actuator"
+        },
+        "AppleBluetoothVoice": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleBluetoothVoiceAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Bluetooth Voice",
+          "IONameMatch": "audio-data,bluetooth-voice",
+          "device name": "Bluetooth Voice"
+        }
+      },
+      "load": "0xfffffff005a47140"
+    },
+    "com.apple.driver.AppleCSEmbeddedAudio": {
+      "version": "436.20",
+      "dependencies": {
+        "com.apple.kpi.bsd": "8.0",
+        "com.apple.kpi.libkern": "8.0",
+        "com.apple.kpi.mach": "8.0",
+        "com.apple.iokit.IOHIDFamily": "1.5",
+        "com.apple.kpi.iokit": "8.0",
+        "com.apple.driver.AppleARMPlatform": "1.0.0",
+        "com.apple.iokit.IOAudio2Family": "1.0",
+        "com.apple.driver.AppleEmbeddedAudio": "1.1",
+        "com.apple.iokit.AppleARMIISAudio": "1.0"
+      },
+      "personalities": {},
+      "load": "0xfffffff005a4d200"
+    },
+    "com.apple.iokit.IOMikeyBusFamily": {
+      "version": "1.0.0",
+      "dependencies": {
+        "com.apple.kpi.mach": "8.0",
+        "com.apple.kpi.libkern": "8.0",
+        "com.apple.iokit.IOAccessoryManager": "1.0.0",
+        "com.apple.iokit.IOHIDFamily": "2.0.0",
+        "com.apple.kpi.iokit": "8.0",
+        "com.apple.kpi.unsupported": "8.0",
+        "com.apple.driver.AppleARMPlatform": "1.0.0"
+      },
+      "personalities": {
+        "IOMikeyBusHIDDevice": {
+          "IOClass": "IOMikeyBusHIDDevice",
+          "IOMikeyBusMatchFunctionGroupType": 6,
+          "HIDDefaultBehavior": "",
+          "IOProviderClass": "IOMikeyBusFunctionGroup"
+        },
+        "IOMikeyBusEAInterface": {
+          "IOClass": "IOMikeyBusEAInterface",
+          "IOMikeyBusMatchFunctionGroupType": 5,
+          "IOProviderClass": "IOMikeyBusFunctionGroup"
+        }
+      },
+      "load": "0xfffffff005a5bfc0"
+    },
+    "com.apple.driver.AppleCS42L81Audio": {
+      "version": "436.20",
+      "dependencies": {
+        "com.apple.driver.AppleCSEmbeddedAudio": "1.1",
+        "com.apple.kpi.bsd": "8.0",
+        "com.apple.iokit.IOMikeyBusFamily": "1.0",
+        "com.apple.iokit.IOHIDFamily": "1.5",
+        "com.apple.kpi.iokit": "8.0",
+        "com.apple.kpi.libkern": "8.0",
+        "com.apple.kpi.mach": "8.0",
+        "com.apple.driver.AppleARMPlatform": "1.0",
+        "com.apple.iokit.AppleARMIISAudio": "1.0",
+        "com.apple.iokit.IOAudio2Family": "1.0",
+        "com.apple.driver.AppleEmbeddedAudio": "1.1.0"
+      },
+      "personalities": {
+        "AppleCS42L81Audio": {
+          "IOClass": "AppleCS42L81Audio",
+          "IONameMatch": [
+            "audio-control,cs42l81"
+          ],
+          "IOProviderClass": "AppleARMSPIDevice"
+        }
+      },
+      "load": "0xfffffff005a5e0c0"
+    },
+    "com.apple.driver.AppleEmbeddedMikeyBus": {
+      "version": "1.0.0d1",
+      "dependencies": {
+        "com.apple.kpi.bsd": "8.0",
+        "com.apple.iokit.IOAccessoryManager": "1.0.0",
+        "com.apple.driver.AppleTriStar": "1.0.0",
+        "com.apple.driver.AppleARMPlatform": "1.0.0",
+        "com.apple.driver.AppleCSEmbeddedAudio": "1.1",
+        "com.apple.kpi.unsupported": "8.0",
+        "com.apple.kpi.iokit": "8.0",
+        "com.apple.iokit.IOAudio2Family": "1.0",
+        "com.apple.kpi.mach": "8.0",
+        "com.apple.iokit.IOHIDFamily": "2.0.0",
+        "com.apple.iokit.IOMikeyBusFamily": "1.0.0",
+        "com.apple.kpi.libkern": "8.0"
+      },
+      "personalities": {
+        "hydra": {
+          "IOName": "tristar",
+          "compatible": "l21-tristar,cbtl1612",
+          "IOProviderClass": "AppleCSI2CController",
+          "IOClass": "AppleCSI2CDevice",
+          "TriStarICClass": "AppleCBTL1612",
+          "OTPI2CMatch": 4,
+          "reg": "b'\\x1a\\x00\\x00\\x00\\xc4\\t\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00'"
+        },
+        "AppleCS46L21Dock9Pin": {
+          "IOClass": "AppleCS46L21Dock9Pin",
+          "IONameMatch": [
+            "l21-tristar,cbtl1608",
+            "l21-tristar,cbtl1610",
+            "l21-tristar,cbtl1612"
+          ],
+          "IOProviderClass": "AppleARMIICDevice"
+        },
+        "authcp": {
+          "IOClass": "AppleCSI2CDevice",
+          "IOName": "authcp",
+          "IOProviderClass": "AppleCSI2CController",
+          "OTPI2CMatch": 0,
+          "reg": "b'\\x10\\x00\\x00\\x00\\xc4\\t\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00'",
+          "compatible": "authcp,2c"
+        },
+        "AppleCS46L21Device": {
+          "IOClass": "AppleCS46L21Device",
+          "IOMikeyBusMatchDeviceClass": 3,
+          "IOMikeyBusMatchDeviceAnyConfiguration": true,
+          "IOMikeyBusMatchDeviceSubclass": 1,
+          "IOProbeScore": 1000,
+          "IOProviderClass": "IOMikeyBusDevice"
+        },
+        "tristar": {
+          "IOName": "tristar",
+          "compatible": "l21-tristar,cbtl1608",
+          "IOProviderClass": "AppleCSI2CController",
+          "IOClass": "AppleCSI2CDevice",
+          "TriStarICClass": "AppleTHS7383",
+          "OTPI2CMatch": 1,
+          "reg": "b'\\x1a\\x00\\x00\\x00\\xc4\\t\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00'"
+        },
+        "AppleCS46L21IDBD": {
+          "IOClass": "AppleCS46L21IDBD",
+          "IOProviderClass": "IOAccessoryIDBusBulkDataEndpoint",
+          "IOProbeScore": 1000,
+          "IOAccessoryIDBusBulkDataEndpointFunction": 3
+        },
+        "tristar2": {
+          "IOName": "tristar",
+          "compatible": "l21-tristar,cbtl1610",
+          "IOProviderClass": "AppleCSI2CController",
+          "IOClass": "AppleCSI2CDevice",
+          "TriStarICClass": "AppleCBTL1610",
+          "OTPI2CMatch": 2,
+          "reg": "b'\\x1a\\x00\\x00\\x00\\xc4\\t\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00'"
+        }
+      },
+      "load": "0xfffffff005a98300"
+    },
+    "com.apple.driver.AppleMikeyBusAudio": {
+      "version": "2.35",
+      "dependencies": {
+        "com.apple.kpi.bsd": "8.0",
+        "com.apple.iokit.IOAccessoryManager": "1.0.0",
+        "com.apple.driver.AppleARMPlatform": "1.0.0",
+        "com.apple.kpi.unsupported": "8.0",
+        "com.apple.driver.AppleCSEmbeddedAudio": "1.1",
+        "com.apple.kpi.iokit": "8.0",
+        "com.apple.iokit.IOAudio2Family": "1.0",
+        "com.apple.driver.AppleEmbeddedAudio": "1.1",
+        "com.apple.kpi.mach": "8.0",
+        "com.apple.kpi.private": "8.0",
+        "com.apple.iokit.IOHIDFamily": "2.0.0",
+        "com.apple.iokit.IOMikeyBusFamily": "1.0.0",
+        "com.apple.driver.AppleEmbeddedMikeyBus": "1.0.0d1",
+        "com.apple.kpi.libkern": "8.0"
+      },
+      "personalities": {
+        "temperature": {
+          "IOClass": "AppleCSI2CDevice",
+          "IOName": "tmp103",
+          "IOProviderClass": "AppleCSI2CController",
+          "OTPI2CMatch": 3,
+          "reg": "b'p\\x00\\x00\\x00\\xc4\\t\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00'",
+          "compatible": "temperature,tmp103"
+        },
+        "AppleCS46L04Device": {
+          "IOClass": "AppleCS46L0xDevice",
+          "IOMikeyBusMatchDeviceClass": 2,
+          "IOMikeyBusMatchDeviceAnyConfiguration": true,
+          "IOMikeyBusMatchDeviceSubclass": 3,
+          "IOProbeScore": 1000,
+          "IOProviderClass": "IOMikeyBusDevice"
+        },
+        "AppleCS46L07Device": {
+          "IOClass": "AppleCS46L0xDevice",
+          "IOMikeyBusMatchDeviceClass": 2,
+          "IOMikeyBusMatchDeviceAnyConfiguration": true,
+          "IOMikeyBusMatchDeviceSubclass": 6,
+          "IOProviderClass": "IOMikeyBusDevice",
+          "MaxHPGain": [
+            {
+              "MaxdB_Generic": 2,
+              "ProductID": 442,
+              "EU_Compliant": false
+            },
+            {
+              "MaxdB_Generic": 1,
+              "ProductID": 442,
+              "EU_Compliant": true
+            }
+          ]
+        },
+        "AppleCS46L05Device": {
+          "IOMikeyBusMatchDeviceSubclass": 4,
+          "IOProbeScore": 1001,
+          "IOProviderClass": "IOMikeyBusDevice",
+          "IOClass": "AppleCS46L0xDevice",
+          "MaxHPGain": [
+            {
+              "MaxdB_Generic": 2,
+              "ProductID": 204,
+              "EU_Compliant": false
+            },
+            {
+              "MaxdB_Generic": 1,
+              "ProductID": 225,
+              "EU_Compliant": false
+            },
+            {
+              "MaxdB_Generic": 1,
+              "ProductID": 204,
+              "EU_Compliant": true
+            },
+            {
+              "MaxdB_Generic": 1,
+              "ProductID": 225,
+              "EU_Compliant": true
+            }
+          ],
+          "IOMikeyBusMatchDeviceClass": 2,
+          "IOMikeyBusMatchDeviceAnyConfiguration": true
+        }
+      },
+      "load": "0xfffffff005a9a400"
+    }
+  },
+  "n66_13": {
+    "com.apple.driver.AppleEmbeddedAudioLibs": {
+      "version": "1.12",
+      "dependencies": {
+        "com.apple.kpi.mach": "8.0",
+        "com.apple.kpi.libkern": "8.0",
+        "com.apple.kpi.bsd": "8.0",
+        "com.apple.kpi.iokit": "8.0",
+        "com.apple.driver.AppleFirmwareUpdateKext": "1.0",
+        "com.apple.driver.AppleARMPlatform": "1.0.0",
+        "com.apple.kpi.unsupported": "8.0"
+      },
+      "personalities": {},
+      "load": "0xfffffff005bfcec0"
+    },
+    "com.apple.driver.AppleEmbeddedAudio": {
+      "version": "436.20",
+      "dependencies": {
+        "com.apple.kpi.bsd": "8.0",
+        "com.apple.driver.AppleEmbeddedAudioLibs": "1.0",
+        "com.apple.kpi.libkern": "8.0",
+        "com.apple.iokit.IOHIDFamily": "1.5",
+        "com.apple.kpi.iokit": "8.0",
+        "com.apple.kpi.mach": "8.0",
+        "com.apple.kpi.unsupported": "8.0",
+        "com.apple.driver.AppleARMPlatform": "1.0.0",
+        "com.apple.iokit.IOAudio2Family": "1.0",
+        "com.apple.iokit.AppleARMIISAudio": "1.0"
+      },
+      "personalities": {
+        "AppleTapAudio": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Tap",
+          "IONameMatch": "audio-data,audio-tap",
+          "device name": "Tap"
+        },
+        "AppleVoiceAudio": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Voice",
+          "IONameMatch": "audio-data,voice",
+          "device name": "Voice"
+        },
+        "AppleBasebandVoice": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleBasebandVoiceAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Baseband Voice",
+          "IONameMatch": "audio-data,baseband-voice",
+          "device name": "Baseband Voice"
+        },
+        "AppleHawkingAudio": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Hawking",
+          "IONameMatch": "audio-data,hawking",
+          "device name": "Hawking"
+        },
+        "AppleVirtualSecondary": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Virtual Secondary Device",
+          "IONameMatch": "audio-data,virtual-secondary",
+          "device name": "Virtual Secondary"
+        },
+        "AppleMikeyBusSecondaryAudio": {
+          "IOClass": "AppleSecondaryAudio",
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IONameMatch": "audio-data,mikeybus-secondary",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Mikeybus Secondary",
+          "device name": "Mikeybus Secondary"
+        },
+        "AppleLoopbackAudio": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Loopback",
+          "IONameMatch": "audio-data,audio-loopback",
+          "device name": "Loopback"
+        },
+        "AppleExternalAudio": {
+          "IOClass": "AppleExternalSecondaryAudio",
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IONameMatch": "audio-data,external",
+          "IOProviderClass": "AppleARMIISDevice"
+        },
+        "ApplePCA9539ADevice": {
+          "IOClass": "ApplePCA9539ADevice",
+          "IONameMatch": [
+            "gpio-expander,pca9539a"
+          ],
+          "IOProviderClass": "AppleARMIICDevice"
+        },
+        "AppleMaggieDebugAudio": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "MaggieDebug",
+          "IONameMatch": "audio-data,maggie-debug",
+          "device name": "MaggieDebug"
+        },
+        "AppleDSPDebug2": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "DSP Debug2",
+          "IONameMatch": "audio-data,dsp-debug2",
+          "device name": "DSP Debug2"
+        },
+        "AppleD2481Haptic": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleD2481SecondaryDevice",
+          "IOClass": "AppleD2481SecondaryDevice",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Actuator",
+          "IONameMatch": "audio-data,d2481hap",
+          "device name": "Actuator"
+        },
+        "AppleReferenceAudio": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Reference",
+          "IONameMatch": "audio-data,reference",
+          "device name": "Reference"
+        },
+        "AppleBasebandAudio": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleBasebandAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Baseband",
+          "IONameMatch": "audio-data,baseband",
+          "device name": "Baseband"
+        },
+        "AppleHapticDebug": {
+          "IOClass": "AppleSecondaryAudio",
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IONameMatch": "audio-data,haptic-debug",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Haptic Debug",
+          "device name": "Hapctic Debug"
+        },
+        "AppleExtendedHapticDebug": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Extended Haptic Debug",
+          "IONameMatch": "audio-data,ext-haptic-debug",
+          "device name": "Extended Haptic Debug"
+        },
+        "AppleHalogen": {
+          "IOClass": "AppleSecondaryAudio",
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IONameMatch": "audio-data,halogen",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Halogen",
+          "device name": "Halogen"
+        },
+        "AppleDSPDebug1": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "DSP Debug1",
+          "IONameMatch": "audio-data,dsp-debug1",
+          "device name": "DSP Debug1"
+        },
+        "AppleCS42L83InputAudio": {
+          "IOClass": "AppleSecondaryAudio",
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IONameMatch": "audio-data,cs42l83-input",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Codec Input",
+          "device name": "CS42L83 Input"
+        },
+        "AppleActuatorAudio": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IOClass": "AppleActuatorSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Actuator",
+          "IONameMatch": "audio-data,actuator",
+          "device name": "Actuator"
+        },
+        "AppleBluetoothVoice": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleBluetoothVoiceAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Bluetooth Voice",
+          "IONameMatch": "audio-data,bluetooth-voice",
+          "device name": "Bluetooth Voice"
+        }
+      },
+      "load": "0xfffffff005c06100"
+    },
+    "com.apple.driver.AppleCSEmbeddedAudio": {
+      "version": "436.20",
+      "dependencies": {
+        "com.apple.kpi.bsd": "8.0",
+        "com.apple.kpi.libkern": "8.0",
+        "com.apple.kpi.mach": "8.0",
+        "com.apple.iokit.IOHIDFamily": "1.5",
+        "com.apple.kpi.iokit": "8.0",
+        "com.apple.driver.AppleARMPlatform": "1.0.0",
+        "com.apple.iokit.IOAudio2Family": "1.0",
+        "com.apple.driver.AppleEmbeddedAudio": "1.1",
+        "com.apple.iokit.AppleARMIISAudio": "1.0"
+      },
+      "personalities": {},
+      "load": "0xfffffff005c0c1c0"
+    },
+    "com.apple.iokit.IOMikeyBusFamily": {
+      "version": "1.0.0",
+      "dependencies": {
+        "com.apple.kpi.mach": "8.0",
+        "com.apple.kpi.libkern": "8.0",
+        "com.apple.iokit.IOAccessoryManager": "1.0.0",
+        "com.apple.iokit.IOHIDFamily": "2.0.0",
+        "com.apple.kpi.iokit": "8.0",
+        "com.apple.kpi.unsupported": "8.0",
+        "com.apple.driver.AppleARMPlatform": "1.0.0"
+      },
+      "personalities": {
+        "IOMikeyBusHIDDevice": {
+          "IOClass": "IOMikeyBusHIDDevice",
+          "IOMikeyBusMatchFunctionGroupType": 6,
+          "HIDDefaultBehavior": "",
+          "IOProviderClass": "IOMikeyBusFunctionGroup"
+        },
+        "IOMikeyBusEAInterface": {
+          "IOClass": "IOMikeyBusEAInterface",
+          "IOMikeyBusMatchFunctionGroupType": 5,
+          "IOProviderClass": "IOMikeyBusFunctionGroup"
+        }
+      },
+      "load": "0xfffffff005c0cdc0"
+    },
+    "com.apple.driver.AppleEmbeddedMikeyBus": {
+      "version": "1.0.0d1",
+      "dependencies": {
+        "com.apple.kpi.bsd": "8.0",
+        "com.apple.iokit.IOAccessoryManager": "1.0.0",
+        "com.apple.driver.AppleTriStar": "1.0.0",
+        "com.apple.driver.AppleARMPlatform": "1.0.0",
+        "com.apple.driver.AppleCSEmbeddedAudio": "1.1",
+        "com.apple.kpi.unsupported": "8.0",
+        "com.apple.kpi.iokit": "8.0",
+        "com.apple.iokit.IOAudio2Family": "1.0",
+        "com.apple.kpi.mach": "8.0",
+        "com.apple.iokit.IOHIDFamily": "2.0.0",
+        "com.apple.iokit.IOMikeyBusFamily": "1.0.0",
+        "com.apple.kpi.libkern": "8.0"
+      },
+      "personalities": {
+        "hydra": {
+          "IOName": "tristar",
+          "compatible": "l21-tristar,cbtl1612",
+          "IOProviderClass": "AppleCSI2CController",
+          "IOClass": "AppleCSI2CDevice",
+          "TriStarICClass": "AppleCBTL1612",
+          "OTPI2CMatch": 4,
+          "reg": "b'\\x1a\\x00\\x00\\x00\\xc4\\t\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00'"
+        },
+        "AppleCS46L21Dock9Pin": {
+          "IOClass": "AppleCS46L21Dock9Pin",
+          "IONameMatch": [
+            "l21-tristar,cbtl1608",
+            "l21-tristar,cbtl1610",
+            "l21-tristar,cbtl1612"
+          ],
+          "IOProviderClass": "AppleARMIICDevice"
+        },
+        "authcp": {
+          "IOClass": "AppleCSI2CDevice",
+          "IOName": "authcp",
+          "IOProviderClass": "AppleCSI2CController",
+          "OTPI2CMatch": 0,
+          "reg": "b'\\x10\\x00\\x00\\x00\\xc4\\t\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00'",
+          "compatible": "authcp,2c"
+        },
+        "AppleCS46L21Device": {
+          "IOClass": "AppleCS46L21Device",
+          "IOMikeyBusMatchDeviceClass": 3,
+          "IOMikeyBusMatchDeviceAnyConfiguration": true,
+          "IOMikeyBusMatchDeviceSubclass": 1,
+          "IOProbeScore": 1000,
+          "IOProviderClass": "IOMikeyBusDevice"
+        },
+        "tristar": {
+          "IOName": "tristar",
+          "compatible": "l21-tristar,cbtl1608",
+          "IOProviderClass": "AppleCSI2CController",
+          "IOClass": "AppleCSI2CDevice",
+          "TriStarICClass": "AppleTHS7383",
+          "OTPI2CMatch": 1,
+          "reg": "b'\\x1a\\x00\\x00\\x00\\xc4\\t\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00'"
+        },
+        "AppleCS46L21IDBD": {
+          "IOClass": "AppleCS46L21IDBD",
+          "IOProviderClass": "IOAccessoryIDBusBulkDataEndpoint",
+          "IOProbeScore": 1000,
+          "IOAccessoryIDBusBulkDataEndpointFunction": 3
+        },
+        "tristar2": {
+          "IOName": "tristar",
+          "compatible": "l21-tristar,cbtl1610",
+          "IOProviderClass": "AppleCSI2CController",
+          "IOClass": "AppleCSI2CDevice",
+          "TriStarICClass": "AppleCBTL1610",
+          "OTPI2CMatch": 2,
+          "reg": "b'\\x1a\\x00\\x00\\x00\\xc4\\t\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00'"
+        }
+      },
+      "load": "0xfffffff005c11a80"
+    },
+    "com.apple.driver.AppleMikeyBusAudio": {
+      "version": "2.35",
+      "dependencies": {
+        "com.apple.kpi.bsd": "8.0",
+        "com.apple.iokit.IOAccessoryManager": "1.0.0",
+        "com.apple.driver.AppleARMPlatform": "1.0.0",
+        "com.apple.kpi.unsupported": "8.0",
+        "com.apple.driver.AppleCSEmbeddedAudio": "1.1",
+        "com.apple.kpi.iokit": "8.0",
+        "com.apple.iokit.IOAudio2Family": "1.0",
+        "com.apple.driver.AppleEmbeddedAudio": "1.1",
+        "com.apple.kpi.mach": "8.0",
+        "com.apple.kpi.private": "8.0",
+        "com.apple.iokit.IOHIDFamily": "2.0.0",
+        "com.apple.iokit.IOMikeyBusFamily": "1.0.0",
+        "com.apple.driver.AppleEmbeddedMikeyBus": "1.0.0d1",
+        "com.apple.kpi.libkern": "8.0"
+      },
+      "personalities": {
+        "temperature": {
+          "IOClass": "AppleCSI2CDevice",
+          "IOName": "tmp103",
+          "IOProviderClass": "AppleCSI2CController",
+          "OTPI2CMatch": 3,
+          "reg": "b'p\\x00\\x00\\x00\\xc4\\t\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00'",
+          "compatible": "temperature,tmp103"
+        },
+        "AppleCS46L04Device": {
+          "IOClass": "AppleCS46L0xDevice",
+          "IOMikeyBusMatchDeviceClass": 2,
+          "IOMikeyBusMatchDeviceAnyConfiguration": true,
+          "IOMikeyBusMatchDeviceSubclass": 3,
+          "IOProbeScore": 1000,
+          "IOProviderClass": "IOMikeyBusDevice"
+        },
+        "AppleCS46L07Device": {
+          "IOClass": "AppleCS46L0xDevice",
+          "IOMikeyBusMatchDeviceClass": 2,
+          "IOMikeyBusMatchDeviceAnyConfiguration": true,
+          "IOMikeyBusMatchDeviceSubclass": 6,
+          "IOProviderClass": "IOMikeyBusDevice",
+          "MaxHPGain": [
+            {
+              "MaxdB_Generic": 2,
+              "ProductID": 442,
+              "EU_Compliant": false
+            },
+            {
+              "MaxdB_Generic": 1,
+              "ProductID": 442,
+              "EU_Compliant": true
+            }
+          ]
+        },
+        "AppleCS46L05Device": {
+          "IOMikeyBusMatchDeviceSubclass": 4,
+          "IOProbeScore": 1001,
+          "IOProviderClass": "IOMikeyBusDevice",
+          "IOClass": "AppleCS46L0xDevice",
+          "MaxHPGain": [
+            {
+              "MaxdB_Generic": 2,
+              "ProductID": 204,
+              "EU_Compliant": false
+            },
+            {
+              "MaxdB_Generic": 1,
+              "ProductID": 225,
+              "EU_Compliant": false
+            },
+            {
+              "MaxdB_Generic": 1,
+              "ProductID": 204,
+              "EU_Compliant": true
+            },
+            {
+              "MaxdB_Generic": 1,
+              "ProductID": 225,
+              "EU_Compliant": true
+            }
+          ],
+          "IOMikeyBusMatchDeviceClass": 2,
+          "IOMikeyBusMatchDeviceAnyConfiguration": true
+        }
+      },
+      "load": "0xfffffff005c13b80"
+    },
+    "com.apple.driver.AppleCS42L71Audio": {
+      "version": "436.20",
+      "dependencies": {
+        "com.apple.kpi.bsd": "8.0",
+        "com.apple.driver.AppleARMPlatform": "1.0",
+        "com.apple.kpi.unsupported": "8.0",
+        "com.apple.driver.AppleCSEmbeddedAudio": "1.1",
+        "com.apple.kpi.iokit": "8.0",
+        "com.apple.iokit.AppleARMIISAudio": "1.0",
+        "com.apple.iokit.IOAudio2Family": "1.0",
+        "com.apple.iokit.IOReportFamily": "1.0",
+        "com.apple.driver.AppleEmbeddedAudio": "1.1.0",
+        "com.apple.kpi.mach": "8.0",
+        "com.apple.iokit.IOMikeyBusFamily": "1.0",
+        "com.apple.iokit.IOHIDFamily": "1.5",
+        "com.apple.kpi.libkern": "8.0"
+      },
+      "personalities": {
+        "AppleCS42L71Audio": {
+          "IOClass": "AppleCS42L71Audio",
+          "IONameMatch": [
+            "audio-control,cs42l71"
+          ],
+          "IOProviderClass": "AppleARMSPIDevice"
+        }
+      },
+      "load": "0xfffffff005f34c00"
+    }
+  },
+  "current13": {
+    "com.apple.driver.AppleEmbeddedAudioLibs": {
+      "version": "1.12",
+      "dependencies": {
+        "com.apple.kpi.mach": "8.0",
+        "com.apple.kpi.libkern": "8.0",
+        "com.apple.kpi.bsd": "8.0",
+        "com.apple.kpi.iokit": "8.0",
+        "com.apple.driver.AppleFirmwareUpdateKext": "1.0",
+        "com.apple.driver.AppleARMPlatform": "1.0.0",
+        "com.apple.kpi.unsupported": "8.0"
+      },
+      "personalities": {},
+      "load": "0xfffffff005a3df00"
+    },
+    "com.apple.driver.AppleEmbeddedAudio": {
+      "version": "436.20",
+      "dependencies": {
+        "com.apple.kpi.bsd": "8.0",
+        "com.apple.driver.AppleEmbeddedAudioLibs": "1.0",
+        "com.apple.kpi.libkern": "8.0",
+        "com.apple.iokit.IOHIDFamily": "1.5",
+        "com.apple.kpi.iokit": "8.0",
+        "com.apple.kpi.mach": "8.0",
+        "com.apple.kpi.unsupported": "8.0",
+        "com.apple.driver.AppleARMPlatform": "1.0.0",
+        "com.apple.iokit.IOAudio2Family": "1.0",
+        "com.apple.iokit.AppleARMIISAudio": "1.0"
+      },
+      "personalities": {
+        "AppleTapAudio": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Tap",
+          "IONameMatch": "audio-data,audio-tap",
+          "device name": "Tap"
+        },
+        "AppleVoiceAudio": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Voice",
+          "IONameMatch": "audio-data,voice",
+          "device name": "Voice"
+        },
+        "AppleBasebandVoice": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleBasebandVoiceAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Baseband Voice",
+          "IONameMatch": "audio-data,baseband-voice",
+          "device name": "Baseband Voice"
+        },
+        "AppleHawkingAudio": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Hawking",
+          "IONameMatch": "audio-data,hawking",
+          "device name": "Hawking"
+        },
+        "AppleVirtualSecondary": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Virtual Secondary Device",
+          "IONameMatch": "audio-data,virtual-secondary",
+          "device name": "Virtual Secondary"
+        },
+        "AppleMikeyBusSecondaryAudio": {
+          "IOClass": "AppleSecondaryAudio",
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IONameMatch": "audio-data,mikeybus-secondary",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Mikeybus Secondary",
+          "device name": "Mikeybus Secondary"
+        },
+        "AppleLoopbackAudio": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Loopback",
+          "IONameMatch": "audio-data,audio-loopback",
+          "device name": "Loopback"
+        },
+        "AppleExternalAudio": {
+          "IOClass": "AppleExternalSecondaryAudio",
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IONameMatch": "audio-data,external",
+          "IOProviderClass": "AppleARMIISDevice"
+        },
+        "ApplePCA9539ADevice": {
+          "IOClass": "ApplePCA9539ADevice",
+          "IONameMatch": [
+            "gpio-expander,pca9539a"
+          ],
+          "IOProviderClass": "AppleARMIICDevice"
+        },
+        "AppleMaggieDebugAudio": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "MaggieDebug",
+          "IONameMatch": "audio-data,maggie-debug",
+          "device name": "MaggieDebug"
+        },
+        "AppleDSPDebug2": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "DSP Debug2",
+          "IONameMatch": "audio-data,dsp-debug2",
+          "device name": "DSP Debug2"
+        },
+        "AppleD2481Haptic": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleD2481SecondaryDevice",
+          "IOClass": "AppleD2481SecondaryDevice",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Actuator",
+          "IONameMatch": "audio-data,d2481hap",
+          "device name": "Actuator"
+        },
+        "AppleReferenceAudio": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Reference",
+          "IONameMatch": "audio-data,reference",
+          "device name": "Reference"
+        },
+        "AppleBasebandAudio": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleBasebandAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Baseband",
+          "IONameMatch": "audio-data,baseband",
+          "device name": "Baseband"
+        },
+        "AppleHapticDebug": {
+          "IOClass": "AppleSecondaryAudio",
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IONameMatch": "audio-data,haptic-debug",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Haptic Debug",
+          "device name": "Hapctic Debug"
+        },
+        "AppleExtendedHapticDebug": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Extended Haptic Debug",
+          "IONameMatch": "audio-data,ext-haptic-debug",
+          "device name": "Extended Haptic Debug"
+        },
+        "AppleHalogen": {
+          "IOClass": "AppleSecondaryAudio",
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IONameMatch": "audio-data,halogen",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Halogen",
+          "device name": "Halogen"
+        },
+        "AppleDSPDebug1": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "DSP Debug1",
+          "IONameMatch": "audio-data,dsp-debug1",
+          "device name": "DSP Debug1"
+        },
+        "AppleCS42L83InputAudio": {
+          "IOClass": "AppleSecondaryAudio",
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IONameMatch": "audio-data,cs42l83-input",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Codec Input",
+          "device name": "CS42L83 Input"
+        },
+        "AppleActuatorAudio": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleSecondaryAudio",
+          "IOClass": "AppleActuatorSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Actuator",
+          "IONameMatch": "audio-data,actuator",
+          "device name": "Actuator"
+        },
+        "AppleBluetoothVoice": {
+          "IOProbeScore": 1000,
+          "IOMatchCategory": "AppleBluetoothVoiceAudio",
+          "IOClass": "AppleSecondaryAudio",
+          "IOProviderClass": "AppleARMIISDevice",
+          "device UID": "Bluetooth Voice",
+          "IONameMatch": "audio-data,bluetooth-voice",
+          "device name": "Bluetooth Voice"
+        }
+      },
+      "load": "0xfffffff005a47140"
+    },
+    "com.apple.driver.AppleCSEmbeddedAudio": {
+      "version": "436.20",
+      "dependencies": {
+        "com.apple.kpi.bsd": "8.0",
+        "com.apple.kpi.libkern": "8.0",
+        "com.apple.kpi.mach": "8.0",
+        "com.apple.iokit.IOHIDFamily": "1.5",
+        "com.apple.kpi.iokit": "8.0",
+        "com.apple.driver.AppleARMPlatform": "1.0.0",
+        "com.apple.iokit.IOAudio2Family": "1.0",
+        "com.apple.driver.AppleEmbeddedAudio": "1.1",
+        "com.apple.iokit.AppleARMIISAudio": "1.0"
+      },
+      "personalities": {},
+      "load": "0xfffffff005a4d200"
+    },
+    "com.apple.iokit.IOMikeyBusFamily": {
+      "version": "1.0.0",
+      "dependencies": {
+        "com.apple.kpi.mach": "8.0",
+        "com.apple.kpi.libkern": "8.0",
+        "com.apple.iokit.IOAccessoryManager": "1.0.0",
+        "com.apple.iokit.IOHIDFamily": "2.0.0",
+        "com.apple.kpi.iokit": "8.0",
+        "com.apple.kpi.unsupported": "8.0",
+        "com.apple.driver.AppleARMPlatform": "1.0.0"
+      },
+      "personalities": {
+        "IOMikeyBusHIDDevice": {
+          "IOClass": "IOMikeyBusHIDDevice",
+          "IOMikeyBusMatchFunctionGroupType": 6,
+          "HIDDefaultBehavior": "",
+          "IOProviderClass": "IOMikeyBusFunctionGroup"
+        },
+        "IOMikeyBusEAInterface": {
+          "IOClass": "IOMikeyBusEAInterface",
+          "IOMikeyBusMatchFunctionGroupType": 5,
+          "IOProviderClass": "IOMikeyBusFunctionGroup"
+        }
+      },
+      "load": "0xfffffff005a5bfc0"
+    },
+    "com.apple.driver.AppleCS42L81Audio": {
+      "version": "436.20",
+      "dependencies": {
+        "com.apple.driver.AppleCSEmbeddedAudio": "1.1",
+        "com.apple.kpi.bsd": "8.0",
+        "com.apple.iokit.IOMikeyBusFamily": "1.0",
+        "com.apple.iokit.IOHIDFamily": "1.5",
+        "com.apple.kpi.iokit": "8.0",
+        "com.apple.kpi.libkern": "8.0",
+        "com.apple.kpi.mach": "8.0",
+        "com.apple.driver.AppleARMPlatform": "1.0",
+        "com.apple.iokit.AppleARMIISAudio": "1.0",
+        "com.apple.iokit.IOAudio2Family": "1.0",
+        "com.apple.driver.AppleEmbeddedAudio": "1.1.0"
+      },
+      "personalities": {
+        "AppleCS42L81Audio": {
+          "IOClass": "AppleCS42L81Audio",
+          "IONameMatch": [
+            "audio-control,cs42l81"
+          ],
+          "IOProviderClass": "AppleARMSPIDevice"
+        }
+      },
+      "load": "0xfffffff005a5e0c0"
+    },
+    "com.apple.driver.AppleEmbeddedMikeyBus": {
+      "version": "1.0.0d1",
+      "dependencies": {
+        "com.apple.kpi.bsd": "8.0",
+        "com.apple.iokit.IOAccessoryManager": "1.0.0",
+        "com.apple.driver.AppleTriStar": "1.0.0",
+        "com.apple.driver.AppleARMPlatform": "1.0.0",
+        "com.apple.driver.AppleCSEmbeddedAudio": "1.1",
+        "com.apple.kpi.unsupported": "8.0",
+        "com.apple.kpi.iokit": "8.0",
+        "com.apple.iokit.IOAudio2Family": "1.0",
+        "com.apple.kpi.mach": "8.0",
+        "com.apple.iokit.IOHIDFamily": "2.0.0",
+        "com.apple.iokit.IOMikeyBusFamily": "1.0.0",
+        "com.apple.kpi.libkern": "8.0"
+      },
+      "personalities": {
+        "hydra": {
+          "IOName": "tristar",
+          "compatible": "l21-tristar,cbtl1612",
+          "IOProviderClass": "AppleCSI2CController",
+          "IOClass": "AppleCSI2CDevice",
+          "TriStarICClass": "AppleCBTL1612",
+          "OTPI2CMatch": 4,
+          "reg": "b'\\x1a\\x00\\x00\\x00\\xc4\\t\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00'"
+        },
+        "AppleCS46L21Dock9Pin": {
+          "IOClass": "AppleCS46L21Dock9Pin",
+          "IONameMatch": [
+            "l21-tristar,cbtl1608",
+            "l21-tristar,cbtl1610",
+            "l21-tristar,cbtl1612"
+          ],
+          "IOProviderClass": "AppleARMIICDevice"
+        },
+        "authcp": {
+          "IOClass": "AppleCSI2CDevice",
+          "IOName": "authcp",
+          "IOProviderClass": "AppleCSI2CController",
+          "OTPI2CMatch": 0,
+          "reg": "b'\\x10\\x00\\x00\\x00\\xc4\\t\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00'",
+          "compatible": "authcp,2c"
+        },
+        "AppleCS46L21Device": {
+          "IOClass": "AppleCS46L21Device",
+          "IOMikeyBusMatchDeviceClass": 3,
+          "IOMikeyBusMatchDeviceAnyConfiguration": true,
+          "IOMikeyBusMatchDeviceSubclass": 1,
+          "IOProbeScore": 1000,
+          "IOProviderClass": "IOMikeyBusDevice"
+        },
+        "tristar": {
+          "IOName": "tristar",
+          "compatible": "l21-tristar,cbtl1608",
+          "IOProviderClass": "AppleCSI2CController",
+          "IOClass": "AppleCSI2CDevice",
+          "TriStarICClass": "AppleTHS7383",
+          "OTPI2CMatch": 1,
+          "reg": "b'\\x1a\\x00\\x00\\x00\\xc4\\t\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00'"
+        },
+        "AppleCS46L21IDBD": {
+          "IOClass": "AppleCS46L21IDBD",
+          "IOProviderClass": "IOAccessoryIDBusBulkDataEndpoint",
+          "IOProbeScore": 1000,
+          "IOAccessoryIDBusBulkDataEndpointFunction": 3
+        },
+        "tristar2": {
+          "IOName": "tristar",
+          "compatible": "l21-tristar,cbtl1610",
+          "IOProviderClass": "AppleCSI2CController",
+          "IOClass": "AppleCSI2CDevice",
+          "TriStarICClass": "AppleCBTL1610",
+          "OTPI2CMatch": 2,
+          "reg": "b'\\x1a\\x00\\x00\\x00\\xc4\\t\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00'"
+        }
+      },
+      "load": "0xfffffff005a98300"
+    },
+    "com.apple.driver.AppleMikeyBusAudio": {
+      "version": "2.35",
+      "dependencies": {
+        "com.apple.kpi.bsd": "8.0",
+        "com.apple.iokit.IOAccessoryManager": "1.0.0",
+        "com.apple.driver.AppleARMPlatform": "1.0.0",
+        "com.apple.kpi.unsupported": "8.0",
+        "com.apple.driver.AppleCSEmbeddedAudio": "1.1",
+        "com.apple.kpi.iokit": "8.0",
+        "com.apple.iokit.IOAudio2Family": "1.0",
+        "com.apple.driver.AppleEmbeddedAudio": "1.1",
+        "com.apple.kpi.mach": "8.0",
+        "com.apple.kpi.private": "8.0",
+        "com.apple.iokit.IOHIDFamily": "2.0.0",
+        "com.apple.iokit.IOMikeyBusFamily": "1.0.0",
+        "com.apple.driver.AppleEmbeddedMikeyBus": "1.0.0d1",
+        "com.apple.kpi.libkern": "8.0"
+      },
+      "personalities": {
+        "temperature": {
+          "IOClass": "AppleCSI2CDevice",
+          "IOName": "tmp103",
+          "IOProviderClass": "AppleCSI2CController",
+          "OTPI2CMatch": 3,
+          "reg": "b'p\\x00\\x00\\x00\\xc4\\t\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00'",
+          "compatible": "temperature,tmp103"
+        },
+        "AppleCS46L04Device": {
+          "IOClass": "AppleCS46L0xDevice",
+          "IOMikeyBusMatchDeviceClass": 2,
+          "IOMikeyBusMatchDeviceAnyConfiguration": true,
+          "IOMikeyBusMatchDeviceSubclass": 3,
+          "IOProbeScore": 1000,
+          "IOProviderClass": "IOMikeyBusDevice"
+        },
+        "AppleCS46L07Device": {
+          "IOClass": "AppleCS46L0xDevice",
+          "IOMikeyBusMatchDeviceClass": 2,
+          "IOMikeyBusMatchDeviceAnyConfiguration": true,
+          "IOMikeyBusMatchDeviceSubclass": 6,
+          "IOProviderClass": "IOMikeyBusDevice",
+          "MaxHPGain": [
+            {
+              "MaxdB_Generic": 2,
+              "ProductID": 442,
+              "EU_Compliant": false
+            },
+            {
+              "MaxdB_Generic": 1,
+              "ProductID": 442,
+              "EU_Compliant": true
+            }
+          ]
+        },
+        "AppleCS46L05Device": {
+          "IOMikeyBusMatchDeviceSubclass": 4,
+          "IOProbeScore": 1001,
+          "IOProviderClass": "IOMikeyBusDevice",
+          "IOClass": "AppleCS46L0xDevice",
+          "MaxHPGain": [
+            {
+              "MaxdB_Generic": 2,
+              "ProductID": 204,
+              "EU_Compliant": false
+            },
+            {
+              "MaxdB_Generic": 1,
+              "ProductID": 225,
+              "EU_Compliant": false
+            },
+            {
+              "MaxdB_Generic": 1,
+              "ProductID": 204,
+              "EU_Compliant": true
+            },
+            {
+              "MaxdB_Generic": 1,
+              "ProductID": 225,
+              "EU_Compliant": true
+            }
+          ],
+          "IOMikeyBusMatchDeviceClass": 2,
+          "IOMikeyBusMatchDeviceAnyConfiguration": true
+        }
+      },
+      "load": "0xfffffff005a9a400"
+    }
+  }
+}

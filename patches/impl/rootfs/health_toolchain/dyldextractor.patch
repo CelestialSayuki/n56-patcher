@@ -1,0 +1,139 @@
+diff --git a/src/DyldExtractor/converter/objc_fixer.py b/src/DyldExtractor/converter/objc_fixer.py
+index 61c8ef4..1e72127 100644
+--- a/src/DyldExtractor/converter/objc_fixer.py
++++ b/src/DyldExtractor/converter/objc_fixer.py
+@@ -406,7 +406,7 @@ class _ObjCFixer(object):
+ 
+ 		# Removed the optimized objc bit
+ 		flags &= 0xfffffff7
+-		imageInfoFile.writeBytes(flagsOff, struct.pack("<I", flags))
++		imageInfoFile.writeBytes(flagsOff + 4, struct.pack("<I", flags))
+ 
+ 		self._createExtraSegment()
+ 
+@@ -609,11 +609,14 @@ class _ObjCFixer(object):
+ 
+ 		# Get a starting address for the new segment
+ 		leftSegOff = self._dyldCtx.convertAddr(leftSeg.vmaddr)[0]
+-		newSegStartAddr = (leftSeg.vmaddr + leftSeg.vmsize + 0x1000) & ~0xFFF
+-		newSegStartOff = (leftSegOff + leftSeg.vmsize + 0x1000) & ~0xFFF
++		# Keep reconstructed metadata outside every source-cache mapping.
++		# This distinguishes new pointers from pointers into other images.
++		cacheEnd = max(mapping.address + mapping.size for mapping, _ in self._dyldCtx.mappings)
++		newSegStartAddr = (cacheEnd + 0x4000) & ~0x3FFF
++		newSegStartOff = (len(self._dyldCtx.file) + 0x4000) & ~0x3FFF
+ 
+ 		# adjust max gap size to account for page alignment
+-		maxGapSize -= newSegStartAddr - (leftSeg.vmaddr + leftSeg.vmsize)
++		maxGapSize = 0x10000000
+ 
+ 		# create the new segment
+ 		newSegment = segment_command_64()
+@@ -834,6 +837,9 @@ class _ObjCFixer(object):
+ 		return newCategoryAddr
+ 
+ 	def _processClass(self, classAddr: int) -> Tuple[int, bool]:
++		# Imported classes are bound to the target OS during normal loading.
++		if not self._machoCtx.containsAddr(classAddr):
++			return classAddr, False
+ 		"""Process a class definition.
+ 
+ 		Args:
+@@ -875,11 +881,12 @@ class _ObjCFixer(object):
+ 
+ 		if classDef.data:
+ 			# Low bit marks Swift classes
++			swiftBits = classDef.data & 0x3
+ 			isStubClass = not self._machoCtx.containsAddr(classAddr)
+ 			classDef.data = self._processClassData(
+ 				classDef.data & ~0x3,
+ 				isStubClass=isStubClass
+-			)
++			) | swiftBits
+ 			pass
+ 
+ 		# add or update data
+@@ -1071,6 +1078,13 @@ class _ObjCFixer(object):
+ 			return self._protocolCache[protoAddr]
+ 
+ 		protoDef = self._slider.slideStruct(protoAddr, objc_protocol_t)
++		methodCount = sum(
++			self._slider.slideStruct(address, objc_method_list_t).count
++			for address in (
++				protoDef.instanceMethods, protoDef.classMethods,
++				protoDef.optionalInstanceMethods, protoDef.optionalClassMethods
++			) if address
++		)
+ 
+ 		# protocol isa's should be 0
+ 		protoDef.isa = 0
+@@ -1117,31 +1131,33 @@ class _ObjCFixer(object):
+ 			)
+ 			pass
+ 
+-		hasExtendedMethodTypes = protoDef.size < 80
++		hasExtendedMethodTypes = protoDef.size >= 80
+ 		if protoDef.extendedMethodTypes and hasExtendedMethodTypes:
+ 			# const char **extendedMethodTypes;
+-			oldPtr = self._slider.slideAddress(protoDef.extendedMethodTypes)
+-			newPtr = self._processString(oldPtr)
++			ptrData = bytearray()
++			for index in range(methodCount):
++				oldPtr = self._slider.slideAddress(protoDef.extendedMethodTypes + index * 8)
++				newPtr = self._processString(oldPtr) if oldPtr else 0
++				ptrData.extend(struct.pack("<Q", newPtr))
+ 
+ 			if self._machoCtx.containsAddr(protoDef.extendedMethodTypes):
+ 				file = self._machoCtx.ctxForAddr(protoDef.extendedMethodTypes)
+ 				ptrOff = self._dyldCtx.convertAddr(protoDef.extendedMethodTypes)[0]
+-				struct.pack_into("<Q", file.file, ptrOff, newPtr)
++				file.writeBytes(ptrOff, ptrData)
+ 				pass
+ 			else:
+ 				protoDef.extendedMethodTypes = self._extraDataHead
+ 
+-				ptrData = struct.pack("<Q", newPtr)
+ 				self._addExtraData(ptrData)
+ 				pass
+ 			pass
+ 
+-		hasDemangledName = protoDef.size < 88
++		hasDemangledName = protoDef.size >= 88
+ 		if protoDef.demangledName and hasDemangledName:
+ 			protoDef.demangledName = self._processString(protoDef.demangledName)
+ 			pass
+ 
+-		hasClassProperties = protoDef.size < 96
++		hasClassProperties = protoDef.size >= 96
+ 		if protoDef.classProperties and hasClassProperties:
+ 			protoDef.classProperties = self._processPropertyList(
+ 				protoDef.classProperties
+@@ -1149,6 +1165,7 @@ class _ObjCFixer(object):
+ 			pass
+ 
+ 		# Add or update data
++		protoDef.flags &= ~(1 << 30)
+ 		protoData = bytes(protoDef)[:protoDef.size]
+ 		if self._machoCtx.containsAddr(protoAddr):
+ 			newProtoAddr = protoAddr
+@@ -1242,6 +1259,7 @@ class _ObjCFixer(object):
+ 				self._logger.error(f"Large method list at {hex(methodListAddr)}, has an entsize that doesn't match the size of objc_method_large_t")  # noqa
+ 				return 0
+ 
++		methodListDef.entsizeAndFlags &= ~3
+ 		methodListData = bytearray(methodListDef)
+ 
+ 		# fix relative pointers after we reserve a new address for the method list
+diff --git a/src/DyldExtractor/converter/slide_info.py b/src/DyldExtractor/converter/slide_info.py
+index cdb8302..7712d4e 100644
+--- a/src/DyldExtractor/converter/slide_info.py
++++ b/src/DyldExtractor/converter/slide_info.py
+@@ -155,7 +155,7 @@ class _V2Rebaser(object):
+ 			delta = (rawValue & deltaMask) >> deltaShift
+ 
+ 			newValue = rawValue & valueMask
+-			if valueMask != 0:
++			if newValue != 0:
+ 				newValue += valueAdd
+ 
+ 			ctx.writeBytes(loc, struct.pack("<Q", newValue))

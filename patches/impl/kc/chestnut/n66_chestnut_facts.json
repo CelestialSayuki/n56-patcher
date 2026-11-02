@@ -1,0 +1,194 @@
+{
+ "kext_load": 18446744005088164224,
+ "kmod_info": 18446744005116395840,
+ "segments": {
+  "__TEXT_cstring": [
+   "0xfffffff005d8be98",
+   "0x20b"
+  ],
+  "__TEXT_EXEC_text": [
+   "0xfffffff00690e000",
+   "0xb60"
+  ],
+  "__TEXT_EXEC_stubs": [
+   "0xfffffff00690eb60",
+   "0xcc"
+  ],
+  "__DATA_data": [
+   "0xfffffff007878140",
+   "0xc8"
+  ],
+  "__DATA_common": [
+   "0xfffffff007878208",
+   "0x88"
+  ],
+  "__DATA_CONST_got": [
+   "0xfffffff006f6b100",
+   "0xc0"
+  ],
+  "__DATA_CONST_modinit": [
+   "0xfffffff006f6b1c0",
+   "0x10"
+  ],
+  "__DATA_CONST_modterm": [
+   "0xfffffff006f6b1d0",
+   "0x10"
+  ],
+  "__DATA_CONST_const": [
+   "0xfffffff006f6b1e0",
+   "0xd38"
+  ]
+ },
+ "got": [
+  {
+   "idx": 0,
+   "slot": "0xfffffff006f6b100",
+   "target": "0xfffffff0075f5508",
+   "sym": "_IOLockAlloc"
+  },
+  {
+   "idx": 1,
+   "slot": "0xfffffff006f6b108",
+   "target": "0xfffffff0075f5518",
+   "sym": "_IOLockFree"
+  },
+  {
+   "idx": 2,
+   "slot": "0xfffffff006f6b110",
+   "target": "0xfffffff0071f2790",
+   "sym": "_IOLockLock"
+  },
+  {
+   "idx": 3,
+   "slot": "0xfffffff006f6b118",
+   "target": "0xfffffff0071f30fc",
+   "sym": "_IOLockUnlock"
+  },
+  {
+   "idx": 4,
+   "slot": "0xfffffff006f6b120",
+   "target": "0xfffffff007689974",
+   "sym": "_PE_i_can_has_debugger"
+  },
+  {
+   "idx": 5,
+   "slot": "0xfffffff006f6b128",
+   "target": "0xfffffff0075b5434",
+   "sym": "__ZN11OSMetaClassC2EPKcPKS_j"
+  },
+  {
+   "idx": 6,
+   "slot": "0xfffffff006f6b130",
+   "target": "0xfffffff0075b5bf8",
+   "sym": "__ZN11OSMetaClassD2Ev"
+  },
+  {
+   "idx": 7,
+   "slot": "0xfffffff006f6b138",
+   "target": "0xfffffff0075b55b8",
+   "sym": "__ZN15OSMetaClassBase12safeMetaCastEPKS_PK11OSMetaClass"
+  },
+  {
+   "idx": 8,
+   "slot": "0xfffffff006f6b140",
+   "target": "0xfffffff0077ec3c8",
+   "sym": ""
+  },
+  {
+   "idx": 9,
+   "slot": "0xfffffff006f6b148",
+   "target": "0xfffffff006022680",
+   "sym": ""
+  },
+  {
+   "idx": 10,
+   "slot": "0xfffffff006f6b150",
+   "target": "0xfffffff00602250c",
+   "sym": ""
+  },
+  {
+   "idx": 11,
+   "slot": "0xfffffff006f6b158",
+   "target": "0xfffffff00602254c",
+   "sym": ""
+  },
+  {
+   "idx": 12,
+   "slot": "0xfffffff006f6b160",
+   "target": "0xfffffff006df5058",
+   "sym": ""
+  },
+  {
+   "idx": 13,
+   "slot": "0xfffffff006f6b168",
+   "target": "0xfffffff00709e868",
+   "sym": "__ZN6OSData9metaClassE"
+  },
+  {
+   "idx": 14,
+   "slot": "0xfffffff006f6b170",
+   "target": "0xfffffff0075b7a6c",
+   "sym": "__ZN8OSObjectdlEPvm"
+  },
+  {
+   "idx": 15,
+   "slot": "0xfffffff006f6b178",
+   "target": "0xfffffff0075b7adc",
+   "sym": "__ZN8OSObjectnwEm"
+  },
+  {
+   "idx": 16,
+   "slot": "0xfffffff006f6b180",
+   "target": "0xfffffff00772fd00",
+   "sym": "__ZN9IOService10gMetaClassE"
+  },
+  {
+   "idx": 17,
+   "slot": "0xfffffff006f6b188",
+   "target": "0xfffffff00760d784",
+   "sym": "__ZN9IOServiceC2EPK11OSMetaClass"
+  },
+  {
+   "idx": 18,
+   "slot": "0xfffffff006f6b190",
+   "target": "0xfffffff00760d7b4",
+   "sym": "__ZN9IOServiceD2Ev"
+  },
+  {
+   "idx": 19,
+   "slot": "0xfffffff006f6b198",
+   "target": "0xfffffff0075b6388",
+   "sym": "__ZNK11OSMetaClass19instanceConstructedEv"
+  },
+  {
+   "idx": 20,
+   "slot": "0xfffffff006f6b1a0",
+   "target": "0xfffffff006df4500",
+   "sym": ""
+  },
+  {
+   "idx": 21,
+   "slot": "0xfffffff006f6b1a8",
+   "target": "0xfffffff0070a0c00",
+   "sym": "__ZTV9IOService"
+  },
+  {
+   "idx": 22,
+   "slot": "0xfffffff006f6b1b0",
+   "target": "0xfffffff0077ec3b8",
+   "sym": ""
+  },
+  {
+   "idx": 23,
+   "slot": "0xfffffff006f6b1b8",
+   "target": "0xfffffff007689cc8",
+   "sym": "_kprintf"
+  }
+ ],
+ "base_vtables": {
+  "__ZTV9IOService": "0xfffffff0070a0c00",
+  "__ZTV8OSObject": "0xfffffff00709e150",
+  "__ZTV15OSMetaClassBase": "0xfffffff00709dfb0",
+  "__ZTV16AppleARMFunction": "0xfffffff006df4500"
+ }
+}

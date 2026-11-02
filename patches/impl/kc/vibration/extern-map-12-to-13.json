@@ -1,0 +1,90 @@
+{
+  "note": "DRV2604 的 16 个外部直接分支：15 个直接映射，1 个毫秒延时跳板。地址基于 iOS13.7 Wi-Fi KC。",
+  "osmetaclass_ctor_13": "0xfffffff0075b846c",
+  "confirmed": {
+    "0xfffffff007cb0d60": {
+      "id": "OSMetaClass::OSMetaClass(this,name,super,size)",
+      "to": "0xfffffff0075b846c",
+      "how": "符号 __ZN11OSMetaClassC2EPKcPKS_j + GOT；骨架一致"
+    },
+    "0xfffffff007cb1a68": {
+      "id": "OSMetaClass::~OSMetaClass (D2)",
+      "to": "0xfffffff0075b8c30",
+      "how": "符号 __ZN11OSMetaClassD2Ev；骨架一致"
+    },
+    "0xfffffff007cb4a64": {
+      "id": "OSObject::operator delete(void*,size_t)",
+      "to": "0xfffffff0075baaa4",
+      "how": "符号 __ZN8OSObjectdlEPvm；骨架一致"
+    },
+    "0xfffffff007cb4b54": {
+      "id": "OSObject::operator new(size_t)",
+      "to": "0xfffffff0075bab14",
+      "how": "符号 __ZN8OSObjectnwEm；骨架一致"
+    },
+    "0xfffffff007cb24b4": {
+      "id": "OSMetaClass::instanceConstructed() const",
+      "to": "0xfffffff0075b93c0",
+      "how": "符号 __ZNK11OSMetaClass19instanceConstructedEv；骨架 9/9"
+    },
+    "0xfffffff007cb0ef4": {
+      "id": "OSMetaClassBase::safeMetaCast(obj,meta)",
+      "to": "0xfffffff0075b85f0",
+      "how": "符号 __ZN15OSMetaClassBase12safeMetaCastEPKS_PK11OSMetaClass；骨架 19/19"
+    },
+    "0xfffffff007671740": {
+      "id": "memset",
+      "to": "0xfffffff0070b5740",
+      "how": "符号 _memset；骨架 30/30"
+    },
+    "0xfffffff007e805d0": {
+      "id": "AppleARMPWM::AppleARMPWM() 构造器",
+      "to": "0xfffffff005fd9e74",
+      "how": "AppleARMPWM::C2 调 IOService::C2 后写入虚表 0xfffffff006dd9038"
+    },
+    "0xfffffff007e805f4": {
+      "id": "AppleARMPWM::~AppleARMPWM() 析构器",
+      "to": "0xfffffff005fd9e94",
+      "how": "AppleARMPWM::D2 尾跳 IOService::D2"
+    },
+    "0xfffffff0076bb268": {
+      "id": "panic (vararg)",
+      "to": "0xfffffff0076a972c",
+      "how": "符号 _panic；入口骨架前12条一致"
+    },
+    "0xfffffff007e6caa0": {
+      "id": "getFunction(this,name)：按名查对象、调其虚表+0x28",
+      "to": "0xfffffff005fbe7ac",
+      "how": "AppleARMPlatform 内结构定位；骨架 20/20"
+    },
+    "0xfffffff007cfc594": {
+      "id": "IOLog(fmt,...)",
+      "to": "0xfffffff0075f830c",
+      "how": "符号 _IOLog；调用现场 26 处、格式串+压栈变参"
+    },
+    "0xfffffff007dbdf80": {
+      "id": "PE_parse_boot_argn(name,buf,maxlen)：读 drv2604-force_rtp / drv2604-debug",
+      "to": "0xfffffff00768b500",
+      "how": "符号 _PE_parse_boot_argn；调用现场 boot-arg 名串 + (x0,x1,x2=4,w3=0)"
+    },
+    "0xfffffff007680650": {
+      "id": "__stack_chk_fail：以 'Kernel stack memory corruption detected' panic",
+      "to": "0xfffffff0070c4650",
+      "how": "符号 ___stack_chk_fail；panic 串与 xnu 原文一致，语义等价"
+    },
+    "0xfffffff007cb1d5c": {
+      "id": "OSMetaClass::getClassName()：className=metaclass->[0x18]; return className->getCStringNoCopy()",
+      "to": "0xfffffff0075b8dd8",
+      "how": "符号 __ZNK11OSMetaClass12getClassNameEv；12/13 逐指令一致，唯一差异是 getCStringNoCopy 虚槽 12=+0xa0 / 13=+0xa8（OSSymbol 虚表在13插入一槽）——映射到13 getClassName 内部即用正确槽，故正确。调用现场：返回值作 %s 传 IOLog（配 'setProperties'）"
+    }
+  },
+  "resolved_via_trampoline": {
+    "0xfffffff007cfc4b4": {
+      "id": "毫秒自旋延时包装：mov w1,#1000000(ns/ms) 后尾跳 delay_for_interval。驱动以 w0=1000/10/100 ms 在 init/重试调 3 次。",
+      "anchor": "12 的 0x76b4a5c = delay_for_interval（内含时基魔数 0x5a53a09bb82f0044 + cntpct_el0 自旋；13 对应 _delay_for_interval=0xfffffff0070efbc8，body 骨架对齐，13 多 2 条前导）。",
+      "reason": "13 无等价的 w1=1000000 独立包装（已内联）。驱动只设 w0（1 参），delay_for_interval 需 2 参（interval, scale），必须补 scale=1000000。",
+      "resolution": "注入时在驱动 padding 放 3 指令跳板，把 0x7cfc4b4 映射到它：`movz w1,#0x4240; movk w1,#0xf,lsl16; b 0xfffffff0070efbc8`。距离 ~18MB 在 ±128MB 内，直接 b 可达。语义完全保留（自旋延时 interval 毫秒），无需设备即可定死。",
+      "delay_for_interval_13": "0xfffffff0070efbc8"
+    }
+  }
+}

@@ -1,0 +1,4462 @@
+{
+  "source": "donors/extracted/n56ap_ios12/kernelcache.release.iphone7.decompressed",
+  "target": "build/kernelcache.legacy-sep.raw",
+  "pointer_map": {
+    "0xfffffff008041770": "0xfffffff0060d7e30",
+    "0xfffffff008041a08": "0xfffffff0060d8120",
+    "0xfffffff0080422b4": "0xfffffff0060d8a84",
+    "0xfffffff008042c58": "0xfffffff0060d9474",
+    "0xfffffff00804370c": "0xfffffff0060d9fd8",
+    "0xfffffff008043730": "0xfffffff0060d9ff8",
+    "0xfffffff008043a88": "0xfffffff0060da380",
+    "0xfffffff008044084": "0xfffffff006144038",
+    "0xfffffff0080440a8": "0xfffffff006144058",
+    "0xfffffff008047dc0": "0xfffffff006147c84",
+    "0xfffffff008047fc0": "0xfffffff006147e88",
+    "0xfffffff00804a594": "0xfffffff00614a590",
+    "0xfffffff0086f8160": "0xfffffff00615c5c8",
+    "0xfffffff0086f8184": "0xfffffff00615c5e8",
+    "0xfffffff0086f80f8": "0xfffffff00615b22c",
+    "0xfffffff0086f8100": "0xfffffff00615b234",
+    "0xfffffff0086f9590": "0xfffffff00615db68",
+    "0xfffffff0086f8050": "0xfffffff00615b184",
+    "0xfffffff0086f9520": "0xfffffff00615daf8",
+    "0xfffffff0086f7cd4": "0xfffffff00615adc0",
+    "0xfffffff0086f8400": "0xfffffff00615c898",
+    "0xfffffff0086f7f28": "0xfffffff00615b054",
+    "0xfffffff008a62af8": "0xfffffff0077f5c40",
+    "0xfffffff008a62b58": "0xfffffff0077f8548",
+    "0xfffffff008a8cd48": "0xfffffff0077f8b48",
+    "0xfffffff008a8cd70": "0xfffffff0077f8b70",
+    "0xfffffff008a8cd98": "0xfffffff0077f8b98",
+    "0xfffffff008a8cdc0": "0xfffffff0077f8bc0",
+    "0xfffffff00753ab48": "0xfffffff006e239e0",
+    "0xfffffff00762abe8": "0xfffffff006e4e748"
+  },
+  "external_function_map": [
+    {
+      "old": "0xfffffff008041770",
+      "new": "0xfffffff0060d7e30",
+      "evidence": "button state word at +0x16c",
+      "provider": "com.apple.driver.AppleCSEmbeddedAudio",
+      "call_sites": [
+        "0xfffffff0086f26c4",
+        "0xfffffff0086f2db4"
+      ]
+    },
+    {
+      "old": "0xfffffff008041a08",
+      "new": "0xfffffff0060d8120",
+      "evidence": "enabled-state action retains +0x178/+0x179; native CS42L81Mikey slot212 at 0x6158dbc calls stub 0x615de74 resolving here",
+      "provider": "com.apple.driver.AppleCSEmbeddedAudio",
+      "call_sites": [
+        "0xfffffff0086f0784",
+        "0xfffffff0086f2ad8",
+        "0xfffffff0086f4e8c"
+      ]
+    },
+    {
+      "old": "0xfffffff0080422b4",
+      "new": "0xfffffff0060d8a84",
+      "evidence": "invoke receiver slot with 0x80, 0; trace identifier 0x524b010",
+      "provider": "com.apple.driver.AppleCSEmbeddedAudio",
+      "call_sites": [
+        "0xfffffff0086f2ae0"
+      ]
+    },
+    {
+      "old": "0xfffffff008042c58",
+      "new": "0xfffffff0060d9474",
+      "evidence": "four receiver state getters followed by common state update",
+      "provider": "com.apple.driver.AppleCSEmbeddedAudio",
+      "call_sites": [
+        "0xfffffff0086f0250"
+      ]
+    },
+    {
+      "old": "0xfffffff00804370c",
+      "new": "0xfffffff0060d9fd8",
+      "evidence": "AppleCSHTDCodecMikey constructor installs its native vtable",
+      "provider": "com.apple.driver.AppleCSEmbeddedAudio",
+      "call_sites": [
+        "0xfffffff0086f0344",
+        "0xfffffff0086f4dd8"
+      ]
+    },
+    {
+      "old": "0xfffffff008043730",
+      "new": "0xfffffff0060d9ff8",
+      "evidence": "AppleCSHTDCodecMikey destructor forwards to AppleMikeyReceiver destructor",
+      "provider": "com.apple.driver.AppleCSEmbeddedAudio",
+      "call_sites": [
+        "0xfffffff0086f4d8c",
+        "0xfffffff0086f4d98"
+      ]
+    },
+    {
+      "old": "0xfffffff008043a88",
+      "new": "0xfffffff0060da380",
+      "evidence": "HTD flag +0x1a2, button state OR 0x200, then receiver state update",
+      "provider": "com.apple.driver.AppleCSEmbeddedAudio",
+      "call_sites": [
+        "0xfffffff0086f0660"
+      ]
+    },
+    {
+      "old": "0xfffffff008044084",
+      "new": "0xfffffff006144038",
+      "evidence": "IOMikeyBusController constructor installs its native vtable",
+      "provider": "com.apple.iokit.IOMikeyBusFamily",
+      "call_sites": [
+        "0xfffffff0086f8168"
+      ]
+    },
+    {
+      "old": "0xfffffff0080440a8",
+      "new": "0xfffffff006144058",
+      "evidence": "IOMikeyBusController destructor",
+      "provider": "com.apple.iokit.IOMikeyBusFamily",
+      "call_sites": [
+        "0xfffffff0086f8184"
+      ]
+    },
+    {
+      "old": "0xfffffff008047dc0",
+      "new": "0xfffffff006147c84",
+      "evidence": "IOMikeyBusController old slot 194 to native slot 195",
+      "provider": "com.apple.iokit.IOMikeyBusFamily",
+      "call_sites": [
+        "0xfffffff0086f83a0"
+      ]
+    },
+    {
+      "old": "0xfffffff008047fc0",
+      "new": "0xfffffff006147e88",
+      "evidence": "IOMikeyBusController old slot 195 to native slot 196",
+      "provider": "com.apple.iokit.IOMikeyBusFamily",
+      "call_sites": [
+        "0xfffffff0086f83ec"
+      ]
+    },
+    {
+      "old": "0xfffffff00804a594",
+      "new": "0xfffffff00614a590",
+      "evidence": "rational conversion wrapper sets x1=0x100000000 and moves result pointer to x2",
+      "provider": "com.apple.iokit.IOMikeyBusFamily",
+      "call_sites": [
+        "0xfffffff0086f532c",
+        "0xfffffff0086f5388",
+        "0xfffffff0086f8070"
+      ]
+    }
+  ],
+  "shared_function_map": [
+    {
+      "old": "0xfffffff0086f8160",
+      "new": "0xfffffff00615c5c8",
+      "evidence": "AppleCSCodecLineOutMikeyBus constructor",
+      "call_sites": [
+        "0xfffffff0086f00b8",
+        "0xfffffff0086f50b8"
+      ]
+    },
+    {
+      "old": "0xfffffff0086f8184",
+      "new": "0xfffffff00615c5e8",
+      "evidence": "AppleCSCodecLineOutMikeyBus destructor",
+      "call_sites": [
+        "0xfffffff0086f506c",
+        "0xfffffff0086f5078"
+      ]
+    },
+    {
+      "old": "0xfffffff0086f80f8",
+      "new": "0xfffffff00615b22c",
+      "evidence": "Bus companion audio object at +0x4b0",
+      "call_sites": [
+        "0xfffffff0086f0830"
+      ]
+    },
+    {
+      "old": "0xfffffff0086f8100",
+      "new": "0xfffffff00615b234",
+      "evidence": "Bus direction conversion, +0x4b0/+0x4b8",
+      "call_sites": [
+        "0xfffffff0086f084c"
+      ]
+    },
+    {
+      "old": "0xfffffff0086f9590",
+      "new": "0xfffffff00615db68",
+      "evidence": "BusAudio provider forwarding; native +0x148 and vtable +0x5e0",
+      "call_sites": [
+        "0xfffffff0086f0b7c"
+      ]
+    },
+    {
+      "old": "0xfffffff0086f8050",
+      "new": "0xfffffff00615b184",
+      "evidence": "Bus rational sample rate check, trace identifier 0x524c03c",
+      "call_sites": [
+        "0xfffffff0086f0be0"
+      ]
+    },
+    {
+      "old": "0xfffffff0086f9520",
+      "new": "0xfffffff00615daf8",
+      "evidence": "BusAudio channel routing; native fields +0x1c8/+0x1f8/+0x1fc/+0x204/+0x20e",
+      "call_sites": [
+        "0xfffffff0086f0ca4",
+        "0xfffffff0086f1270"
+      ]
+    },
+    {
+      "old": "0xfffffff0086f7cd4",
+      "new": "0xfffffff00615adc0",
+      "evidence": "Bus state bytes +0x4a8/+0x4a9/+0x4aa; trace identifier 0x524c034",
+      "call_sites": [
+        "0xfffffff0086f1cf8",
+        "0xfffffff0086f20a4"
+      ]
+    },
+    {
+      "old": "0xfffffff0086f8400",
+      "new": "0xfffffff00615c898",
+      "evidence": "LineOut state byte +0x4e0",
+      "call_sites": [
+        "0xfffffff0086f20ec",
+        "0xfffffff0086f2118"
+      ]
+    },
+    {
+      "old": "0xfffffff0086f7f28",
+      "new": "0xfffffff00615b054",
+      "evidence": "Bus supported-rate scan and cross multiplication; trace identifier 0x524c03c",
+      "call_sites": [
+        "0xfffffff0086f5340",
+        "0xfffffff0086f5398"
+      ]
+    }
+  ],
+  "shared_vtable_function_map": {
+    "0xfffffff0086f8188": [
+      {
+        "native": "0xfffffff00615c5ec",
+        "class_name": "AppleCSCodecLineOutMikeyBus",
+        "old_slot": 0,
+        "new_slot": 0
+      }
+    ],
+    "0xfffffff0086f818c": [
+      {
+        "native": "0xfffffff00615c5f0",
+        "class_name": "AppleCSCodecLineOutMikeyBus",
+        "old_slot": 1,
+        "new_slot": 1
+      }
+    ],
+    "0xfffffff0086f8190": [
+      {
+        "native": "0xfffffff00615c5f4",
+        "class_name": "AppleCSCodecLineOutMikeyBus",
+        "old_slot": 7,
+        "new_slot": 7
+      }
+    ],
+    "0xfffffff0086f6d10": [
+      {
+        "native": "0xfffffff006159d94",
+        "class_name": "AppleCSCodecLineOutMikeyBus",
+        "old_slot": 86,
+        "new_slot": 87
+      }
+    ],
+    "0xfffffff0086f6d5c": [
+      {
+        "native": "0xfffffff006159e00",
+        "class_name": "AppleCSCodecLineOutMikeyBus",
+        "old_slot": 110,
+        "new_slot": 111
+      }
+    ],
+    "0xfffffff0086f6d64": [
+      {
+        "native": "0xfffffff006159e08",
+        "class_name": "AppleCSCodecLineOutMikeyBus",
+        "old_slot": 154,
+        "new_slot": 155
+      }
+    ],
+    "0xfffffff0086f6e6c": [
+      {
+        "native": "0xfffffff006159f14",
+        "class_name": "AppleCSCodecLineOutMikeyBus",
+        "old_slot": 158,
+        "new_slot": 159
+      }
+    ],
+    "0xfffffff0086f6cbc": [
+      {
+        "native": "0xfffffff006159d20",
+        "class_name": "AppleCSCodecLineOutMikeyBus",
+        "old_slot": 172,
+        "new_slot": 173
+      }
+    ],
+    "0xfffffff0086f6f78": [
+      {
+        "native": "0xfffffff00615a024",
+        "class_name": "AppleCSCodecLineOutMikeyBus",
+        "old_slot": 173,
+        "new_slot": 174
+      }
+    ],
+    "0xfffffff0086f7110": [
+      {
+        "native": "0xfffffff00615a1bc",
+        "class_name": "AppleCSCodecLineOutMikeyBus",
+        "old_slot": 174,
+        "new_slot": 175
+      }
+    ],
+    "0xfffffff0086f7274": [
+      {
+        "native": "0xfffffff00615a324",
+        "class_name": "AppleCSCodecLineOutMikeyBus",
+        "old_slot": 177,
+        "new_slot": 178
+      }
+    ],
+    "0xfffffff0086f74fc": [
+      {
+        "native": "0xfffffff00615a5ac",
+        "class_name": "AppleCSCodecLineOutMikeyBus",
+        "old_slot": 178,
+        "new_slot": 179
+      }
+    ],
+    "0xfffffff0086f75e0": [
+      {
+        "native": "0xfffffff00615a690",
+        "class_name": "AppleCSCodecLineOutMikeyBus",
+        "old_slot": 179,
+        "new_slot": 180
+      }
+    ],
+    "0xfffffff0086f76fc": [
+      {
+        "native": "0xfffffff00615a7ac",
+        "class_name": "AppleCSCodecLineOutMikeyBus",
+        "old_slot": 180,
+        "new_slot": 181
+      }
+    ],
+    "0xfffffff0086f7808": [
+      {
+        "native": "0xfffffff00615a8b8",
+        "class_name": "AppleCSCodecLineOutMikeyBus",
+        "old_slot": 181,
+        "new_slot": 182
+      }
+    ],
+    "0xfffffff0086f81d4": [
+      {
+        "native": "0xfffffff00615c66c",
+        "class_name": "AppleCSCodecLineOutMikeyBus",
+        "old_slot": 190,
+        "new_slot": 191
+      }
+    ],
+    "0xfffffff0086f82a4": [
+      {
+        "native": "0xfffffff00615c73c",
+        "class_name": "AppleCSCodecLineOutMikeyBus",
+        "old_slot": 191,
+        "new_slot": 192
+      }
+    ],
+    "0xfffffff0086f7be8": [
+      {
+        "native": "0xfffffff00615acd4",
+        "class_name": "AppleCSCodecLineOutMikeyBus",
+        "old_slot": 192,
+        "new_slot": 193
+      }
+    ],
+    "0xfffffff0086f7c6c": [
+      {
+        "native": "0xfffffff00615ad58",
+        "class_name": "AppleCSCodecLineOutMikeyBus",
+        "old_slot": 193,
+        "new_slot": 194
+      }
+    ],
+    "0xfffffff0086f8330": [
+      {
+        "native": "0xfffffff00615c7c8",
+        "class_name": "AppleCSCodecLineOutMikeyBus",
+        "old_slot": 194,
+        "new_slot": 195
+      }
+    ],
+    "0xfffffff0086f83a4": [
+      {
+        "native": "0xfffffff00615c83c",
+        "class_name": "AppleCSCodecLineOutMikeyBus",
+        "old_slot": 195,
+        "new_slot": 196
+      }
+    ],
+    "0xfffffff0086f786c": [
+      {
+        "native": "0xfffffff00615a91c",
+        "class_name": "AppleCSCodecLineOutMikeyBus",
+        "old_slot": 197,
+        "new_slot": 198
+      }
+    ],
+    "0xfffffff0086f78ac": [
+      {
+        "native": "0xfffffff00615a95c",
+        "class_name": "AppleCSCodecLineOutMikeyBus",
+        "old_slot": 198,
+        "new_slot": 199
+      }
+    ],
+    "0xfffffff0086f78d4": [
+      {
+        "native": "0xfffffff00615a984",
+        "class_name": "AppleCSCodecLineOutMikeyBus",
+        "old_slot": 200,
+        "new_slot": 201
+      }
+    ],
+    "0xfffffff0086f7ac0": [
+      {
+        "native": "0xfffffff00615ab6c",
+        "class_name": "AppleCSCodecLineOutMikeyBus",
+        "old_slot": 201,
+        "new_slot": 202
+      }
+    ],
+    "0xfffffff0086f7d68": [
+      {
+        "native": "0xfffffff00615ae54",
+        "class_name": "AppleCSCodecLineOutMikeyBus",
+        "old_slot": 202,
+        "new_slot": 203
+      }
+    ],
+    "0xfffffff0086f7b9c": [
+      {
+        "native": "0xfffffff00615ac88",
+        "class_name": "AppleCSCodecLineOutMikeyBus",
+        "old_slot": 219,
+        "new_slot": 220
+      }
+    ],
+    "0xfffffff0086f7d60": [
+      {
+        "native": "0xfffffff00615ae4c",
+        "class_name": "AppleCSCodecLineOutMikeyBus",
+        "old_slot": 220,
+        "new_slot": 221
+      }
+    ],
+    "0xfffffff0086f8148": [
+      {
+        "native": "0xfffffff00615b27c",
+        "class_name": "AppleCSCodecLineOutMikeyBus",
+        "old_slot": 221,
+        "new_slot": 222
+      }
+    ],
+    "0xfffffff0086f95b4": [
+      {
+        "native": "0xfffffff00615db8c",
+        "class_name": "AppleCSCodecLineOutMikeyBus",
+        "old_slot": 223,
+        "new_slot": 224
+      }
+    ],
+    "0xfffffff0086f6670": [
+      {
+        "native": "0xfffffff0061596d0",
+        "class_name": "AppleCSCodecLineOutMikeyBus",
+        "old_slot": 302,
+        "new_slot": 303
+      }
+    ],
+    "0xfffffff0086f6f68": [
+      {
+        "native": "0xfffffff00615a014",
+        "class_name": "AppleCSCodecLineOutMikeyBus",
+        "old_slot": 303,
+        "new_slot": 304
+      }
+    ],
+    "0xfffffff0086f6ed8": [
+      {
+        "native": "0xfffffff006159f84",
+        "class_name": "AppleCSCodecLineOutMikeyBus",
+        "old_slot": 304,
+        "new_slot": 305
+      }
+    ],
+    "0xfffffff0086f6dec": [
+      {
+        "native": "0xfffffff006159e94",
+        "class_name": "AppleCSCodecLineOutMikeyBus",
+        "old_slot": 305,
+        "new_slot": 306
+      }
+    ],
+    "0xfffffff0086f7220": [
+      {
+        "native": "0xfffffff00615a2cc",
+        "class_name": "AppleCSCodecLineOutMikeyBus",
+        "old_slot": 306,
+        "new_slot": 307
+      }
+    ],
+    "0xfffffff0086f6f60": [
+      {
+        "native": "0xfffffff00615a00c",
+        "class_name": "AppleCSCodecLineOutMikeyBus",
+        "old_slot": 307,
+        "new_slot": 308
+      }
+    ],
+    "0xfffffff0086f82ac": [
+      {
+        "native": "0xfffffff00615c744",
+        "class_name": "AppleCSCodecLineOutMikeyBus",
+        "old_slot": 308,
+        "new_slot": 309
+      }
+    ],
+    "0xfffffff0086f82cc": [
+      {
+        "native": "0xfffffff00615c764",
+        "class_name": "AppleCSCodecLineOutMikeyBus",
+        "old_slot": 309,
+        "new_slot": 310
+      }
+    ],
+    "0xfffffff0086f82f0": [
+      {
+        "native": "0xfffffff00615c788",
+        "class_name": "AppleCSCodecLineOutMikeyBus",
+        "old_slot": 310,
+        "new_slot": 311
+      }
+    ],
+    "0xfffffff0086f8310": [
+      {
+        "native": "0xfffffff00615c7a8",
+        "class_name": "AppleCSCodecLineOutMikeyBus",
+        "old_slot": 311,
+        "new_slot": 312
+      }
+    ],
+    "0xfffffff0086f8138": [
+      {
+        "native": "0xfffffff00615b26c",
+        "class_name": "AppleCSCodecLineOutMikeyBus",
+        "old_slot": 315,
+        "new_slot": 316
+      }
+    ],
+    "0xfffffff0086f8140": [
+      {
+        "native": "0xfffffff00615b274",
+        "class_name": "AppleCSCodecLineOutMikeyBus",
+        "old_slot": 316,
+        "new_slot": 317
+      }
+    ],
+    "0xfffffff0086f81a4": [
+      {
+        "native": "0xfffffff00615c63c",
+        "class_name": "AppleCSCodecLineOutMikeyBus",
+        "old_slot": 317,
+        "new_slot": 318
+      }
+    ],
+    "0xfffffff0086f8410": [
+      {
+        "native": "0xfffffff00615c91c",
+        "class_name": "AppleCSCodecMikeyBusAudio",
+        "old_slot": 0,
+        "new_slot": 0
+      }
+    ],
+    "0xfffffff0086f8414": [
+      {
+        "native": "0xfffffff00615c920",
+        "class_name": "AppleCSCodecMikeyBusAudio",
+        "old_slot": 1,
+        "new_slot": 1
+      }
+    ],
+    "0xfffffff0086f842c": [
+      {
+        "native": "0xfffffff00615c938",
+        "class_name": "AppleCSCodecMikeyBusAudio",
+        "old_slot": 7,
+        "new_slot": 7
+      }
+    ],
+    "0xfffffff0086f8488": [
+      {
+        "native": "0xfffffff00615ca08",
+        "class_name": "AppleCSCodecMikeyBusAudio",
+        "old_slot": 12,
+        "new_slot": 13
+      }
+    ],
+    "0xfffffff0086f84a0": [
+      {
+        "native": "0xfffffff00615ca20",
+        "class_name": "AppleCSCodecMikeyBusAudio",
+        "old_slot": 13,
+        "new_slot": 14
+      }
+    ],
+    "0xfffffff0086f852c": [
+      {
+        "native": "0xfffffff00615caac",
+        "class_name": "AppleCSCodecMikeyBusAudio",
+        "old_slot": 85,
+        "new_slot": 86
+      }
+    ],
+    "0xfffffff0086f8d2c": [
+      {
+        "native": "0xfffffff00615d2ac",
+        "class_name": "AppleCSCodecMikeyBusAudio",
+        "old_slot": 86,
+        "new_slot": 87
+      }
+    ],
+    "0xfffffff0086f8eb0": [
+      {
+        "native": "0xfffffff00615d42c",
+        "class_name": "AppleCSCodecMikeyBusAudio",
+        "old_slot": 179,
+        "new_slot": 180
+      }
+    ],
+    "0xfffffff0086f8f3c": [
+      {
+        "native": "0xfffffff00615d4b8",
+        "class_name": "AppleCSCodecMikeyBusAudio",
+        "old_slot": 180,
+        "new_slot": 181
+      }
+    ],
+    "0xfffffff0086f8fdc": [
+      {
+        "native": "0xfffffff00615d558",
+        "class_name": "AppleCSCodecMikeyBusAudio",
+        "old_slot": 181,
+        "new_slot": 182
+      }
+    ],
+    "0xfffffff0086f9068": [
+      {
+        "native": "0xfffffff00615d5e4",
+        "class_name": "AppleCSCodecMikeyBusAudio",
+        "old_slot": 190,
+        "new_slot": 191
+      }
+    ],
+    "0xfffffff0086f90f4": [
+      {
+        "native": "0xfffffff00615d670",
+        "class_name": "AppleCSCodecMikeyBusAudio",
+        "old_slot": 191,
+        "new_slot": 192
+      }
+    ],
+    "0xfffffff0086f8e48": [
+      {
+        "native": "0xfffffff00615d3c4",
+        "class_name": "AppleCSCodecMikeyBusAudio",
+        "old_slot": 192,
+        "new_slot": 193
+      }
+    ],
+    "0xfffffff0086f95bc": [
+      {
+        "native": "0xfffffff00615db94",
+        "class_name": "AppleCSCodecMikeyBusAudio",
+        "old_slot": 195,
+        "new_slot": 196
+      }
+    ],
+    "0xfffffff0086f91dc": [
+      {
+        "native": "0xfffffff00615d774",
+        "class_name": "AppleCSCodecMikeyBusAudio",
+        "old_slot": 199,
+        "new_slot": 200
+      }
+    ],
+    "0xfffffff0086f9274": [
+      {
+        "native": "0xfffffff00615d80c",
+        "class_name": "AppleCSCodecMikeyBusAudio",
+        "old_slot": 201,
+        "new_slot": 202
+      }
+    ],
+    "0xfffffff0086f9514": [
+      {
+        "native": "0xfffffff00615daac",
+        "class_name": "AppleCSCodecMikeyBusAudio",
+        "old_slot": 209,
+        "new_slot": 210
+      }
+    ],
+    "0xfffffff0086f95a0": [
+      {
+        "native": "0xfffffff00615db78",
+        "class_name": "AppleCSCodecMikeyBusAudio",
+        "old_slot": 214,
+        "new_slot": 215
+      }
+    ],
+    "0xfffffff0086f9344": [
+      {
+        "native": "0xfffffff00615d8d8",
+        "class_name": "AppleCSCodecMikeyBusAudio",
+        "old_slot": 234,
+        "new_slot": 235
+      }
+    ],
+    "0xfffffff0086f9454": [
+      {
+        "native": "0xfffffff00615d9e8",
+        "class_name": "AppleCSCodecMikeyBusAudio",
+        "old_slot": 235,
+        "new_slot": 236
+      }
+    ],
+    "0xfffffff0086f9180": [
+      {
+        "native": "0xfffffff0060a8e5c",
+        "class_name": "AppleCSCodecMikeyBusAudio",
+        "old_slot": 245,
+        "new_slot": 246
+      }
+    ],
+    "0xfffffff0086f9288": [
+      {
+        "native": "0xfffffff0060a8d2c",
+        "class_name": "AppleCSCodecMikeyBusAudio",
+        "old_slot": 248,
+        "new_slot": 249
+      }
+    ],
+    "0xfffffff0086f92a8": [
+      {
+        "native": "0xfffffff00615d820",
+        "class_name": "AppleCSCodecMikeyBusAudio",
+        "old_slot": 249,
+        "new_slot": 250
+      }
+    ],
+    "0xfffffff0086f9324": [
+      {
+        "native": "0xfffffff00615d840",
+        "class_name": "AppleCSCodecMikeyBusAudio",
+        "old_slot": 250,
+        "new_slot": 251
+      }
+    ]
+  },
+  "shared_classes": {
+    "AppleCSHTDCodecMikey": {
+      "meta12": "0xfffffff008a62af8",
+      "meta13": "0xfffffff0077f5c40",
+      "size12": "0x1a8",
+      "size13": "0x1a8",
+      "native_getter": "0xfffffff0060da004",
+      "native_vtable": "0xfffffff006e239f0"
+    },
+    "IOMikeyBusController": {
+      "meta12": "0xfffffff008a62b58",
+      "meta13": "0xfffffff0077f8548",
+      "size12": "0x3d8",
+      "size13": "0x3d8",
+      "native_getter": "0xfffffff006144064",
+      "native_vtable": "0xfffffff006e45f40"
+    },
+    "AppleCSCodecMikeyBus": {
+      "meta12": "0xfffffff008a8cd48",
+      "meta13": "0xfffffff0077f8b48",
+      "size12": "0x4d8",
+      "size13": "0x4d8",
+      "native_getter": "0xfffffff006159688",
+      "native_vtable": "0xfffffff006e4d180"
+    },
+    "AppleCSCodecMikeyBusV11": {
+      "meta12": "0xfffffff008a8cd70",
+      "meta13": "0xfffffff0077f8b70",
+      "size12": "0x4e8",
+      "size13": "0x4e8",
+      "native_getter": "0xfffffff00615b2e4",
+      "native_vtable": "0xfffffff006e4dc28"
+    },
+    "AppleCSCodecLineOutMikeyBus": {
+      "meta12": "0xfffffff008a8cd98",
+      "meta13": "0xfffffff0077f8b98",
+      "size12": "0x4e8",
+      "size13": "0x4e8",
+      "native_getter": "0xfffffff00615c5f4",
+      "native_vtable": "0xfffffff006e4e758"
+    },
+    "AppleCSCodecMikeyBusAudio": {
+      "meta12": "0xfffffff008a8cdc0",
+      "meta13": "0xfffffff0077f8bc0",
+      "size12": "0x1e8",
+      "size13": "0x218",
+      "native_getter": "0xfffffff00615c938",
+      "native_vtable": "0xfffffff006e4f200"
+    }
+  },
+  "static_parent_vtable_bases": [
+    {
+      "old": "0xfffffff00753ab48",
+      "new": "0xfffffff006e239e0",
+      "class_name": "AppleCSHTDCodecMikey",
+      "address_pair_sites": [
+        [
+          "0xfffffff0086f4e30",
+          "0xfffffff0086f4e34"
+        ],
+        [
+          "0xfffffff0086f4e6c",
+          "0xfffffff0086f4e70"
+        ],
+        [
+          "0xfffffff0086f503c",
+          "0xfffffff0086f5040"
+        ]
+      ]
+    },
+    {
+      "old": "0xfffffff00762abe8",
+      "new": "0xfffffff006e4e748",
+      "class_name": "AppleCSCodecLineOutMikeyBus",
+      "address_pair_sites": [
+        [
+          "0xfffffff0086f5110",
+          "0xfffffff0086f5114"
+        ]
+      ]
+    }
+  ],
+  "instruction_patches": [
+    {
+      "address": "0xfffffff0086f4e38",
+      "old_word": "0xf942a502",
+      "new_word": "0xf942a902",
+      "old_offset": "0x548",
+      "new_offset": "0x550",
+      "evidence": "HTD static parent slot 167 to 168, relative to vtable header",
+      "instruction": "ldr x2, [x8, #0x548]"
+    },
+    {
+      "address": "0xfffffff0086f4e74",
+      "old_word": "0xf9434d08",
+      "new_word": "0xf9435908",
+      "old_offset": "0x698",
+      "new_offset": "0x6b0",
+      "evidence": "HTD static parent slot 209 to 212, relative to vtable header",
+      "instruction": "ldr x8, [x8, #0x698]"
+    },
+    {
+      "address": "0xfffffff0086f4ea0",
+      "old_word": "0xf9405501",
+      "new_word": "0xf9405901",
+      "old_offset": "0xa8",
+      "new_offset": "0xb0",
+      "evidence": "Audio register interface virtual slot 21 to 22",
+      "instruction": "ldr x1, [x8, #0xa8]"
+    },
+    {
+      "address": "0xfffffff0086f4ea8",
+      "old_word": "0xf9405901",
+      "new_word": "0xf9405d01",
+      "old_offset": "0xb0",
+      "new_offset": "0xb8",
+      "evidence": "Audio register interface virtual slot 22 to 23",
+      "instruction": "ldr x1, [x8, #0xb0]"
+    },
+    {
+      "address": "0xfffffff0086f4ebc",
+      "old_word": "0xf9453522",
+      "new_word": "0xf9454522",
+      "old_offset": "0xa68",
+      "new_offset": "0xa88",
+      "evidence": "CS42L67Audio register read virtual slot 333 to 337",
+      "instruction": "ldr x2, [x9, #0xa68]"
+    },
+    {
+      "address": "0xfffffff0086f4ed4",
+      "old_word": "0xf9453123",
+      "new_word": "0xf9454123",
+      "old_offset": "0xa60",
+      "new_offset": "0xa80",
+      "evidence": "CS42L67Audio register write virtual slot 332 to 336",
+      "instruction": "ldr x3, [x9, #0xa60]"
+    },
+    {
+      "address": "0xfffffff0086f4eec",
+      "old_word": "0xf9454124",
+      "new_word": "0xf9455124",
+      "old_offset": "0xa80",
+      "new_offset": "0xaa0",
+      "evidence": "CS42L67Audio masked register write virtual slot 336 to 340",
+      "instruction": "ldr x4, [x9, #0xa80]"
+    },
+    {
+      "address": "0xfffffff0086f4f04",
+      "old_word": "0xf9453522",
+      "new_word": "0xf9454522",
+      "old_offset": "0xa68",
+      "new_offset": "0xa88",
+      "evidence": "CS42L67Audio register read virtual slot 333 to 337",
+      "instruction": "ldr x2, [x9, #0xa68]"
+    },
+    {
+      "address": "0xfffffff0086f4f1c",
+      "old_word": "0xf9453123",
+      "new_word": "0xf9454123",
+      "old_offset": "0xa60",
+      "new_offset": "0xa80",
+      "evidence": "CS42L67Audio register write virtual slot 332 to 336",
+      "instruction": "ldr x3, [x9, #0xa60]"
+    },
+    {
+      "address": "0xfffffff0086f4f34",
+      "old_word": "0xf9454124",
+      "new_word": "0xf9455124",
+      "old_offset": "0xa80",
+      "new_offset": "0xaa0",
+      "evidence": "CS42L67Audio masked register write virtual slot 336 to 340",
+      "instruction": "ldr x4, [x9, #0xa80]"
+    },
+    {
+      "address": "0xfffffff0086f4f64",
+      "old_word": "0xf9454108",
+      "new_word": "0xf9455108",
+      "old_offset": "0xa80",
+      "new_offset": "0xaa0",
+      "evidence": "CS42L67Audio masked register write virtual slot 336 to 340",
+      "instruction": "ldr x8, [x8, #0xa80]"
+    },
+    {
+      "address": "0xfffffff0086f4f84",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454108",
+      "old_offset": "0xa60",
+      "new_offset": "0xa80",
+      "evidence": "CS42L67Audio register write virtual slot 332 to 336",
+      "instruction": "ldr x8, [x8, #0xa60]"
+    },
+    {
+      "address": "0xfffffff0086f4fb4",
+      "old_word": "0xf9453508",
+      "new_word": "0xf9454508",
+      "old_offset": "0xa68",
+      "new_offset": "0xa88",
+      "evidence": "CS42L67Audio register read virtual slot 333 to 337",
+      "instruction": "ldr x8, [x8, #0xa68]"
+    },
+    {
+      "address": "0xfffffff0086f4fdc",
+      "old_word": "0xf9453508",
+      "new_word": "0xf9454508",
+      "old_offset": "0xa68",
+      "new_offset": "0xa88",
+      "evidence": "CS42L67Audio register read virtual slot 333 to 337",
+      "instruction": "ldr x8, [x8, #0xa68]"
+    },
+    {
+      "address": "0xfffffff0086f502c",
+      "old_word": "0xf9409908",
+      "new_word": "0xf9409d08",
+      "old_offset": "0x130",
+      "new_offset": "0x138",
+      "evidence": "IOTimerEventSource virtual slot 38 to 39",
+      "instruction": "ldr x8, [x8, #0x130]"
+    },
+    {
+      "address": "0xfffffff0086f5044",
+      "old_word": "0xf943b503",
+      "new_word": "0xf943c503",
+      "old_offset": "0x768",
+      "new_offset": "0x788",
+      "evidence": "HTD static parent slot 235 to 239, relative to vtable header",
+      "instruction": "ldr x3, [x8, #0x768]"
+    },
+    {
+      "address": "0xfffffff0086f5118",
+      "old_word": "0xf942b902",
+      "new_word": "0xf942bd02",
+      "old_offset": "0x570",
+      "new_offset": "0x578",
+      "evidence": "LineOut static parent slot 172 to 173, relative to vtable header",
+      "instruction": "ldr x2, [x8, #0x570]"
+    },
+    {
+      "address": "0xfffffff0086f515c",
+      "old_word": "0xf9443d08",
+      "new_word": "0xf9444d08",
+      "old_offset": "0x878",
+      "new_offset": "0x898",
+      "evidence": "CS42L67Audio virtual slot 271 to 275",
+      "instruction": "ldr x8, [x8, #0x878]"
+    },
+    {
+      "address": "0xfffffff0086f51a8",
+      "old_word": "0xf9453103",
+      "new_word": "0xf9454103",
+      "old_offset": "0xa60",
+      "new_offset": "0xa80",
+      "evidence": "CS42L67Audio register write virtual slot 332 to 336",
+      "instruction": "ldr x3, [x8, #0xa60]"
+    },
+    {
+      "address": "0xfffffff0086f5278",
+      "old_word": "0xf9430d08",
+      "new_word": "0xf9431d08",
+      "old_offset": "0x618",
+      "new_offset": "0x638",
+      "evidence": "CS42L67Audio virtual slot 195 to 199",
+      "instruction": "ldr x8, [x8, #0x618]"
+    },
+    {
+      "address": "0xfffffff0086f52a0",
+      "old_word": "0xf9407108",
+      "new_word": "0xf9407508",
+      "old_offset": "0xe0",
+      "new_offset": "0xe8",
+      "evidence": "OSArray virtual slot 28 to 29",
+      "instruction": "ldr x8, [x8, #0xe0]"
+    },
+    {
+      "address": "0xfffffff0086f53bc",
+      "old_word": "0xf9434908",
+      "new_word": "0xf9434d08",
+      "old_offset": "0x690",
+      "new_offset": "0x698",
+      "evidence": "CS42L67MikeyBus virtual slot 210 to 211",
+      "instruction": "ldr x8, [x8, #0x690]"
+    }
+  ],
+  "retained_fields": [
+    {
+      "owner": "AppleCS42L67Mikey",
+      "offset": "0x1a8",
+      "meaning": "CS42L67Audio pointer"
+    },
+    {
+      "owner": "AppleCS42L67MikeyBus",
+      "offset": "0x4e8",
+      "meaning": "CS42L67Audio pointer"
+    },
+    {
+      "owner": "AppleCS42L67Audio",
+      "offset": "0x248",
+      "meaning": "register interface used by Mikey"
+    },
+    {
+      "owner": "AppleCS42L67Audio",
+      "offset": "0x1c0",
+      "meaning": "timer event source used by Mikey"
+    },
+    {
+      "owner": "AppleCS42L67Audio",
+      "offset": "0x1c8",
+      "meaning": "timer state flag used by Mikey"
+    }
+  ],
+  "field_patches": [],
+  "unique_functions": {
+    "AppleCS42L67Mikey": [
+      {
+        "start": "0xfffffff0086f4d84",
+        "end": "0xfffffff0086f4d8c"
+      },
+      {
+        "start": "0xfffffff0086f4d8c",
+        "end": "0xfffffff0086f4d90"
+      },
+      {
+        "start": "0xfffffff0086f4d90",
+        "end": "0xfffffff0086f4da8"
+      },
+      {
+        "start": "0xfffffff0086f4da8",
+        "end": "0xfffffff0086f4db4"
+      },
+      {
+        "start": "0xfffffff0086f4db4",
+        "end": "0xfffffff0086f4e04"
+      },
+      {
+        "start": "0xfffffff0086f4e04",
+        "end": "0xfffffff0086f4e5c"
+      },
+      {
+        "start": "0xfffffff0086f4e5c",
+        "end": "0xfffffff0086f4e90"
+      },
+      {
+        "start": "0xfffffff0086f4e90",
+        "end": "0xfffffff0086f4eb0"
+      },
+      {
+        "start": "0xfffffff0086f4eb0",
+        "end": "0xfffffff0086f4ec8"
+      },
+      {
+        "start": "0xfffffff0086f4ec8",
+        "end": "0xfffffff0086f4ee0"
+      },
+      {
+        "start": "0xfffffff0086f4ee0",
+        "end": "0xfffffff0086f4ef8"
+      },
+      {
+        "start": "0xfffffff0086f4ef8",
+        "end": "0xfffffff0086f4f10"
+      },
+      {
+        "start": "0xfffffff0086f4f10",
+        "end": "0xfffffff0086f4f28"
+      },
+      {
+        "start": "0xfffffff0086f4f28",
+        "end": "0xfffffff0086f4f40"
+      },
+      {
+        "start": "0xfffffff0086f4f40",
+        "end": "0xfffffff0086f4fa4"
+      },
+      {
+        "start": "0xfffffff0086f4fa4",
+        "end": "0xfffffff0086f4fcc"
+      },
+      {
+        "start": "0xfffffff0086f4fcc",
+        "end": "0xfffffff0086f4ff8"
+      },
+      {
+        "start": "0xfffffff0086f4ff8",
+        "end": "0xfffffff0086f5064"
+      },
+      {
+        "start": "0xfffffff0086f54c8",
+        "end": "0xfffffff0086f54cc"
+      },
+      {
+        "start": "0xfffffff0086f54cc",
+        "end": "0xfffffff0086f54d4"
+      }
+    ],
+    "AppleCS42L67MikeyBus": [
+      {
+        "start": "0xfffffff0086f5064",
+        "end": "0xfffffff0086f506c"
+      },
+      {
+        "start": "0xfffffff0086f506c",
+        "end": "0xfffffff0086f5070"
+      },
+      {
+        "start": "0xfffffff0086f5070",
+        "end": "0xfffffff0086f5088"
+      },
+      {
+        "start": "0xfffffff0086f5088",
+        "end": "0xfffffff0086f5094"
+      },
+      {
+        "start": "0xfffffff0086f5094",
+        "end": "0xfffffff0086f50e4"
+      },
+      {
+        "start": "0xfffffff0086f50e4",
+        "end": "0xfffffff0086f513c"
+      },
+      {
+        "start": "0xfffffff0086f513c",
+        "end": "0xfffffff0086f5144"
+      },
+      {
+        "start": "0xfffffff0086f5144",
+        "end": "0xfffffff0086f5184"
+      },
+      {
+        "start": "0xfffffff0086f5184",
+        "end": "0xfffffff0086f51b4"
+      },
+      {
+        "start": "0xfffffff0086f51b4",
+        "end": "0xfffffff0086f5250"
+      },
+      {
+        "start": "0xfffffff0086f5250",
+        "end": "0xfffffff0086f52dc"
+      },
+      {
+        "start": "0xfffffff0086f52dc",
+        "end": "0xfffffff0086f5354"
+      },
+      {
+        "start": "0xfffffff0086f5354",
+        "end": "0xfffffff0086f5484"
+      },
+      {
+        "start": "0xfffffff0086f54d4",
+        "end": "0xfffffff0086f54d8"
+      },
+      {
+        "start": "0xfffffff0086f54d8",
+        "end": "0xfffffff0086f54e0"
+      }
+    ]
+  },
+  "parent_slot_maps": {
+    "AppleCSHTDCodecMikey": {
+      "old_to_new": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95,
+        96,
+        97,
+        98,
+        99,
+        100,
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        107,
+        108,
+        109,
+        110,
+        111,
+        112,
+        113,
+        114,
+        115,
+        116,
+        117,
+        118,
+        119,
+        120,
+        121,
+        122,
+        123,
+        124,
+        125,
+        126,
+        127,
+        128,
+        129,
+        130,
+        131,
+        132,
+        133,
+        134,
+        135,
+        136,
+        137,
+        138,
+        139,
+        140,
+        141,
+        142,
+        143,
+        144,
+        145,
+        146,
+        147,
+        148,
+        149,
+        150,
+        151,
+        152,
+        153,
+        154,
+        155,
+        156,
+        157,
+        158,
+        159,
+        160,
+        161,
+        162,
+        163,
+        164,
+        165,
+        166,
+        167,
+        168,
+        169,
+        170,
+        171,
+        172,
+        173,
+        174,
+        175,
+        176,
+        177,
+        178,
+        179,
+        180,
+        181,
+        182,
+        183,
+        184,
+        185,
+        186,
+        187,
+        188,
+        189,
+        190,
+        191,
+        192,
+        193,
+        194,
+        195,
+        196,
+        197,
+        198,
+        199,
+        200,
+        201,
+        202,
+        205,
+        206,
+        207,
+        208,
+        209,
+        210,
+        211,
+        212,
+        213,
+        214,
+        215,
+        216,
+        217,
+        218,
+        219,
+        220,
+        221,
+        222,
+        223,
+        228,
+        225,
+        226,
+        227,
+        229,
+        230,
+        231,
+        232,
+        233,
+        234,
+        235,
+        236,
+        237,
+        238,
+        239,
+        240,
+        241,
+        242,
+        243,
+        244,
+        245,
+        246,
+        247,
+        248,
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259,
+        260,
+        261,
+        262,
+        263,
+        264,
+        265,
+        266,
+        267,
+        268,
+        269,
+        270,
+        271,
+        272,
+        273,
+        274,
+        275,
+        276,
+        277,
+        278,
+        279,
+        280
+      ],
+      "inserted_native_slots": [
+        12,
+        203,
+        204,
+        224
+      ],
+      "evidence": [
+        "old200 0x7ea4078 and native201 0x600cffc open each child service in the same loop",
+        "old201 0x7ea4180 and native202 0x600d268 terminate each child in the same loop",
+        "native203 0x600d3dc is a new two-property service selection method; native204 0x600d54c is ret",
+        "old221 0x803e7ac maps to native228 0x60d4dd4: timer +0xf8/+0x108 and trace 0x524d068",
+        "native224 0x60d4d64 is a new command-gate action 0x720 wrapper",
+        "old222/223/224 map to native225/226/227; old225 onwards shift by four"
+      ]
+    },
+    "AppleCSCodecLineOutMikeyBus": {
+      "old_to_new": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95,
+        96,
+        97,
+        98,
+        99,
+        100,
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        107,
+        108,
+        109,
+        110,
+        111,
+        112,
+        113,
+        114,
+        115,
+        116,
+        117,
+        118,
+        119,
+        120,
+        121,
+        122,
+        123,
+        124,
+        125,
+        126,
+        127,
+        128,
+        129,
+        130,
+        131,
+        132,
+        133,
+        134,
+        135,
+        136,
+        137,
+        138,
+        139,
+        140,
+        141,
+        142,
+        143,
+        144,
+        145,
+        146,
+        147,
+        148,
+        149,
+        150,
+        151,
+        152,
+        153,
+        154,
+        155,
+        156,
+        157,
+        158,
+        159,
+        160,
+        161,
+        162,
+        163,
+        164,
+        165,
+        166,
+        167,
+        168,
+        169,
+        170,
+        171,
+        172,
+        173,
+        174,
+        175,
+        176,
+        177,
+        178,
+        179,
+        180,
+        181,
+        182,
+        183,
+        184,
+        185,
+        186,
+        187,
+        188,
+        189,
+        190,
+        191,
+        192,
+        193,
+        194,
+        195,
+        196,
+        197,
+        198,
+        199,
+        200,
+        201,
+        202,
+        203,
+        204,
+        205,
+        206,
+        207,
+        208,
+        209,
+        210,
+        211,
+        212,
+        213,
+        214,
+        215,
+        216,
+        217,
+        218,
+        219,
+        220,
+        221,
+        222,
+        223,
+        224,
+        225,
+        226,
+        227,
+        228,
+        229,
+        230,
+        231,
+        232,
+        233,
+        234,
+        235,
+        236,
+        237,
+        238,
+        239,
+        240,
+        241,
+        242,
+        243,
+        244,
+        245,
+        246,
+        247,
+        248,
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259,
+        260,
+        261,
+        262,
+        263,
+        264,
+        265,
+        266,
+        267,
+        268,
+        269,
+        270,
+        271,
+        272,
+        273,
+        274,
+        275,
+        276,
+        277,
+        278,
+        279,
+        280,
+        281,
+        282,
+        283,
+        284,
+        285,
+        286,
+        287,
+        288,
+        289,
+        290,
+        291,
+        292,
+        293,
+        294,
+        295,
+        296,
+        297,
+        298,
+        299,
+        300,
+        301,
+        302,
+        303,
+        304,
+        305,
+        306,
+        307,
+        308,
+        309,
+        310,
+        311,
+        312,
+        313,
+        314,
+        315,
+        316,
+        317,
+        318,
+        319
+      ],
+      "inserted_native_slots": [
+        12
+      ]
+    }
+  },
+  "classes": {
+    "AppleCS42L67Mikey": {
+      "size12": "0x1b0",
+      "size13": "0x1b0",
+      "old_vtable": "0xfffffff007629728",
+      "native_parent_vtable": "0xfffffff006e239f0",
+      "slots12": 277,
+      "slots13": 281,
+      "overrides": [
+        {
+          "old_slot": 0,
+          "new_slot": 0,
+          "old_function": "0xfffffff0086f4d8c",
+          "native_parent_function": "0xfffffff0060d9ffc"
+        },
+        {
+          "old_slot": 1,
+          "new_slot": 1,
+          "old_function": "0xfffffff0086f4d90",
+          "native_parent_function": "0xfffffff0060da000"
+        },
+        {
+          "old_slot": 7,
+          "new_slot": 7,
+          "old_function": "0xfffffff0086f4da8",
+          "native_parent_function": "0xfffffff0060da004"
+        },
+        {
+          "old_slot": 167,
+          "new_slot": 168,
+          "old_function": "0xfffffff0086f4e04",
+          "native_parent_function": "0xfffffff0060da04c"
+        },
+        {
+          "old_slot": 206,
+          "new_slot": 209,
+          "old_function": "0xfffffff0086f54cc",
+          "native_parent_function": "0xfffffff0060da71c"
+        },
+        {
+          "old_slot": 209,
+          "new_slot": 212,
+          "old_function": "0xfffffff0086f4e5c",
+          "native_parent_function": "0xfffffff0060d62b4"
+        },
+        {
+          "old_slot": 235,
+          "new_slot": 239,
+          "old_function": "0xfffffff0086f4ff8",
+          "native_parent_function": "0xfffffff0060da408"
+        },
+        {
+          "old_slot": 244,
+          "new_slot": 248,
+          "old_function": "0xfffffff0086f4e90",
+          "native_parent_function": "0xfffffff0075d6e3c"
+        },
+        {
+          "old_slot": 265,
+          "new_slot": 269,
+          "old_function": "0xfffffff0086f4eb0",
+          "native_parent_function": "0xfffffff0075d6e3c"
+        },
+        {
+          "old_slot": 266,
+          "new_slot": 270,
+          "old_function": "0xfffffff0086f4ec8",
+          "native_parent_function": "0xfffffff0075d6e3c"
+        },
+        {
+          "old_slot": 267,
+          "new_slot": 271,
+          "old_function": "0xfffffff0086f4ee0",
+          "native_parent_function": "0xfffffff0075d6e3c"
+        },
+        {
+          "old_slot": 268,
+          "new_slot": 272,
+          "old_function": "0xfffffff0086f4ef8",
+          "native_parent_function": "0xfffffff0075d6e3c"
+        },
+        {
+          "old_slot": 269,
+          "new_slot": 273,
+          "old_function": "0xfffffff0086f4f10",
+          "native_parent_function": "0xfffffff0075d6e3c"
+        },
+        {
+          "old_slot": 270,
+          "new_slot": 274,
+          "old_function": "0xfffffff0086f4f28",
+          "native_parent_function": "0xfffffff0075d6e3c"
+        },
+        {
+          "old_slot": 271,
+          "new_slot": 275,
+          "old_function": "0xfffffff0086f4f40",
+          "native_parent_function": "0xfffffff0075d6e3c"
+        },
+        {
+          "old_slot": 272,
+          "new_slot": 276,
+          "old_function": "0xfffffff0086f4fa4",
+          "native_parent_function": "0xfffffff0075d6e3c"
+        },
+        {
+          "old_slot": 273,
+          "new_slot": 277,
+          "old_function": "0xfffffff0086f4fcc",
+          "native_parent_function": "0xfffffff0075d6e3c"
+        }
+      ],
+      "rebuilt_entries": [
+        {
+          "source": "donor12",
+          "address": "0xfffffff0086f4d8c"
+        },
+        {
+          "source": "donor12",
+          "address": "0xfffffff0086f4d90"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ba3ec"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ba400"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ba408"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ba418"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ba428"
+        },
+        {
+          "source": "donor12",
+          "address": "0xfffffff0086f4da8"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075b822c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ba520"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ba594"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ba5a4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00600064c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ba658"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006008760"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fd070"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fd1b4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fd2f8"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fd43c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fd4bc"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fd53c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060086f0"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fd7c4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00600b778"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fd938"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fd99c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fda00"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fda84"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fdb1c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fdba4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fdc74"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fdcdc"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fdd24"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fdd6c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fddd4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fde28"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fde7c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fdfc0"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fe104"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fe248"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fe2c4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fe340"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fe3bc"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007602f44"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fe4d4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fe4e0"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fe58c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fe664"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fe6a4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fe750"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fe828"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fe868"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fe9a8"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075feae8"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075febe4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fed08"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fef7c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ff120"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ff230"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ff3d4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ff474"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ff60c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ff6d0"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ff798"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ff8b4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ff940"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ffa10"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ffa7c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ffacc"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ffb58"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ffbdc"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ffc48"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fff70"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007600060"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007602f48"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007602ff8"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d6368"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007603084"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007623890"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d821c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0076031b0"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0076032b4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0076034f4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007603734"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00760373c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00760397c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006008a4c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d631c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0076039b0"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007603abc"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007603c28"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00600a894"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00600ae58"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00600b034"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007603d28"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007603d30"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007603f1c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0076042f4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007604498"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0076044fc"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007604508"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006009c54"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00760455c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007604564"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0076045a8"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0076046e4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007604778"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00760480c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0076048f0"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007604b3c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007604dc8"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007604e34"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007604e64"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007604e78"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007604f34"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007604f48"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007604f5c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d40ac"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007605104"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0076051a8"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0076051b0"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007605224"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0076052a0"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0076052e4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007605348"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007605360"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007605430"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0076054d4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007605588"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007605608"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007605688"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007605708"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00600b510"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007605720"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007605928"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00760597c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007605a50"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007605a64"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007605a78"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007605ae0"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00600b074"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007605d5c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007605d68"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007605de0"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0076161fc"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00762174c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007621730"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0076221c4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007622a74"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0076234dc"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0076238f0"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0076238f8"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0076219e4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007622010"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007623710"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d80c8"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00762492c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007624970"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0076249c0"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007624a04"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007624a0c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007623a04"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007623a10"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007623a1c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007623f80"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007623f8c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007623fec"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007624a14"
+        },
+        {
+          "source": "donor12",
+          "address": "0xfffffff0086f4e04"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00600a890"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006009e74"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d49c0"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d49cc"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d49d8"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00600b82c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00600b834"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00600b83c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00600b844"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00600b84c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00600b8a4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d47e0"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00600b8fc"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00600b998"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00600bac4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00600bcf8"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00600bce8"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00600bd0c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00600be80"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00600c018"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00600c0a4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00600c45c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00600c814"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00600c8d8"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00600c8e0"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00600c8ec"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00600c8f8"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00600c900"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00600c908"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00600ce3c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00600cec8"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00600bba8"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00600cffc"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00600d268"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00600d3dc"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00600d54c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d82a4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d6558"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d6a68"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d6e28"
+        },
+        {
+          "source": "donor12",
+          "address": "0xfffffff0086f54cc"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d872c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d8884"
+        },
+        {
+          "source": "donor12",
+          "address": "0xfffffff0086f4e5c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d645c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d5d90"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d4508"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d50a0"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d5260"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d46b0"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d5e3c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d5efc"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d5f94"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d4ee4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d4eec"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d4d64"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d4874"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d4400"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d4410"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d4dd4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d5640"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d53d8"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d5d30"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d55ac"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d8208"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d8aec"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d8b50"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d8c48"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d8cbc"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d8dd8"
+        },
+        {
+          "source": "donor12",
+          "address": "0xfffffff0086f4ff8"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060da120"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060da1fc"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060da378"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060da4d0"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060da49c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d7bfc"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d7c08"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d7b9c"
+        },
+        {
+          "source": "donor12",
+          "address": "0xfffffff0086f4e90"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d980c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d9874"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d98dc"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d9954"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d99cc"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d9a34"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d9a9c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d9b08"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d9b74"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d9bdc"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d9c44"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d9cac"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d9d14"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d9d80"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d9dec"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d9e70"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d9f04"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d91cc"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d93f8"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060d9758"
+        },
+        {
+          "source": "donor12",
+          "address": "0xfffffff0086f4eb0"
+        },
+        {
+          "source": "donor12",
+          "address": "0xfffffff0086f4ec8"
+        },
+        {
+          "source": "donor12",
+          "address": "0xfffffff0086f4ee0"
+        },
+        {
+          "source": "donor12",
+          "address": "0xfffffff0086f4ef8"
+        },
+        {
+          "source": "donor12",
+          "address": "0xfffffff0086f4f10"
+        },
+        {
+          "source": "donor12",
+          "address": "0xfffffff0086f4f28"
+        },
+        {
+          "source": "donor12",
+          "address": "0xfffffff0086f4f40"
+        },
+        {
+          "source": "donor12",
+          "address": "0xfffffff0086f4fa4"
+        },
+        {
+          "source": "donor12",
+          "address": "0xfffffff0086f4fcc"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060da130"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060da3d8"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0060da128"
+        }
+      ]
+    },
+    "AppleCS42L67MikeyBus": {
+      "size12": "0x4f0",
+      "size13": "0x4f0",
+      "old_vtable": "0xfffffff00762a068",
+      "native_parent_vtable": "0xfffffff006e4e758",
+      "slots12": 319,
+      "slots13": 320,
+      "overrides": [
+        {
+          "old_slot": 0,
+          "new_slot": 0,
+          "old_function": "0xfffffff0086f506c",
+          "native_parent_function": "0xfffffff00615c5ec"
+        },
+        {
+          "old_slot": 1,
+          "new_slot": 1,
+          "old_function": "0xfffffff0086f5070",
+          "native_parent_function": "0xfffffff00615c5f0"
+        },
+        {
+          "old_slot": 7,
+          "new_slot": 7,
+          "old_function": "0xfffffff0086f5088",
+          "native_parent_function": "0xfffffff00615c5f4"
+        },
+        {
+          "old_slot": 172,
+          "new_slot": 173,
+          "old_function": "0xfffffff0086f50e4",
+          "native_parent_function": "0xfffffff006159d20"
+        },
+        {
+          "old_slot": 199,
+          "new_slot": 200,
+          "old_function": "0xfffffff0086f51b4",
+          "native_parent_function": "0xfffffff0075d6e3c"
+        },
+        {
+          "old_slot": 221,
+          "new_slot": 222,
+          "old_function": "0xfffffff0086f5184",
+          "native_parent_function": "0xfffffff00615b27c"
+        },
+        {
+          "old_slot": 223,
+          "new_slot": 224,
+          "old_function": "0xfffffff0086f54d8",
+          "native_parent_function": "0xfffffff00615db8c"
+        },
+        {
+          "old_slot": 307,
+          "new_slot": 308,
+          "old_function": "0xfffffff0086f513c",
+          "native_parent_function": "0xfffffff00615a00c"
+        },
+        {
+          "old_slot": 312,
+          "new_slot": 313,
+          "old_function": "0xfffffff0086f5250",
+          "native_parent_function": "0xfffffff0075d6e3c"
+        },
+        {
+          "old_slot": 313,
+          "new_slot": 314,
+          "old_function": "0xfffffff0086f52dc",
+          "native_parent_function": "0xfffffff0075d6e3c"
+        },
+        {
+          "old_slot": 314,
+          "new_slot": 315,
+          "old_function": "0xfffffff0086f5354",
+          "native_parent_function": "0xfffffff0075d6e3c"
+        },
+        {
+          "old_slot": 318,
+          "new_slot": 319,
+          "old_function": "0xfffffff0086f5144",
+          "native_parent_function": "0xfffffff0075d6e3c"
+        }
+      ],
+      "rebuilt_entries": [
+        {
+          "source": "donor12",
+          "address": "0xfffffff0086f506c"
+        },
+        {
+          "source": "donor12",
+          "address": "0xfffffff0086f5070"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ba3ec"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ba400"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ba408"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ba418"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ba428"
+        },
+        {
+          "source": "donor12",
+          "address": "0xfffffff0086f5088"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075b822c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ba520"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ba594"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ba5a4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ef370"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ba658"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006144914"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fd070"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fd1b4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fd2f8"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fd43c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fd4bc"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fd53c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007602e94"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fd7c4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fd844"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fd938"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fd99c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fda00"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fda84"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fdb1c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fdba4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fdc74"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fdcdc"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fdd24"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fdd6c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fddd4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fde28"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fde7c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fdfc0"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fe104"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fe248"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fe2c4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fe340"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fe3bc"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007602f44"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fe4d4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fe4e0"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fe58c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fe664"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fe6a4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fe750"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fe828"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fe868"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fe9a8"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075feae8"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075febe4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fed08"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fef7c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ff120"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ff230"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ff3d4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ff474"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ff60c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ff6d0"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ff798"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ff8b4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ff940"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ffa10"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ffa7c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ffacc"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ffb58"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ffbdc"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075ffc48"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0075fff70"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007600060"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007602f48"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007602ff8"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007603060"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007603084"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007623890"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007624a18"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0076031b0"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0076032b4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0076034f4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007603734"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00760373c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00760397c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0061440ac"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006159d94"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0076039b0"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007603abc"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007603c28"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007603c84"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007603cf0"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007603d08"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007603d28"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007603d30"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007603f1c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0076042f4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007604498"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0076044fc"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007604508"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007604550"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00760455c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007604564"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0076045a8"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0076046e4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007604778"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00760480c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0076048f0"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007604b3c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007604dc8"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006159e00"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007604e64"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007604e78"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007604f34"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007604f48"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007604f5c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007605018"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007605104"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0076051a8"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0076051b0"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007605224"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0076052a0"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0076052e4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007605348"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007605360"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007605430"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0076054d4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007605588"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007605608"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007605688"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007605708"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007605714"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007605720"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007605928"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00760597c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007605a50"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007605a64"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007605a78"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007605ae0"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007605aec"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007605d5c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0061449cc"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007605de0"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0076161fc"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00762174c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007621730"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0076221c4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007622a74"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0076234dc"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0076238f0"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0076238f8"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0076219e4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007622010"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007623710"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006159e08"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00762492c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007624970"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0076249c0"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006159f14"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007624a0c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007623a04"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007623a10"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007623a1c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007623f80"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007623f8c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007623fec"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff007624a14"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006144d4c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006144d54"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006149e68"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006149f54"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00614a058"
+        },
+        {
+          "source": "donor12",
+          "address": "0xfffffff0086f50e4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00615a024"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00615a1bc"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006145380"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006145424"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00615a324"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00615a5ac"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00615a690"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00615a7ac"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00615a8b8"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006144d5c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006144dec"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006144e70"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006144ef4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006144f78"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006145008"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00614508c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006145110"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00615c66c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00615c73c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00615acd4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00615ad58"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00615c7c8"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00615c83c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006147fb0"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00615a91c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00615a95c"
+        },
+        {
+          "source": "donor12",
+          "address": "0xfffffff0086f51b4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00615a984"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00615ab6c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00615ae54"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006148300"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0061485a8"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006148778"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006148890"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0061489f0"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006148b18"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006148c40"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006148d4c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006148f18"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006149608"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006149730"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006149848"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006149970"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006149a5c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006149b48"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006149c34"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00615ac88"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00615ae4c"
+        },
+        {
+          "source": "donor12",
+          "address": "0xfffffff0086f5184"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006149d20"
+        },
+        {
+          "source": "donor12",
+          "address": "0xfffffff0086f54d8"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0061454e4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006145f44"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0061460d4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0061461fc"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0061462ac"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006145b7c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006145c2c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006145e34"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006147274"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006146ffc"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0061471a8"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006145938"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006147940"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006147b24"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0061480f8"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0061481c4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006149efc"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006149fe8"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006144a00"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006144b20"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006145584"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006145194"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0061451b0"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0061451cc"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0061451e8"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006145304"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0061454c8"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006146000"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006146164"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006146340"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006146360"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006146560"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006146580"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006146714"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00614674c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006146a88"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0061457fc"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006146b58"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006145ce0"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006145ec4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006147098"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006147244"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006147358"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006147908"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0061458fc"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0061459cc"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006145894"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0061479f0"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006147bc0"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006147d2c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006147f18"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006148050"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006148194"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006148260"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0061483a0"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006148648"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006148828"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00614894c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006148aa0"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006148bc8"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006148cf0"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006148e04"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006149030"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006149458"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0061496b4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0061497e0"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006149920"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0061499f4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006149ae0"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006149bcc"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006149cd4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006148284"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006149d9c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00614a060"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00614a0b8"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00614a10c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00614a160"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00614a1b4"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff0061596d0"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00615a014"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006159f84"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff006159e94"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00615a2cc"
+        },
+        {
+          "source": "donor12",
+          "address": "0xfffffff0086f513c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00615c744"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00615c764"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00615c788"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00615c7a8"
+        },
+        {
+          "source": "donor12",
+          "address": "0xfffffff0086f5250"
+        },
+        {
+          "source": "donor12",
+          "address": "0xfffffff0086f52dc"
+        },
+        {
+          "source": "donor12",
+          "address": "0xfffffff0086f5354"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00615b26c"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00615b274"
+        },
+        {
+          "source": "native13",
+          "address": "0xfffffff00615c63c"
+        },
+        {
+          "source": "donor12",
+          "address": "0xfffffff0086f5144"
+        }
+      ]
+    }
+  }
+}

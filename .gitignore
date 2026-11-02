@@ -1,0 +1,21 @@
+# 运行产物与本地固件
+/donors/
+/ipsw/
+/state/
+/build/
+/extracted/
+*.ipsw
+*.dmg
+*.img4
+*.raw
+IM4M*
+*keybag*
+*.p12
+# python / 杂项
+__pycache__/
+*.pyc
+.DS_Store
+
+/tools/bin/
+/tools/checkra1n-kpf/checkra1n/kpf-test/kpf-test.macos
+.venv/

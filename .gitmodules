@@ -1,0 +1,18 @@
+[submodule "tools/SSHRD_Script"]
+	path = tools/SSHRD_Script
+	url = https://github.com/verygenericname/SSHRD_Script.git
+[submodule "tools/img4lib"]
+	path = tools/img4lib
+	url = https://github.com/xerub/img4lib.git
+[submodule "tools/dualra1n"]
+	path = tools/dualra1n
+	url = https://github.com/dualra1n/dualra1n.git
+[submodule "tools/devicetree-parse"]
+	path = tools/devicetree-parse
+	url = https://github.com/khanhduytran0/devicetree-parse.git
+[submodule "tools/DyldExtractor"]
+	path = tools/DyldExtractor
+	url = https://github.com/arandomdev/DyldExtractor.git
+[submodule "tools/gaster"]
+	path = tools/gaster
+	url = https://github.com/verygenericname/gaster.git

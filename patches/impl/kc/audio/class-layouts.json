@@ -1,0 +1,542 @@
+{
+  "12": [
+    {
+      "bundle": "com.apple.driver.AppleCSEmbeddedAudio",
+      "name": "AppleEmbeddedAudioButtons",
+      "size": 248,
+      "metaclass": "0xfffffff008a629c0",
+      "parent_meta": "0xfffffff008a5f088",
+      "registration": "0xfffffff00803e4d0"
+    },
+    {
+      "bundle": "com.apple.driver.AppleCSEmbeddedAudio",
+      "name": "AppleEmbeddedButtonController",
+      "size": 312,
+      "metaclass": "0xfffffff008a62a20",
+      "parent_meta": "0xfffffff008a629c0",
+      "registration": "0xfffffff00803fa88"
+    },
+    {
+      "bundle": "com.apple.driver.AppleCSEmbeddedAudio",
+      "name": "AppleMikeyReceiver",
+      "size": 384,
+      "metaclass": "0xfffffff008a62a48",
+      "parent_meta": "0xfffffff008a62a20",
+      "registration": "0xfffffff008041d5c"
+    },
+    {
+      "bundle": "com.apple.driver.AppleCSEmbeddedAudio",
+      "name": "AppleCSCodecMikey",
+      "size": 400,
+      "metaclass": "0xfffffff008a62aa8",
+      "parent_meta": "0xfffffff008a62a48",
+      "registration": "0xfffffff008043e64"
+    },
+    {
+      "bundle": "com.apple.driver.AppleCSEmbeddedAudio",
+      "name": "AppleCSDS911CodecMikey",
+      "size": 400,
+      "metaclass": "0xfffffff008a62ad0",
+      "parent_meta": "0xfffffff008a62aa8",
+      "registration": "0xfffffff008043e94"
+    },
+    {
+      "bundle": "com.apple.driver.AppleCSEmbeddedAudio",
+      "name": "AppleCSHTDCodecMikey",
+      "size": 424,
+      "metaclass": "0xfffffff008a62af8",
+      "parent_meta": "0xfffffff008a62ad0",
+      "registration": "0xfffffff008043ec0"
+    },
+    {
+      "bundle": "com.apple.driver.AppleCSEmbeddedAudio",
+      "name": "AppleEmbeddedAudioHeadsetSwitch",
+      "size": 136,
+      "metaclass": "0xfffffff008a62b20",
+      "parent_meta": "0xfffffff008a5c158",
+      "registration": "0xfffffff008043f4c"
+    },
+    {
+      "bundle": "com.apple.driver.AppleEmbeddedAudio",
+      "name": "AppleI2CAudio",
+      "size": 456,
+      "metaclass": "0xfffffff008a62638",
+      "parent_meta": "0xfffffff008a627a8",
+      "registration": "0xfffffff008025c84"
+    },
+    {
+      "bundle": "com.apple.driver.AppleEmbeddedAudio",
+      "name": "AppleI2CMultipleAudio",
+      "size": 456,
+      "metaclass": "0xfffffff008a62660",
+      "parent_meta": "0xfffffff008a627a8",
+      "registration": "0xfffffff008025cb0"
+    },
+    {
+      "bundle": "com.apple.driver.AppleEmbeddedAudio",
+      "name": "AppleI2CPagedAudio",
+      "size": 464,
+      "metaclass": "0xfffffff008a62688",
+      "parent_meta": "0xfffffff008a62638",
+      "registration": "0xfffffff008025cdc"
+    },
+    {
+      "bundle": "com.apple.driver.AppleEmbeddedAudio",
+      "name": "AppleI2CRangedAudio",
+      "size": 472,
+      "metaclass": "0xfffffff008a626b0",
+      "parent_meta": "0xfffffff008a62638",
+      "registration": "0xfffffff008025d08"
+    },
+    {
+      "bundle": "com.apple.driver.AppleEmbeddedAudio",
+      "name": "AppleEmbeddedExternalAudioObject",
+      "size": 160,
+      "metaclass": "0xfffffff008a626d8",
+      "parent_meta": "0xfffffff008a5c158",
+      "registration": "0xfffffff008025d9c"
+    },
+    {
+      "bundle": "com.apple.driver.AppleEmbeddedAudio",
+      "name": "AppleExternalPowerManager",
+      "size": 32,
+      "metaclass": "0xfffffff008a62700",
+      "parent_meta": "0xfffffff008a5b670",
+      "registration": "0xfffffff0080273a8"
+    },
+    {
+      "bundle": "com.apple.driver.AppleEmbeddedAudio",
+      "name": "AppleExternalPowerProvider",
+      "size": 48,
+      "metaclass": "0xfffffff008a62728",
+      "parent_meta": "0xfffffff008a5b670",
+      "registration": "0xfffffff0080273d4"
+    },
+    {
+      "bundle": "com.apple.driver.AppleEmbeddedAudio",
+      "name": "AppleEmbeddedAudio",
+      "size": 424,
+      "metaclass": "0xfffffff008a627a8",
+      "parent_meta": "0xfffffff008a5c158",
+      "registration": "0xfffffff00802fb04"
+    },
+    {
+      "bundle": "com.apple.driver.AppleEmbeddedAudio",
+      "name": "AppleTII2CAudio",
+      "size": 456,
+      "metaclass": "0xfffffff008a627d0",
+      "parent_meta": "0xfffffff008a62660",
+      "registration": "0xfffffff00802fb68"
+    },
+    {
+      "bundle": "com.apple.driver.AppleEmbeddedAudio",
+      "name": "AppleCSI2CAudio",
+      "size": 456,
+      "metaclass": "0xfffffff008a627f8",
+      "parent_meta": "0xfffffff008a62638",
+      "registration": "0xfffffff008030698"
+    },
+    {
+      "bundle": "com.apple.driver.AppleEmbeddedAudio",
+      "name": "AppleCSI2CMultipleAudio",
+      "size": 456,
+      "metaclass": "0xfffffff008a62820",
+      "parent_meta": "0xfffffff008a62660",
+      "registration": "0xfffffff0080306c8"
+    },
+    {
+      "bundle": "com.apple.driver.AppleEmbeddedAudio",
+      "name": "AppleCSSPIAudio",
+      "size": 440,
+      "metaclass": "0xfffffff008a62848",
+      "parent_meta": "0xfffffff008a627a8",
+      "registration": "0xfffffff0080306fc"
+    },
+    {
+      "bundle": "com.apple.driver.AppleEmbeddedAudio",
+      "name": "AppleCSSPIv2Audio",
+      "size": 784,
+      "metaclass": "0xfffffff008a62870",
+      "parent_meta": "0xfffffff008a62848",
+      "registration": "0xfffffff008030728"
+    },
+    {
+      "bundle": "com.apple.driver.AppleEmbeddedAudio",
+      "name": "AppleEmbeddedAudioDevice",
+      "size": 568,
+      "metaclass": "0xfffffff008a62898",
+      "parent_meta": "0xfffffff008a625d8",
+      "registration": "0xfffffff008035570"
+    },
+    {
+      "bundle": "com.apple.driver.AppleEmbeddedAudio",
+      "name": "AppleSecondaryAudio",
+      "size": 576,
+      "metaclass": "0xfffffff008a628c0",
+      "parent_meta": "0xfffffff008a625d8",
+      "registration": "0xfffffff00803b3e0"
+    },
+    {
+      "bundle": "com.apple.driver.AppleEmbeddedAudio",
+      "name": "AppleSecondaryAudioFunction",
+      "size": 80,
+      "metaclass": "0xfffffff008a628e8",
+      "parent_meta": "0xfffffff008a5e500",
+      "registration": "0xfffffff00803b410"
+    },
+    {
+      "bundle": "com.apple.driver.AppleEmbeddedAudio",
+      "name": "AppleEmbeddedAudioGroup",
+      "size": 40,
+      "metaclass": "0xfffffff008a62910",
+      "parent_meta": "0xfffffff008a5b698",
+      "registration": "0xfffffff00803ce80"
+    },
+    {
+      "bundle": "com.apple.driver.AppleEmbeddedAudio",
+      "name": "AppleActuatorSecondaryAudio",
+      "size": 576,
+      "metaclass": "0xfffffff008a62938",
+      "parent_meta": "0xfffffff008a628c0",
+      "registration": "0xfffffff00803d098"
+    },
+    {
+      "bundle": "com.apple.driver.AppleEmbeddedAudio",
+      "name": "AppleMAXI2CAudio",
+      "size": 456,
+      "metaclass": "0xfffffff008a62960",
+      "parent_meta": "0xfffffff008a62638",
+      "registration": "0xfffffff00803d0fc"
+    },
+    {
+      "bundle": "com.apple.driver.AppleEmbeddedAudio",
+      "name": "AppleExternalSecondaryAudio",
+      "size": 592,
+      "metaclass": "0xfffffff008a62988",
+      "parent_meta": "0xfffffff008a628c0",
+      "registration": "0xfffffff00803d9dc"
+    },
+    {
+      "bundle": "com.apple.driver.AppleCS42L67Audio",
+      "name": "AppleCS42L67Audio",
+      "size": 616,
+      "metaclass": "0xfffffff008a8c5a8",
+      "parent_meta": "0xfffffff008a62848",
+      "registration": "0xfffffff0086f5514"
+    },
+    {
+      "bundle": "com.apple.driver.AppleCS42L67Audio",
+      "name": "AppleCS42L67Mikey",
+      "size": 432,
+      "metaclass": "0xfffffff008a8ccf8",
+      "parent_meta": "0xfffffff008a62af8",
+      "registration": "0xfffffff0086f65d4"
+    },
+    {
+      "bundle": "com.apple.driver.AppleCS42L67Audio",
+      "name": "AppleCS42L67MikeyBus",
+      "size": 1264,
+      "metaclass": "0xfffffff008a8cd20",
+      "parent_meta": "0xfffffff008a8cd98",
+      "registration": "0xfffffff0086f6604"
+    },
+    {
+      "bundle": "com.apple.driver.AppleCS42L67Audio",
+      "name": "AppleCSCodecMikeyBus",
+      "size": 1240,
+      "metaclass": "0xfffffff008a8cd48",
+      "parent_meta": "0xfffffff008a62b58",
+      "registration": "0xfffffff0086f95fc"
+    },
+    {
+      "bundle": "com.apple.driver.AppleCS42L67Audio",
+      "name": "AppleCSCodecMikeyBusV11",
+      "size": 1256,
+      "metaclass": "0xfffffff008a8cd70",
+      "parent_meta": "0xfffffff008a8cd48",
+      "registration": "0xfffffff0086f9628"
+    },
+    {
+      "bundle": "com.apple.driver.AppleCS42L67Audio",
+      "name": "AppleCSCodecLineOutMikeyBus",
+      "size": 1256,
+      "metaclass": "0xfffffff008a8cd98",
+      "parent_meta": "0xfffffff008a8cd48",
+      "registration": "0xfffffff0086f9654"
+    },
+    {
+      "bundle": "com.apple.driver.AppleCS42L67Audio",
+      "name": "AppleCSCodecMikeyBusAudio",
+      "size": 488,
+      "metaclass": "0xfffffff008a8cdc0",
+      "parent_meta": "0xfffffff008a625d8",
+      "registration": "0xfffffff0086f9684"
+    }
+  ],
+  "13": [
+    {
+      "bundle": "com.apple.driver.AppleCSEmbeddedAudio",
+      "name": "AppleEmbeddedAudioButtons",
+      "size": 248,
+      "metaclass": "0xfffffff0077f5b08",
+      "parent_meta": "0xfffffff0077f1ed0",
+      "registration": "0xfffffff0060d4a28"
+    },
+    {
+      "bundle": "com.apple.driver.AppleCSEmbeddedAudio",
+      "name": "AppleEmbeddedButtonController",
+      "size": 312,
+      "metaclass": "0xfffffff0077f5b68",
+      "parent_meta": "0xfffffff0077f5b08",
+      "registration": "0xfffffff0060d6094"
+    },
+    {
+      "bundle": "com.apple.driver.AppleCSEmbeddedAudio",
+      "name": "AppleMikeyReceiver",
+      "size": 384,
+      "metaclass": "0xfffffff0077f5b90",
+      "parent_meta": "0xfffffff0077f5b68",
+      "registration": "0xfffffff0060d8490"
+    },
+    {
+      "bundle": "com.apple.driver.AppleCSEmbeddedAudio",
+      "name": "AppleCSCodecMikey",
+      "size": 400,
+      "metaclass": "0xfffffff0077f5bf0",
+      "parent_meta": "0xfffffff0077f5b90",
+      "registration": "0xfffffff0060da758"
+    },
+    {
+      "bundle": "com.apple.driver.AppleCSEmbeddedAudio",
+      "name": "AppleCSDS911CodecMikey",
+      "size": 400,
+      "metaclass": "0xfffffff0077f5c18",
+      "parent_meta": "0xfffffff0077f5bf0",
+      "registration": "0xfffffff0060da784"
+    },
+    {
+      "bundle": "com.apple.driver.AppleCSEmbeddedAudio",
+      "name": "AppleCSHTDCodecMikey",
+      "size": 424,
+      "metaclass": "0xfffffff0077f5c40",
+      "parent_meta": "0xfffffff0077f5c18",
+      "registration": "0xfffffff0060da7ac"
+    },
+    {
+      "bundle": "com.apple.driver.AppleCSEmbeddedAudio",
+      "name": "AppleEmbeddedAudioHeadsetSwitch",
+      "size": 136,
+      "metaclass": "0xfffffff0077f5c68",
+      "parent_meta": "0xfffffff007733d00",
+      "registration": "0xfffffff0060daa30"
+    },
+    {
+      "bundle": "com.apple.driver.AppleEmbeddedAudio",
+      "name": "AppleI2CAudio",
+      "size": 440,
+      "metaclass": "0xfffffff0077f5608",
+      "parent_meta": "0xfffffff0077f5750",
+      "registration": "0xfffffff0060b6e74"
+    },
+    {
+      "bundle": "com.apple.driver.AppleEmbeddedAudio",
+      "name": "AppleI2CMultipleAudio",
+      "size": 440,
+      "metaclass": "0xfffffff0077f5630",
+      "parent_meta": "0xfffffff0077f5750",
+      "registration": "0xfffffff0060b6ea0"
+    },
+    {
+      "bundle": "com.apple.driver.AppleEmbeddedAudio",
+      "name": "AppleI2CPagedAudio",
+      "size": 448,
+      "metaclass": "0xfffffff0077f5658",
+      "parent_meta": "0xfffffff0077f5608",
+      "registration": "0xfffffff0060b6ec8"
+    },
+    {
+      "bundle": "com.apple.driver.AppleEmbeddedAudio",
+      "name": "AppleI2CRangedAudio",
+      "size": 456,
+      "metaclass": "0xfffffff0077f5680",
+      "parent_meta": "0xfffffff0077f5608",
+      "registration": "0xfffffff0060b6ef0"
+    },
+    {
+      "bundle": "com.apple.driver.AppleEmbeddedAudio",
+      "name": "AppleI2CRangedMultipleAudio",
+      "size": 464,
+      "metaclass": "0xfffffff0077f56a8",
+      "parent_meta": "0xfffffff0077f5630",
+      "registration": "0xfffffff0060b6f18"
+    },
+    {
+      "bundle": "com.apple.driver.AppleEmbeddedAudio",
+      "name": "AppleEmbeddedExternalAudioObject",
+      "size": 160,
+      "metaclass": "0xfffffff0077f56d0",
+      "parent_meta": "0xfffffff007733d00",
+      "registration": "0xfffffff0060b75d4"
+    },
+    {
+      "bundle": "com.apple.driver.AppleEmbeddedAudio",
+      "name": "AppleEmbeddedAudio",
+      "size": 408,
+      "metaclass": "0xfffffff0077f5750",
+      "parent_meta": "0xfffffff007733d00",
+      "registration": "0xfffffff0060c020c"
+    },
+    {
+      "bundle": "com.apple.driver.AppleEmbeddedAudio",
+      "name": "AppleTII2CAudio",
+      "size": 440,
+      "metaclass": "0xfffffff0077f5778",
+      "parent_meta": "0xfffffff0077f5630",
+      "registration": "0xfffffff0060c03a8"
+    },
+    {
+      "bundle": "com.apple.driver.AppleEmbeddedAudio",
+      "name": "AppleCSI2CAudio",
+      "size": 440,
+      "metaclass": "0xfffffff0077f57a0",
+      "parent_meta": "0xfffffff0077f5608",
+      "registration": "0xfffffff0060c45e4"
+    },
+    {
+      "bundle": "com.apple.driver.AppleEmbeddedAudio",
+      "name": "AppleCSI2CMultipleAudio",
+      "size": 440,
+      "metaclass": "0xfffffff0077f57c8",
+      "parent_meta": "0xfffffff0077f5630",
+      "registration": "0xfffffff0060c4610"
+    },
+    {
+      "bundle": "com.apple.driver.AppleEmbeddedAudio",
+      "name": "AppleCSSPIAudio",
+      "size": 424,
+      "metaclass": "0xfffffff0077f57f0",
+      "parent_meta": "0xfffffff0077f5750",
+      "registration": "0xfffffff0060c4640"
+    },
+    {
+      "bundle": "com.apple.driver.AppleEmbeddedAudio",
+      "name": "AppleCSSPIv2Audio",
+      "size": 776,
+      "metaclass": "0xfffffff0077f5818",
+      "parent_meta": "0xfffffff0077f57f0",
+      "registration": "0xfffffff0060c4668"
+    },
+    {
+      "bundle": "com.apple.driver.AppleEmbeddedAudio",
+      "name": "AppleEmbeddedAudioDevice",
+      "size": 624,
+      "metaclass": "0xfffffff0077f5840",
+      "parent_meta": "0xfffffff0077f5348",
+      "registration": "0xfffffff0060c97b4"
+    },
+    {
+      "bundle": "com.apple.driver.AppleEmbeddedAudio",
+      "name": "AppleSecondaryAudio",
+      "size": 624,
+      "metaclass": "0xfffffff0077f5868",
+      "parent_meta": "0xfffffff0077f5348",
+      "registration": "0xfffffff0060d0004"
+    },
+    {
+      "bundle": "com.apple.driver.AppleEmbeddedAudio",
+      "name": "AppleSecondaryAudioFunction",
+      "size": 80,
+      "metaclass": "0xfffffff0077f5890",
+      "parent_meta": "0xfffffff0077f03c8",
+      "registration": "0xfffffff0060d0030"
+    },
+    {
+      "bundle": "com.apple.driver.AppleEmbeddedAudio",
+      "name": "AppleEmbeddedAudioGroup",
+      "size": 40,
+      "metaclass": "0xfffffff0077f58b8",
+      "parent_meta": "0xfffffff007733150",
+      "registration": "0xfffffff0060d1c2c"
+    },
+    {
+      "bundle": "com.apple.driver.AppleEmbeddedAudio",
+      "name": "AppleActuatorSecondaryAudio",
+      "size": 624,
+      "metaclass": "0xfffffff0077f58e0",
+      "parent_meta": "0xfffffff0077f5868",
+      "registration": "0xfffffff0060d1fbc"
+    },
+    {
+      "bundle": "com.apple.driver.AppleEmbeddedAudio",
+      "name": "AppleMAXI2CAudio",
+      "size": 440,
+      "metaclass": "0xfffffff0077f5908",
+      "parent_meta": "0xfffffff0077f5608",
+      "registration": "0xfffffff0060d2134"
+    },
+    {
+      "bundle": "com.apple.driver.AppleEmbeddedAudio",
+      "name": "AppleExternalSecondaryAudio",
+      "size": 640,
+      "metaclass": "0xfffffff0077f5930",
+      "parent_meta": "0xfffffff0077f5868",
+      "registration": "0xfffffff0060d2b1c"
+    },
+    {
+      "bundle": "com.apple.driver.AppleCS42L81Audio",
+      "name": "AppleCS42L81Audio",
+      "size": 568,
+      "metaclass": "0xfffffff0077f8ac8",
+      "parent_meta": "0xfffffff0077f57f0",
+      "registration": "0xfffffff006159560"
+    },
+    {
+      "bundle": "com.apple.driver.AppleCS42L81Audio",
+      "name": "AppleCS42L81Mikey",
+      "size": 432,
+      "metaclass": "0xfffffff0077f8af8",
+      "parent_meta": "0xfffffff0077f5c40",
+      "registration": "0xfffffff0061595a0"
+    },
+    {
+      "bundle": "com.apple.driver.AppleCS42L81Audio",
+      "name": "AppleCS42L81MikeyBus",
+      "size": 1272,
+      "metaclass": "0xfffffff0077f8b20",
+      "parent_meta": "0xfffffff0077f8b98",
+      "registration": "0xfffffff0061595cc"
+    },
+    {
+      "bundle": "com.apple.driver.AppleCS42L81Audio",
+      "name": "AppleCSCodecMikeyBus",
+      "size": 1240,
+      "metaclass": "0xfffffff0077f8b48",
+      "parent_meta": "0xfffffff0077f8548",
+      "registration": "0xfffffff00615dbd4"
+    },
+    {
+      "bundle": "com.apple.driver.AppleCS42L81Audio",
+      "name": "AppleCSCodecMikeyBusV11",
+      "size": 1256,
+      "metaclass": "0xfffffff0077f8b70",
+      "parent_meta": "0xfffffff0077f8b48",
+      "registration": "0xfffffff00615dbfc"
+    },
+    {
+      "bundle": "com.apple.driver.AppleCS42L81Audio",
+      "name": "AppleCSCodecLineOutMikeyBus",
+      "size": 1256,
+      "metaclass": "0xfffffff0077f8b98",
+      "parent_meta": "0xfffffff0077f8b48",
+      "registration": "0xfffffff00615dc24"
+    },
+    {
+      "bundle": "com.apple.driver.AppleCS42L81Audio",
+      "name": "AppleCSCodecMikeyBusAudio",
+      "size": 536,
+      "metaclass": "0xfffffff0077f8bc0",
+      "parent_meta": "0xfffffff0077f5348",
+      "registration": "0xfffffff00615dc50"
+    }
+  ]
+}
