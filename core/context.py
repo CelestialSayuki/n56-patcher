@@ -77,6 +77,11 @@ class Context:
         self._device_system_verified = False
         self.patch_reports = {}
         self.installation = None
+        # donor 快照目录（state/donors/<设备ID>）。设置后所有 device_s1 来源从快照读取，
+        # 不再依赖设备上的原 SystemA；覆盖 s1 之后必须使用快照。
+        self.donor_dir = None
+        # 宗卷槽位绑定：{'version': '13', 'system': 1, 'data': 2}，由 slots 命令或 --slot 设置。
+        self.slot = None
         self._derived_ready = False
 
     # ---- 路径解析 ----
@@ -239,12 +244,21 @@ class Context:
     def verify_device_system(self, ssh):
         if self._device_system_verified:
             return
-        ssh.mount(self.t["mounts"]["system12"], "/mnt1", ro=True)
-        path = "/mnt1/System/Library/CoreServices/SystemVersion.plist"
-        try:
-            version = plistlib.loads(ssh.sh(f'cat "{path}"'))
-        except Exception as exc:
-            log.die(f"无法读取 SystemA 版本: {exc}")
+        if self.donor_dir:
+            # 快照模式：版本信息来自快照，不读取设备上的 SystemA。
+            path = os.path.join(self.donor_dir, "System/Library/CoreServices/SystemVersion.plist")
+            try:
+                with open(path, "rb") as stream:
+                    version = plistlib.load(stream)
+            except Exception as exc:
+                log.die(f"无法读取 donor 快照中的版本文件: {exc}")
+        else:
+            ssh.mount(self.t["mounts"]["system12"], "/mnt1", ro=True)
+            path = "/mnt1/System/Library/CoreServices/SystemVersion.plist"
+            try:
+                version = plistlib.loads(ssh.sh(f'cat "{path}"'))
+            except Exception as exc:
+                log.die(f"无法读取 SystemA 版本: {exc}")
         actual = version.get("ProductBuildVersion")
         expected = self.t.get("source_profiles", {}).get("n56", {}).get("build")
         if expected and actual != expected:

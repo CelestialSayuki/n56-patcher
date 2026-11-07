@@ -37,9 +37,10 @@ class RootfsBaseStream(Patch):
         # 2) 挂 s4 → /mnt6
         ssh.mount(ctx.t["mounts"]["system_b"], "/mnt6")
 
-        # 3) 清空目标卷内容（确认确实是 s4 on /mnt6）
+        # 3) 清空目标卷内容（确认确实是目标 System 卷 on /mnt6；槽位模式下可能是 s1）
         log.log("清空目标卷 /mnt6…")
-        ssh.sh('test "$(/sbin/mount | /usr/bin/grep -c "/dev/disk0s1s4 on /mnt6")" -eq 1 '
+        target = f"/dev/disk0s1s{ctx.t['mounts']['system_b']}"
+        ssh.sh(f'test "$(/sbin/mount | /usr/bin/grep -c "{target} on /mnt6")" -eq 1 '
                '&& /bin/rm -rf /mnt6/.[!.]* /mnt6/*')
 
         # 4) 流式 tar 管道（9GB，直连，不经内存）

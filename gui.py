@@ -399,6 +399,7 @@ input:focus-visible+.sw{outline:2px solid var(--amber);outline-offset:2px}
 <header class="top">
  <div class="plate"><span class="model">N56</span><div><h1>n56-patcher</h1><span data-i18n="sub"></span></div></div>
  <label class="tgt"><span class="lab" data-i18n="target"></span><span class="sel"><select id="target" autocomplete="off"></select></span></label>
+<a class="tgt lab" href="/volumes" data-i18n="slotsNav" style="align-self:center;text-decoration:none"></a>
  <label class="tgt"><span class="lab" data-i18n="lang"></span><span class="sel lang"><select id="lang" autocomplete="off"></select></span></label>
  <div class="readout" id="pill" data-s="idle"><i></i><b id="pilltext" role="status"></b><time id="pilltime">--:--</time></div>
  <button type="button" class="btn stop" id="stop" disabled><span class="ic"><svg viewBox="0 0 16 16" aria-hidden="true"><use href="#i-stop"></use></svg></span><span id="stoptext"></span></button>
@@ -476,6 +477,7 @@ input:focus-visible+.sw{outline:2px solid var(--amber);outline-offset:2px}
 const STAGES=%STAGES%;
 const I18N={
  "zh-CN":{
+  slotsNav:"宗卷设置 ›",
   sub:"iPhone 6 Plus · 第二系统 iOS 13.7",lang:"语言",target:"目标",stop:"停止",stopping:"停止中…",
   chain:"启动链",chainHint:"节点状态只记录本次服务运行期间的结果，不代表设备实际状态",stepAria:"当前步骤",closeNotice:"关闭提示",
   combos:"一键组合",console:"控制台",copy:"复制",copied:"已复制",copyFail:"复制失败",clear:"清屏",clearTitle:"只清空显示，不影响后端缓冲",jump:"回到底部",logEmpty:"尚无输出。选中阶段并点击执行后，日志会显示在这里。",
@@ -507,6 +509,7 @@ const I18N={
   }
  },
  "en":{
+  slotsNav:"Volumes ›",
   sub:"iPhone 6 Plus · Second system iOS 13.7",lang:"Language",target:"Target",stop:"Stop",stopping:"Stopping…",
   chain:"Boot chain",chainHint:"Node status only reflects results from this server session, not the actual device state",stepAria:"Current step",closeNotice:"Dismiss notice",
   combos:"Combos",console:"Console",copy:"Copy",copied:"Copied",copyFail:"Copy failed",clear:"Clear",clearTitle:"Clears the display only, not the server buffer",jump:"Back to bottom",logEmpty:"No output yet. Select a stage and run it to see logs here.",
@@ -538,6 +541,7 @@ const I18N={
   }
  },
  "zh-TW":{
+  slotsNav:"宗卷設定 ›",
   sub:"iPhone 6 Plus · 第二系統 iOS 13.7",lang:"語言",target:"目標",stop:"停止",stopping:"停止中…",
   chain:"啟動鏈",chainHint:"節點狀態只記錄本次服務執行期間的結果，不代表裝置實際狀態",stepAria:"目前步驟",closeNotice:"關閉提示",
   combos:"一鍵組合",console:"主控台",copy:"複製",copied:"已複製",copyFail:"複製失敗",clear:"清除",clearTitle:"只清除顯示，不影響後端緩衝",jump:"回到底部",logEmpty:"尚無輸出。選取階段並點擊執行後，日誌會顯示在這裡。",
@@ -569,6 +573,7 @@ const I18N={
   }
  },
  "ja":{
+  slotsNav:"ボリューム ›",
   sub:"iPhone 6 Plus · セカンドシステム iOS 13.7",lang:"言語",target:"ターゲット",stop:"停止",stopping:"停止中…",
   chain:"ブートチェーン",chainHint:"ノードの状態はこのサーバー実行中の結果のみで、デバイスの実際の状態ではありません",stepAria:"現在のステップ",closeNotice:"通知を閉じる",
   combos:"ワンクリック",console:"コンソール",copy:"コピー",copied:"コピーしました",copyFail:"コピー失敗",clear:"クリア",clearTitle:"表示のみクリアし、サーバーのバッファには影響しません",jump:"一番下へ",logEmpty:"出力はまだありません。ステージを選択して実行すると、ここにログが表示されます。",
@@ -1077,6 +1082,339 @@ setInterval(tickTimer,250);
 </script></body></html>"""
 
 
+# ---------------------------------------------------------------- 宗卷设置页面
+# 独立页面 /volumes：分区用途声明、权限、donor 快照、安装与启动包。
+# 所有写操作要么直接改宗卷记录（不碰设备），要么交给 n56patcher.py slots / boot / build 执行。
+
+SLOTS_PAGE = r"""<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>宗卷设置 · n56-patcher</title>
+<style>
+:root{color-scheme:light dark;--bg:#f6f6f4;--card:#fff;--ink:#1d1d1f;--mut:#6e6e73;--line:#d9d9de;--ok:#1f7a3a;--warn:#a15c00;--bad:#b3261e;--acc:#0a63c9;--mono:ui-monospace,Menlo,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1c1c1e;--card:#2c2c2e;--ink:#f5f5f7;--mut:#a1a1a6;--line:#444446;--ok:#4cd080;--warn:#ffb020;--bad:#ff6b63;--acc:#4da3ff}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#1c1c1e;--card:#2c2c2e;--ink:#f5f5f7;--mut:#a1a1a6;--line:#444446;--ok:#4cd080;--warn:#ffb020;--bad:#ff6b63;--acc:#4da3ff}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 -apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif}
+main{max-width:980px;margin:0 auto;padding:18px 16px 40px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+h1{font-size:18px;margin:0}h2{font-size:15px;margin:0 0 8px}
+a{color:var(--acc)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:14px}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font-size:12px;color:var(--mut);font-weight:600}
+.mono{font-family:var(--mono)}.mut{color:var(--mut)}
+button{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:7px;padding:4px 10px;cursor:pointer}
+button.primary{background:var(--acc);border-color:var(--acc);color:#fff}
+button:disabled{opacity:.45;cursor:not-allowed}
+select,input{font:inherit;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:7px;padding:3px 6px}
+.badge{display:inline-block;font-size:12px;padding:1px 7px;border-radius:999px;border:1px solid var(--line)}
+.ok{color:var(--ok)}.warn{color:var(--warn)}.bad{color:var(--bad)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+#plan{white-space:pre-wrap;font:12px/1.5 var(--mono);background:var(--bg);border-radius:8px;padding:10px;max-height:260px;overflow:auto;display:none}
+#log{white-space:pre-wrap;font:12px/1.5 var(--mono);background:#0d0d0d;color:#e6e6e6;border-radius:8px;padding:10px;height:240px;overflow:auto}
+.hint{font-size:12px;color:var(--mut)}
+@media (max-width:640px){th:nth-child(4),td:nth-child(4){display:none}}
+</style></head><body><main>
+<header><div><h1 id="title"></h1><div class="hint" id="sub"></div></div>
+ <div class="row"><a href="/" id="back"></a>
+ <select id="lang" aria-label="language"></select></div></header>
+
+<div class="card"><h2 id="tDevice"></h2>
+ <div class="row"><input id="deviceId" size="28" class="mono" placeholder="ECID / ID"><button id="btnDevice"></button>
+ <span id="donorBadge" class="badge"></span></div>
+ <div class="hint" id="deviceHint"></div></div>
+
+<div class="card"><h2 id="tSlices"></h2>
+ <table><thead><tr><th id="cSlice"></th><th id="cPurpose"></th><th id="cContent"></th><th id="cPerm"></th><th id="cAction"></th></tr></thead>
+ <tbody id="slices"></tbody></table>
+ <div class="row" style="margin-top:10px"><input id="newSlice" size="4" class="mono" placeholder="s4">
+  <select id="newPurpose"></select><button id="btnAssign" class="primary"></button>
+  <span class="hint" id="assignMsg"></span></div>
+ <div class="hint" id="tHint"></div></div>
+
+<div class="card"><h2 id="tVersions"></h2>
+ <table><thead><tr><th id="vVersion"></th><th id="vStatus"></th><th id="vSlices"></th><th id="vAction"></th></tr></thead>
+ <tbody id="versions"></tbody></table>
+ <pre id="plan"></pre></div>
+
+<div class="card"><h2 id="tDonor"></h2>
+ <div class="row"><button id="btnVerify"></button><button id="btnSnapshot"></button></div>
+ <div class="hint" id="donorHint"></div></div>
+
+<div class="card"><h2 id="tLog"></h2><div id="log"></div>
+ <div class="row" style="margin-top:8px"><button id="btnStop"></button><span class="hint" id="runMsg"></span></div></div>
+</main>
+<script>
+const T={
+"zh-CN":{title:"宗卷设置",sub:"分区先声明用途再建立；s3 基带永不格式化；s1、s2 只能格式化后另作他用",back:"← 返回主界面",
+ tDevice:"设备",setDevice:"设置设备ID",devOk:"已设置",devNone:"未设置",donorOk:"donor 快照可用",donorNo:"donor 快照不可用",
+ deviceHint:"快照按设备ID分目录保存在 state/donors/，设备ID 由你指定（建议用 ECID）。",
+ tSlices:"分区与用途",cSlice:"分区",cPurpose:"用途",cContent:"实际内容",cPerm:"权限",cAction:"操作",
+ format:"格式化",clear:"清除用途",delete:"删除（暂缓）",assign:"设定",
+ tHint:"用途是你的声明；实际内容是分区上物理存在的东西。覆盖原机 12 System 前必须先完成 donor 快照。14 未提交：可声明并建空分区，但不能安装。",
+ tVersions:"版本",vVersion:"版本",vStatus:"状态",vSlices:"分区",vAction:"操作",
+ plan:"计划",install:"安装",boot:"启动此系统",rebuild:"重建启动包",
+ statusNone:"未装",statusOk:"已装",statusStale:"启动包过期",statusBlocked:"不可安装",
+ tDonor:"donor 快照",verify:"校验快照",snapshot:"从设备生成快照",donorDeviceHint:"快照需要设备进入 SSH ramdisk（需要 sudo）。",
+ tLog:"输出",stop:"停止",running:"运行中…",needSudo:"需要 sudo：请在终端运行，见日志。",
+ wrongSlice:"分区号格式应为 s4 这样",none:"（清除）",noDevice:"先设置设备ID",
+ confirmFormat:"确认清空 {s} 的全部内容？此操作不可撤销。",confirmInstall:"确认安装 iOS {v}？将清空对应分区。",
+ confirmBoot:"启动会重新发送启动链，设备需进入 DFU。继续？",planBlocked:"阻塞：",ready:"可执行",installed:"已记录为已装",notCommitted:"未提交，仅可建空分区"},
+"en":{title:"Volume settings",sub:"Declare each partition's purpose first; s3 baseband is never formatted; s1 and s2 can only be formatted and repurposed",back:"← Back",
+ tDevice:"Device",setDevice:"Set device ID",devOk:"set",devNone:"not set",donorOk:"donor snapshot ready",donorNo:"donor snapshot not ready",
+ deviceHint:"Snapshots are stored per device ID under state/donors/. Use the ECID if you can.",
+ tSlices:"Partitions and purposes",cSlice:"Slice",cPurpose:"Purpose",cContent:"Actual content",cPerm:"Permissions",cAction:"Actions",
+ format:"Format",clear:"Clear purpose",delete:"Delete (deferred)",assign:"Set",
+ tHint:"Purpose is your declaration; content is what is physically on the partition. Overwriting the original 12 System needs a donor snapshot first. 14 is not committed: you may declare it for an empty volume, but it cannot be installed.",
+ tVersions:"Versions",vVersion:"Version",vStatus:"Status",vSlices:"Slices",vAction:"Actions",
+ plan:"Plan",install:"Install",boot:"Boot this system",rebuild:"Rebuild boot pack",
+ statusNone:"not installed",statusOk:"installed",statusStale:"boot pack stale",statusBlocked:"not installable",
+ tDonor:"donor snapshot",verify:"Verify snapshot",snapshot:"Snapshot from device",donorDeviceHint:"Snapshotting needs the device in SSH ramdisk (sudo).",
+ tLog:"Output",stop:"Stop",running:"running…",needSudo:"Needs sudo: run it in a terminal (see log).",
+ wrongSlice:"Slice must look like s4",none:"(clear)",noDevice:"Set device ID first",
+ confirmFormat:"Erase all content of {s}? This cannot be undone.",confirmInstall:"Install iOS {v}? The matching partitions will be erased.",
+ confirmBoot:"Boot re-sends the boot chain; the device must be in DFU. Continue?",planBlocked:"Blocked: ",ready:"ready",installed:"recorded as installed",notCommitted:"not committed; empty volume only"},
+"zh-TW":{title:"宗卷設定",sub:"分區先宣告用途再建立；s3 基頻永不格式化；s1、s2 只能格式化後另作他用",back:"← 返回主介面",
+ tDevice:"裝置",setDevice:"設定裝置ID",devOk:"已設定",devNone:"未設定",donorOk:"donor 快照可用",donorNo:"donor 快照不可用",
+ deviceHint:"快照依裝置ID分目錄存放在 state/donors/。",
+ tSlices:"分區與用途",cSlice:"分區",cPurpose:"用途",cContent:"實際內容",cPerm:"權限",cAction:"操作",
+ format:"格式化",clear:"清除用途",delete:"刪除（暫緩）",assign:"設定",
+ tHint:"用途是你的宣告；實際內容是分區上實際存在的東西。覆寫原機 12 System 前必須先完成 donor 快照。14 未提交：可宣告並建空分區，但不能安裝。",
+ tVersions:"版本",vVersion:"版本",vStatus:"狀態",vSlices:"分區",vAction:"操作",
+ plan:"計畫",install:"安裝",boot:"啟動此系統",rebuild:"重建啟動包",
+ statusNone:"未裝",statusOk:"已裝",statusStale:"啟動包過期",statusBlocked:"不可安裝",
+ tDonor:"donor 快照",verify:"校驗快照",snapshot:"從裝置生成快照",donorDeviceHint:"快照需要裝置進入 SSH ramdisk（需要 sudo）。",
+ tLog:"輸出",stop:"停止",running:"執行中…",needSudo:"需要 sudo：請在終端執行，見日誌。",
+ wrongSlice:"分區號格式應為 s4",none:"（清除）",noDevice:"先設定裝置ID",
+ confirmFormat:"確認清空 {s} 的全部內容？此操作無法復原。",confirmInstall:"確認安裝 iOS {v}？對應分區將被清空。",
+ confirmBoot:"啟動會重新發送啟動鏈，裝置需進入 DFU。繼續？",planBlocked:"阻塞：",ready:"可執行",installed:"已記錄為已裝",notCommitted:"未提交，僅可建空分區"},
+"ja":{title:"ボリューム設定",sub:"パーティションは用途を宣言してから作成します。s3 ベースバンドは決してフォーマットしません。s1・s2 はフォーマットして別用途にのみ使えます",back:"← 戻る",
+ tDevice:"デバイス",setDevice:"デバイスIDを設定",devOk:"設定済み",devNone:"未設定",donorOk:"donor スナップショット利用可",donorNo:"donor スナップショット未準備",
+ deviceHint:"スナップショットは state/donors/ にデバイスIDごとに保存されます。",
+ tSlices:"パーティションと用途",cSlice:"パーティション",cPurpose:"用途",cContent:"実際の内容",cPerm:"権限",cAction:"操作",
+ format:"フォーマット",clear:"用途をクリア",delete:"削除（保留）",assign:"設定",
+ tHint:"用途はあなたの宣言、実際の内容はパーティション上の実体です。元の 12 System を上書きするには先に donor スナップショットが必要です。14 は未提出：空のボリュームとして宣言できますが、インストールはできません。",
+ tVersions:"バージョン",vVersion:"バージョン",vStatus:"状態",vSlices:"パーティション",vAction:"操作",
+ plan:"計画",install:"インストール",boot:"このシステムを起動",rebuild:"ブートパックを再構築",
+ statusNone:"未インストール",statusOk:"インストール済み",statusStale:"ブートパック失効",statusBlocked:"インストール不可",
+ tDonor:"donor スナップショット",verify:"スナップショットを検証",snapshot:"デバイスから作成",donorDeviceHint:"作成にはデバイスを SSH ramdisk にする必要があります（sudo）。",
+ tLog:"出力",stop:"停止",running:"実行中…",needSudo:"sudo が必要です：ターミナルで実行してください（ログ参照）。",
+ wrongSlice:"パーティション番号は s4 の形式で",none:"（クリア）",noDevice:"先にデバイスIDを設定",
+ confirmFormat:"{s} の内容をすべて消去しますか？元に戻せません。",confirmInstall:"iOS {v} をインストールしますか？対応するパーティションは消去されます。",
+ confirmBoot:"起動はブートチェーンを再送します。デバイスは DFU である必要があります。続けますか？",planBlocked:"ブロック：",ready:"実行可能",installed:"インストール済みとして記録",notCommitted:"未提出。空のボリュームのみ"}
+};
+let lang=(()=>{try{const s=localStorage.getItem('n56-lang');if(T[s])return s}catch(e){}return navigator.language&&navigator.language.startsWith('zh')?'zh-CN':'en'})();
+const t=k=>(T[lang]&&T[lang][k])||T['zh-CN'][k]||k;
+const $=id=>document.getElementById(id);
+let S=null, runOff=0, polling=null;
+
+async function api(path, body){
+  const r=await fetch(path,{method:body?'POST':'GET',headers:{'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});
+  return r.json();
+}
+function el(tag,props,text){const e=document.createElement(tag);if(props)for(const k in props){if(k==='onclick')e.onclick=props[k];else if(k==='disabled')e.disabled=props[k];else if(k==='value')e.value=props[k];else e.setAttribute(k,props[k]);}if(text!==undefined)e.textContent=text;return e;}
+
+function applyStatic(){
+  document.documentElement.lang=lang==='zh-CN'?'zh-CN':lang;
+  $('title').textContent=t('title');$('sub').textContent=t('sub');$('back').textContent=t('back');$('back').href='/';
+  $('tDevice').textContent=t('tDevice');$('btnDevice').textContent=t('setDevice');$('deviceHint').textContent=t('deviceHint');
+  $('tSlices').textContent=t('tSlices');$('cSlice').textContent=t('cSlice');$('cPurpose').textContent=t('cPurpose');
+  $('cContent').textContent=t('cContent');$('cPerm').textContent=t('cPerm');$('cAction').textContent=t('cAction');
+  $('btnAssign').textContent=t('assign');$('tHint').textContent=t('tHint');$('tVersions').textContent=t('tVersions');
+  $('vVersion').textContent=t('vVersion');$('vStatus').textContent=t('vStatus');$('vSlices').textContent=t('vSlices');$('vAction').textContent=t('vAction');
+  $('tDonor').textContent=t('tDonor');$('btnVerify').textContent=t('verify');$('btnSnapshot').textContent=t('snapshot');
+  $('donorHint').textContent=t('donorDeviceHint');$('tLog').textContent=t('tLog');$('btnStop').textContent=t('stop');
+  const sel=$('lang');sel.innerHTML='';[["zh-CN","简体中文"],["en","English"],["zh-TW","繁體中文"],["ja","日本語"]].forEach(([v,l])=>sel.appendChild(el('option',{value:v},l)));
+  sel.value=lang;
+}
+
+function render(){
+  if(!S) return;
+  $('deviceId').value=S.device_id||'';
+  $('btnDevice').textContent=t('setDevice');
+  const db=$('donorBadge');db.textContent=S.donor_ready?t('donorOk'):t('donorNo');db.className='badge '+(S.donor_ready?'ok':'warn');
+  // 分区表
+  const tb=$('slices');tb.innerHTML='';
+  const keys=Object.keys(S.slices).sort((a,b)=>a-b);
+  for(const k of keys){
+    const purpose=S.slices[k], content=S.content[k];
+    const rule=S.protection[k]||{format:false,delete:false,why:''};
+    const tr=el('tr');
+    tr.appendChild(el('td',{class:'mono'},'s'+k));
+    const sel=el('select',{'aria-label':'purpose s'+k});
+    sel.appendChild(el('option',{value:''},t('none')));
+    for(const p of S.purposes){const o=el('option',{value:p.value},p.value+(p.installable?'':' ('+t('notCommitted')+')'));if(p.value===purpose)o.selected=true;sel.appendChild(o);}
+    if(k==='3')sel.disabled=true;
+    sel.onchange=()=>assign('s'+k, sel.value||null);
+    const td1=el('td');td1.appendChild(sel);tr.appendChild(td1);
+    tr.appendChild(el('td',{class:'mono'},content||'—'));
+    const perm=el('td',{class:'hint'},(rule.format?'✓ '+t('format'):'✗ '+t('format'))+'  ·  '+t('delete'));
+    tr.appendChild(perm);
+    const act=el('td');
+    const blockedFormat = !rule.format || (content==='12 Sys' && !S.donor_ready);
+    act.appendChild(el('button',{disabled:blockedFormat,title:rule.why,onclick:()=>formatSlice(k)},t('format')));
+    act.appendChild(document.createTextNode(' '));
+    act.appendChild(el('button',{disabled:k==='1'||k==='2'||k==='3',onclick:()=>assign('s'+k,null)},t('clear')));
+    tr.appendChild(act);
+    tb.appendChild(tr);
+  }
+  // 新增分区用途的下拉
+  const np=$('newPurpose');np.innerHTML='';
+  for(const p of S.purposes){np.appendChild(el('option',{value:p.value},p.value+(p.installable?'':' ('+t('notCommitted')+')')));}
+  // 版本
+  const vb=$('versions');vb.innerHTML='';
+  for(const v of Object.keys(S.versions)){
+    const info=S.versions[v];
+    const rec=S.installed[v];
+    const tr=el('tr');
+    tr.appendChild(el('td',{class:'mono'},'iOS '+v));
+    let status=rec?(S.boot[v]&&S.boot[v].stale?t('statusStale'):t('statusOk')):(info.implemented?t('statusNone'):t('statusBlocked'));
+    tr.appendChild(el('td',{class:rec?(S.boot[v]&&S.boot[v].stale?'warn':'ok'):'mut'},status+(info.implemented?'':' · '+(info.reason||''))));
+    const sl=rec?('s'+rec.system+' / s'+rec.data):'—';
+    tr.appendChild(el('td',{class:'mono'},sl));
+    const act=el('td');
+    act.appendChild(el('button',{onclick:()=>plan(v)},t('plan')));act.appendChild(document.createTextNode(' '));
+    act.appendChild(el('button',{disabled:!info.implemented||!!rec,onclick:()=>installVersion(v)},t('install')));act.appendChild(document.createTextNode(' '));
+    act.appendChild(el('button',{disabled:!rec,onclick:()=>runAction({action:'boot',version:v},t('confirmBoot'))},t('boot')));act.appendChild(document.createTextNode(' '));
+    act.appendChild(el('button',{disabled:!rec,onclick:()=>runAction({action:'rebuild',version:v})},t('rebuild')));
+    tr.appendChild(act);vb.appendChild(tr);
+  }
+  $('lang').value=lang;
+}
+
+async function load(){ S=await api('/api/slots'); render(); }
+
+async function assign(slice, value){
+  const r=await api('/api/slots/assign',{slice,purpose:value});
+  $('assignMsg').textContent=r.ok?'':(r.error||'');
+  if(r.ok) load();
+}
+async function formatSlice(k){
+  if(!confirm(t('confirmFormat').replace('{s}','s'+k))) return;
+  runAction({action:'format',slice:'s'+k});
+}
+async function installVersion(v){
+  if(!confirm(t('confirmInstall').replace('{v}',v))) return;
+  runAction({action:'install',version:v});
+}
+async function plan(v){
+  const r=await api('/api/slots/plan',{version:v});
+  const p=$('plan');p.style.display='block';
+  if(r.error){p.textContent=r.error;return;}
+  const lines=[t('plan')+' · iOS '+v+' · '+(r.status==='ready'?t('ready'):r.status)];
+  if(r.blocked)lines.push(t('planBlocked')+r.blocked);
+  if(r.note)lines.push(r.note);
+  if(r.capacity_note)lines.push(r.capacity_note);
+  for(const s of (r.steps||[])){lines.push('  '+s.op+(s.slice!==undefined?' s'+s.slice:'')+(s.purpose?'  ('+s.purpose+')':'')+(s.from?'  from '+s.from:''));}
+  p.textContent=lines.join('\n');
+}
+async function setDevice(){
+  const id=$('deviceId').value.trim();
+  if(!id) return;
+  const r=await api('/api/slots/device',{device_id:id});
+  if(r.ok) load();
+}
+async function runAction(body, confirmText){
+  if(confirmText && !confirm(confirmText)) return;
+  const r=await api('/api/slots/run',body);
+  if(!r.ok){$('runMsg').textContent=r.reason==='need-sudo'?t('needSudo'):(r.reason||'');}
+  else{$('runMsg').textContent=t('running');}
+  startPoll();
+}
+async function startPoll(){
+  if(polling) return;
+  polling=setInterval(async()=>{
+    const r=await api('/api/log?off='+runOff);
+    if(r.lines&&r.lines.length){const log=$('log');log.textContent+=r.lines.join('');log.scrollTop=log.scrollHeight;}
+    runOff=r.off;
+    if(!r.running){clearInterval(polling);polling=null;$('runMsg').textContent='';load();}
+  },800);
+}
+
+$('btnDevice').onclick=setDevice;
+$('btnAssign').onclick=()=>{const s=$('newSlice').value.trim();if(!/^s\d+$/.test(s)){$('assignMsg').textContent=t('wrongSlice');return;}assign(s,$('newPurpose').value);};
+$('btnVerify').onclick=async()=>{const r=await api('/api/slots/run',{action:'verify'});if(r.ok)startPoll();};
+$('btnSnapshot').onclick=()=>runAction({action:'snapshot'});
+$('btnStop').onclick=()=>api('/api/stop',{});
+$('lang').onchange=e=>{lang=e.target.value;try{localStorage.setItem('n56-lang',lang)}catch(_){ }applyStatic();render();};
+applyStatic();load();
+</script></body></html>"""
+
+
+def slots_state_payload():
+    """宗卷页面的状态：只读记录，不访问设备。"""
+    from core import slots
+    from core.slots_cli import STATE_PATH, donor_ready, _donor_dir
+    state = slots.load_state(STATE_PATH)
+    rules = {k: slots.protection(int(k), v) for k, v in state["slices"].items()}
+    return {
+        "device_id": state.get("device_id"),
+        "donor_ready": donor_ready(state),
+        "slices": state["slices"],
+        "content": state["content"],
+        "protection": rules,
+        "purposes": slots.purpose_options(),
+        "installed": state["installed"],
+        "boot": state["boot"],
+        "released": state["released"],
+        "versions": {v: {"implemented": info["implemented"], "reason": info.get("reason", "")}
+                     for v, info in slots.VERSIONS.items()},
+    }
+
+
+def slots_assign(body):
+    from core import slots
+    from core.slots_cli import STATE_PATH
+    try:
+        raw = (body.get("slice") or "").strip()
+        if not raw.startswith("s") or not raw[1:].isdigit():
+            raise slots.SlotError("分区号格式应为 sN")
+        value = body.get("purpose") or None
+        state = slots.load_state(STATE_PATH)
+        new = slots.assign(state, int(raw[1:]), value)
+        slots.save_state(STATE_PATH, new)
+        return {"ok": True}
+    except slots.SlotError as exc:
+        return {"ok": False, "error": str(exc)}
+
+
+def slots_plan(body):
+    from core import slots
+    from core.slots_cli import STATE_PATH, donor_ready
+    try:
+        state = slots.load_state(STATE_PATH)
+        result = slots.plan_install(state, body.get("version", ""), donor_ready(state), _free_slots_hint())
+        result["capacity_note"] = "APFS 槽位容量在安装时由设备检查（离线预览不检查）"
+        return result
+    except slots.SlotError as exc:
+        return {"error": str(exc)}
+
+
+def _free_slots_hint():
+    """APFS 末尾可用槽位数需要设备才能读到，离线预览按上限估计；真正的检查在安装时进行。"""
+    return 100
+
+
+SLOT_RUN_SUDO = {"snapshot", "format", "install"}
+
+
+def slots_run_args(body):
+    action = body.get("action")
+    py = sys.executable
+    cli = os.path.join(REPO, "n56patcher.py")
+    if action == "snapshot":
+        return [py, cli, "slots", "snapshot"]
+    if action == "verify":
+        return [py, cli, "slots", "verify"]
+    if action == "format":
+        return [py, cli, "slots", "format", body.get("slice", "")]
+    if action == "install":
+        return [py, cli, "slots", "install", body.get("version", "")]
+    if action == "boot":
+        return [py, cli, "slots", "boot", body.get("version", "")]
+    if action == "rebuild":
+        return [py, cli, "slots", "rebuild", body.get("version", "")]
+    return None
+
+
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, *a):
         pass
@@ -1106,7 +1444,12 @@ class Handler(BaseHTTPRequestHandler):
             off = int(parse_qs(u.query).get("off", ["0"])[0])
             lines, total = RUNNER.since(off)
             started = RUNNER.started if RUNNER.running() else 0
-            return self._send(200, {"lines": lines, "off": total, "started": started})
+            return self._send(200, {"lines": lines, "off": total, "started": started,
+                                    "running": RUNNER.running()})
+        if u.path == "/volumes":
+            return self._send(200, SLOTS_PAGE, "text/html")
+        if u.path == "/api/slots":
+            return self._send(200, slots_state_payload())
         return self._send(404, {"error": "not found"})
 
     def do_POST(self):
@@ -1114,6 +1457,8 @@ class Handler(BaseHTTPRequestHandler):
         if u.path == "/api/stop":
             RUNNER.stop()
             return self._send(200, {"ok": True})
+        if u.path.startswith("/api/slots"):
+            return self._slots_post(u.path)
         if u.path == "/api/run":
             n = int(self.headers.get("Content-Length", 0))
             body = json.loads(self.rfile.read(n) or b"{}")
@@ -1124,6 +1469,38 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(200, {"ok": False, "reason": "need-sudo"})
             ok = RUNNER.start(args)
             return self._send(200, {"ok": ok})
+        return self._send(404, {"error": "not found"})
+
+    def _json_body(self):
+        n = int(self.headers.get("Content-Length", 0))
+        return json.loads(self.rfile.read(n) or b"{}")
+
+    def _slots_post(self, path):
+        body = self._json_body()
+        if path == "/api/slots/assign":
+            return self._send(200, slots_assign(body))
+        if path == "/api/slots/plan":
+            return self._send(200, slots_plan(body))
+        if path == "/api/slots/device":
+            from core import slots
+            from core.slots_cli import STATE_PATH
+            device = (body.get("device_id") or "").strip()
+            if not device or any(c in device for c in "/\\ ."):
+                return self._send(200, {"ok": False, "error": "设备ID 不能为空，且不能含路径字符"})
+            state = slots.load_state(STATE_PATH)
+            state["device_id"] = device
+            slots.save_state(STATE_PATH, state)
+            return self._send(200, {"ok": True})
+        if path == "/api/slots/run":
+            action = body.get("action")
+            tail = slots_run_args(body)
+            if tail is None:
+                return self._send(400, {"ok": False, "reason": "unknown-action"})
+            if action in SLOT_RUN_SUDO and os.geteuid() != 0:
+                RUNNER.put(f"[!] {action} 需要 root。请用终端运行：\n    sudo " + " ".join(tail) + "\n")
+                return self._send(200, {"ok": False, "reason": "need-sudo"})
+            ok = RUNNER.start(tail)
+            return self._send(200, {"ok": ok, "reason": "" if ok else "busy"})
         return self._send(404, {"error": "not found"})
 
     def _build_args(self, b):

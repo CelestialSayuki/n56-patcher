@@ -19,6 +19,7 @@ from . import log
 from .tools import run
 
 SEP_FIRMWARE = "/mnt1/usr/standalone/firmware/sep-firmware.img4"
+SEP_STAGE = "/tmp/n56-sep-firmware.img4"
 
 RAMDISK_SEND = ["iBSS", "iBEC", "ramdisk", "devicetree", "trustcache", "kernelcache"]
 
@@ -234,7 +235,13 @@ class Ramdisk:
         if b"ping failed" not in self.sh(ping, check=False):
             return
         log.log("加载原生 SEP 固件…")
-        self.sh(f'/usr/libexec/seputil --load "{SEP_FIRMWARE}"', check=False)
+        firmware = SEP_FIRMWARE
+        donor = getattr(self.ctx, "donor_dir", None)
+        if donor:
+            # 快照模式：s1 可能已被覆盖，先把快照中的 SEP 固件送到 ramdisk 再加载。
+            self.deploy_path(os.path.join(donor, "usr/standalone/firmware/sep-firmware.img4"), SEP_STAGE)
+            firmware = SEP_STAGE
+        self.sh(f'/usr/libexec/seputil --load "{firmware}"', check=False)
         if b"ping failed" in self.sh(ping, check=False):
             log.warn("SEP 加载后仍无响应，后续加密操作可能卡住。")
 

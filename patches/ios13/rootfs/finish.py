@@ -36,7 +36,8 @@ class RootfsFinish(Patch):
         keybags = None if encrypted else os.path.join(STATE_DIR, "keybags.tar")
 
         ssh.mount(ctx.t["mounts"]["system_b"], "/mnt6")
-        ssh.mount(ctx.t["mounts"]["system12"], "/mnt1", ro=True)
+        if not ctx.donor_dir:
+            ssh.mount(ctx.t["mounts"]["system12"], "/mnt1", ro=True)
         if encrypted:
             ensure_systembag(ctx)
         else:
@@ -69,9 +70,14 @@ class RootfsFinish(Patch):
         if dst.returncode != 0:
             log.die("fsck/apfs.fs 替换失败\n" + (err or b"").decode(errors="replace"))
 
-        log.log("SEP 固件（来自 iOS12 s1）…")
-        ssh.sh("/bin/cp -a /mnt1/usr/standalone/firmware/sep-firmware.img4 "
-               "/mnt6/usr/standalone/firmware/")
+        if ctx.donor_dir:
+            log.log("SEP 固件（来自 donor 快照）…")
+            ssh.deploy_path(os.path.join(ctx.donor_dir, "usr/standalone/firmware/sep-firmware.img4"),
+                            "/mnt6/usr/standalone/firmware/sep-firmware.img4")
+        else:
+            log.log("SEP 固件（来自 iOS12 s1）…")
+            ssh.sh("/bin/cp -a /mnt1/usr/standalone/firmware/sep-firmware.img4 "
+                   "/mnt6/usr/standalone/firmware/")
 
         if encrypted:
             log.log("保留本次为加密 DataB 创建的 systembag…")

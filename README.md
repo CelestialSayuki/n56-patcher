@@ -104,6 +104,8 @@ flowchart LR
 
 ## 进阶用法
 
+多系统分区与启动（宗卷设置、donor 快照、槽位安装）见 [docs/volumes.md](docs/volumes.md)。
+
 <details>
 <summary><b>构建与启动</b></summary>
 

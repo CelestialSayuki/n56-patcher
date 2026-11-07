@@ -23,7 +23,11 @@ class Flow:
         self.rd = Ramdisk(ctx)
         self.allow_manual = allow_manual
         self.identity_check = identity_check
-        if ctx.t.get("volumes", {}).get("mode") == "independent":
+        if ctx.slot:
+            # 宗卷槽位模式：卷号由槽位给出，独立卷流程接管（见 core/slots.py）。
+            bind_volumes(ctx, ctx.slot["system"], ctx.slot["data"])
+            ctx.installation = IndependentInstallation(ctx)
+        elif ctx.t.get("volumes", {}).get("mode") == "independent":
             restore_layout(ctx)
             if ctx.t["mounts"]["system_b"] is not None and ctx.t["mounts"]["data_b"] is not None:
                 bind_volumes(ctx, ctx.t["mounts"]["system_b"], ctx.t["mounts"]["data_b"])
@@ -47,6 +51,18 @@ class Flow:
         if self.ctx.dry_run:
             return
         self.rd.ensure()
+
+    def _slot_prepare_volumes(self):
+        """槽位模式的卷准备：缺失的卷按序追加，然后清空本次要写入的 Sys 与 Data。
+
+        权限与 donor 门禁已在 CLI 入口（make_flow）检查过。
+        """
+        from .slots_device import ensure_slot_volumes, wipe_slice
+        ensure_slot_volumes(self.ctx, self.rd)
+        slot = self.ctx.slot
+        wipe_slice(self.ctx, self.rd, slot["system"], encrypted=False)
+        wipe_slice(self.ctx, self.rd, slot["data"],
+                   encrypted=self.ctx.t.get("data_protection") == "encrypted")
 
     def status(self):
         if self.ctx.dry_run:
@@ -88,6 +104,8 @@ class Flow:
         self._need_ramdisk()
         if self.ctx.installation:
             try:
+                if self.ctx.slot:
+                    self._slot_prepare_volumes()
                 self.ctx.installation.prepare(create=True)
                 Apfs(self.ctx).list()
             finally:

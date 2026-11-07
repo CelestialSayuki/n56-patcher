@@ -170,6 +170,10 @@ def _needs_device(message):
 def main():
     name = sys.argv[1] if len(sys.argv) > 1 else 'n56-ios13'
     ctx = Context(name, workdir=os.path.join(REPO, 'build', 'lint-' + name))
+    donor = os.environ.get('N56_DONOR_DIR')
+    if donor:
+        # 快照模式：设备端来源从本地 donor 目录读取（与真机流程一致）。
+        ctx.donor_dir = os.path.abspath(donor)
     sel = patchmod.select(ctx.t)
     fake = FakeSSH()
     ctx._ssh = fake

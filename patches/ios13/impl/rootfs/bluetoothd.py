@@ -1,6 +1,7 @@
 import hashlib
 import json
 import os
+import shutil
 
 from core import log
 
@@ -19,7 +20,10 @@ def build_bluetoothd(ctx):
         if hashlib.sha256(data).hexdigest() == manifest["output_sha256"]:
             return output
     ctx.verify_device_system(ctx.ssh)
-    ctx.ssh.pull_file("/mnt1/usr/sbin/bluetoothd", source)
+    if ctx.donor_dir:
+        shutil.copyfile(os.path.join(ctx.donor_dir, "usr/sbin/bluetoothd"), source)
+    else:
+        ctx.ssh.pull_file("/mnt1/usr/sbin/bluetoothd", source)
     data = bytearray(open(source, "rb").read())
     if len(data) != manifest["source_size"] or hashlib.sha256(data).hexdigest() != manifest["source_sha256"]:
         log.die("SystemA bluetoothd 不是 16H88 profile 支持的版本")

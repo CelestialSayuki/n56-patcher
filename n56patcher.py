@@ -42,14 +42,47 @@ def build_parser():
     p.add_argument("--system", type=int, default=None, help="独立 System 卷号")
     p.add_argument("--data", type=int, default=None, help="独立 Data 卷号")
     p.add_argument("--workdir", default=None, help="产物工作目录")
+    p.add_argument("--slot", default=None, metavar="VERSION",
+                   help="按宗卷槽位安装该版本（如 13），卷号由 slots 记录给出，默认工作目录 build/slots/<版本>")
     p.add_argument("--allow-manual", action="store_true", help="执行 manual 的 patch")
     p.add_argument("--dry-run", action="store_true", help="只演练，不碰设备/不产出")
     p.add_argument("--no-identity-check", action="store_true", help="boot 时不校验设备身份")
     return p
 
 
+def slot_binding(version):
+    """读取宗卷记录，检查权限与 donor 门禁，返回 (slot 绑定, donor 目录或 None)。"""
+    from core import slots
+    from core.slots_cli import STATE_PATH, donor_ready, _donor_dir
+    state = slots.load_state(STATE_PATH)
+    if version not in slots.VERSIONS or not slots.VERSIONS[version]["implemented"]:
+        log.die(f"版本 {version} 不可安装")
+    systems = slots.slices_of(state, slots.purpose(version, "Sys"))
+    datas = slots.slices_of(state, slots.purpose(version, "Data"))
+    if not systems or not datas:
+        log.die(f"{version} 的 Sys/Data 用途未同时声明，先在宗卷页面分配分区")
+    ready = donor_ready(state)
+    for index in (systems[0], datas[0]):
+        try:
+            slots.check_format(state, index, ready)
+        except slots.SlotError as exc:
+            log.die(str(exc))
+    donor = _donor_dir(state) if ready else None
+    return {"version": version, "system": systems[0], "data": datas[0]}, donor
+
+
 def make_flow(args):
-    ctx = Context(args.target, workdir=args.workdir, dry_run=args.dry_run)
+    slot = donor = None
+    workdir = args.workdir
+    if args.slot:
+        slot, donor = slot_binding(args.slot)
+        if workdir is None:
+            workdir = os.path.join(REPO, "build", "slots", args.slot)
+    ctx = Context(args.target, workdir=workdir, dry_run=args.dry_run)
+    if slot:
+        ctx.slot = slot
+        ctx.donor_dir = donor
+        ctx.t["volumes"]["min_slice"] = 1
     if args.bootargs:
         ctx.t["bootargs"] = args.bootargs
     if args.data_protection:
@@ -71,6 +104,8 @@ def make_flow(args):
     flow = Flow(ctx, selection, allow_manual=args.allow_manual,
                 identity_check=not args.no_identity_check)
     if args.system is not None or args.data is not None:
+        if slot:
+            log.die("--slot 与 --system/--data 不能同时使用")
         if ctx.t.get("volumes", {}).get("mode") != "independent":
             log.die("--system/--data 用于独立系统目标")
         from core.installation import bind_volumes
@@ -80,6 +115,10 @@ def make_flow(args):
 
 
 def main(argv=None):
+    argv = sys.argv[1:] if argv is None else list(argv)
+    if argv and argv[0] == "slots":
+        from core.slots_cli import main as slots_main
+        return slots_main(argv[1:])
     args = build_parser().parse_args(argv)
     ctx, selection, flow = make_flow(args)
 

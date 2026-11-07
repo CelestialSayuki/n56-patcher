@@ -86,12 +86,17 @@ class SourceOverlay(Patch):
                 self._apply_bytes_patch(ssh, item, dest)
                 self._check_remote(ssh, item, dest)
                 continue
-            if kind == "device_s1":
+            if kind == "device_s1" and not getattr(ctx, "donor_dir", None):
                 ctx.verify_device_system(ssh)
                 ssh.mount(ctx.t["mounts"]["system12"], "/mnt1", ro=True)
                 ssh.sh(self.device_copy_command(item, "/mnt1/" + path, dest))
             else:
-                if kind == "ipsw":
+                if kind == "device_s1":
+                    # 快照模式：设备端来源一律从 donor 快照读取（见 core/donors.py）。
+                    kind = "donor"
+                    ctx.verify_device_system(ssh)
+                    source = os.path.join(ctx.donor_dir, path)
+                elif kind == "ipsw":
                     source = os.path.join(ctx.mount_rootfs(profile), path)
                 elif kind == "derive":
                     source = self.derive(ctx, profile, item)
@@ -107,10 +112,10 @@ class SourceOverlay(Patch):
                         continue
                 ssh.deploy_path(source, dest)
                 source_stat = os.stat(source)
-            if item.mode is not None or kind in ("ipsw", "derive", "patch"):
+            if item.mode is not None or kind in ("ipsw", "derive", "patch", "donor"):
                 mode = item.mode if item.mode is not None else source_stat.st_mode & 0o777
                 ssh.sh(f'chmod {mode:o} "{dest}"')
-            if item.uid is not None or item.gid is not None or kind in ("ipsw", "derive", "patch"):
+            if item.uid is not None or item.gid is not None or kind in ("ipsw", "derive", "patch", "donor"):
                 uid = source_stat.st_uid if item.uid is None else item.uid
                 gid = source_stat.st_gid if item.gid is None else item.gid
                 ssh.sh(f'/usr/sbin/chown {uid}:{gid} "{dest}"')

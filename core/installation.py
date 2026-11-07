@@ -60,16 +60,19 @@ class IndependentInstallation:
 
     def prepare(self, create=False):
         self.session.verify_ramdisk()
-        self.mount(self.ctx.t["mounts"]["system12"], "/mnt1", ro=True)
-        mounts = self.session.sh("/sbin/mount").decode()
-        if not any("disk0s1s1 on /mnt1 " in line and "read-only" in line for line in mounts.splitlines()):
-            log.die("SystemA 需要只读挂载")
+        if not getattr(self.ctx, "donor_dir", None):
+            self.mount(self.ctx.t["mounts"]["system12"], "/mnt1", ro=True)
+            mounts = self.session.sh("/sbin/mount").decode()
+            if not any("disk0s1s1 on /mnt1 " in line and "read-only" in line for line in mounts.splitlines()):
+                log.die("SystemA 需要只读挂载")
         self.ctx.verify_device_system(self.session)
         if create and self.encrypted_data:
             self.session.require_sep()
         self.select_volumes(create=create)
 
     def select_volumes(self, create=False):
+        if getattr(self.ctx, "slot", None):
+            return self.select_slot_volumes()
         config = self.ctx.t["volumes"]
         apfs = Apfs(self.ctx)
         volumes = apfs.volumes()
@@ -111,6 +114,23 @@ class IndependentInstallation:
         bind_volumes(self.ctx, selected["system"][0], selected["data"][0])
         self.save_layout()
         return selected["system"][0], selected["data"][0]
+
+    def select_slot_volumes(self):
+        """宗卷槽位模式：卷号由槽位记录给出，卷必须已存在（由宗卷页面先创建并格式化）。"""
+        slot = self.ctx.slot
+        apfs = Apfs(self.ctx)
+        present = {v[0]: v for v in apfs.volumes()}
+        for index, label in ((slot["system"], "System"), (slot["data"], "Data")):
+            if index not in present:
+                log.die(f"s{index} 不存在：请先在宗卷页面为 {slot['version']} {label} 分配并创建分区")
+        encrypted = apfs.enc_state(present[slot["data"]][2]) == "encrypted"
+        if encrypted != self.encrypted_data:
+            log.die(f"s{slot['data']} 的保护模式与目标不符")
+        # 槽位的权限由 core/slots.py 管理；这里不再使用目标的保留卷下限。
+        self.ctx.t["volumes"]["min_slice"] = 1
+        bind_volumes(self.ctx, slot["system"], slot["data"])
+        self.save_layout()
+        return slot["system"], slot["data"]
 
     def mount_system(self):
         self.mount(self.ctx.t["mounts"]["system_b"], "/mnt6")
