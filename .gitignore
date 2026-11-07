@@ -12,6 +12,14 @@
 IM4M*
 *keybag*
 *.p12
+
+# 设备备份（激活记录 / FairPlay / 基带偏好，含 IMEI，不入库）
+/backup/
+
+# 编辑器 / 工作区
+.workbuddy/
+.vscode/
+.idea/
 # python / 杂项
 __pycache__/
 *.pyc
@@ -19,4 +27,6 @@ __pycache__/
 
 /tools/bin/
 /tools/checkra1n-kpf/checkra1n/kpf-test/kpf-test.macos
+# kpf 宿主侧反汇编产物（make host-blobs 生成，make clean 删除）
+/tools/checkra1n-kpf/checkra1n/kpf-test/host-blobs/
 .venv/
