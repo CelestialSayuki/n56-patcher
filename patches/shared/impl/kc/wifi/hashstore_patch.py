@@ -80,12 +80,19 @@ def adapt(k, files=None, storage=STORAGE, *, header=HEADER, expected_count=645,
           approved=OLD_HASHES, resize_trx=False):
     files = native_files() if files is None else files
     before = read_index(k, header, expected_count)
+    names = list(approved)
+    # 已批准与否要看 hashstore 里的摘要是否等于板上固件本身，而不是只等于基线值：
+    # 同名同长但内容不同的固件若只比基线，会被误判为未批准或漏改，导致装载校验失败。
+    if all(before[path_key(n)]['digest'].hex() == files[n]['sha256']
+           and before[path_key(n)]['length'] == files[n]['bytes'] for n in names):
+        return bytearray(k.data), dict(storage=None, storage_size=0, edits=[],
+                                       new_slide_slots=[], already_approved=True,
+                                       unchanged_filename_mappings=len(before))
     host = next(s for s in k.segs if s['name'] == '__PLK_DATA_CONST')
     check_region(storage, 0x98, host['vm'], k.read(host['vm'], host['fs']), k.claims())
     native_slots = set(k.slide_slots())
     data = bytearray(k.data)
     edits = []
-    names = list(approved)
     for i, name in enumerate(names):
         old = before[path_key(name)]
         item = files[name]
@@ -156,7 +163,8 @@ def build(output_dir, input_path=BASELINE):
         if bytes.fromhex(item['sha256']) not in native:
             raise ValueError('native payload digest is absent from its original kernel')
     data, report = adapt(k)
-    add_slide_slots(k, data, report['new_slide_slots'])
+    if report['new_slide_slots']:
+        add_slide_slots(k, data, report['new_slide_slots'])
     path = output_dir / 'kernelcache.wifi.raw'
     path.write_bytes(data)
     actual = Kernel(path)

@@ -6,7 +6,7 @@ import unittest
 
 class HashstoreTests(unittest.TestCase):
     def implementation(self):
-        path = Path(__file__).with_name('hashstore_patch.py')
+        path = Path(__file__).resolve().parents[4] / 'shared' / 'impl' / 'kc' / 'wifi' / 'hashstore_patch.py'
         self.assertTrue(path.exists(), 'native B1 hashstore adapter is missing')
         spec = importlib.util.spec_from_file_location('wifi_hashstore_adapter', path)
         module = importlib.util.module_from_spec(spec)
