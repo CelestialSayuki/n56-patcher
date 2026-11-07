@@ -161,12 +161,19 @@ class Apfs:
     def volume_capacity(self):
         return struct.unpack_from("<I", self._latest_nxsb(), 0xB4)[0]
 
-    def append_volume(self, name, *, encrypted=False):
+    def append_volume(self, name, *, encrypted=False, index=None):
+        """在容器中建卷。index 缺省时用末尾的下一个号；指定时必须是空闲号（允许留空洞）。"""
         volumes = self.volumes()
-        index = max((v[0] for v in volumes), default=0) + 1
+        present = {v[0] for v in volumes}
+        if index is None:
+            index = max(present, default=0) + 1
+        elif index in present:
+            log.die(f"s{index} 已被占用，不能建 {name}")
+        elif index < 1:
+            log.die(f"分区号非法: s{index}")
         limit = self.volume_capacity()
         if index > limit:
-            log.die("APFS 容器末尾没有可用卷槽位")
+            log.die(f"APFS 容器没有 s{index} 槽位（上限 s{limit}）")
         protection = " -P" if encrypted else ""
         log.log(f"追加 {name} → s{index}")
         # newfs_apfs 的 fsindex 为零基索引；显式指定以保留布局中的空洞。

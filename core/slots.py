@@ -65,12 +65,12 @@ def purpose_options():
 
 
 def protection(slice_no, value):
-    """分区权限：format 为能否格式化，delete 为能否删除（删卷暂缓，目前一律 False）。"""
+    """分区权限：format 为能否格式化，delete 为能否删除。删除的成对规则见 delete_targets。"""
     if slice_no == BASEBAND_SLICE or value == BASEBAND:
         return {"format": False, "delete": False, "why": "基带数据，永不格式化、不删除"}
     if slice_no in ORIGINAL_SLICES:
         return {"format": True, "delete": False, "why": "原机分区：可格式化后另作他用，不可删除"}
-    return {"format": True, "delete": False, "why": "删卷功能暂缓实现"}
+    return {"format": True, "delete": True, "why": "删除会释放分区号（不复用）；已装版本须成对删除"}
 
 
 def default_state():
@@ -183,6 +183,80 @@ def mark_formatted(state, slice_no):
     new = json.loads(json.dumps(state))
     new["content"][str(slice_no)] = None
     return new
+
+
+# 系统 build 到版本号的对应（用于按 SystemVersion 识别 System 卷）。
+VERSION_BY_BUILD = {"16H88": "12", "17H35": "13", "18H17": "14"}
+
+# 我们在安装时写入 Data 卷的标记文件（内容为版本号），用于识别 Data 卷属于哪个版本。
+DATA_MARKER = "/.n56-slot"
+
+
+def delete_targets(state, slice_no, pair=False):
+    """删除分区的判定。返回要删除的分区号列表（成对时包含同版本的 Sys 与 Data）。
+
+    规则：
+    - s1、s2、s3 是原机与基带分区，永不删除（见 protection）。
+    - 属于已装版本的分区必须成对删除（pair=True），否则拒绝，避免留下半个系统。
+    - 删除会释放分区号，号码不复用。
+    """
+    value = state["slices"].get(str(slice_no))
+    rule = protection(slice_no, value)
+    if slice_no in ORIGINAL_SLICES or slice_no == BASEBAND_SLICE or value == BASEBAND:
+        raise SlotError(f"s{slice_no}: {rule['why']}")
+    if value is None:
+        return [slice_no]
+    version = version_of(value)
+    record = state["installed"].get(version) if version else None
+    if record is None:
+        return [slice_no]
+    pair_slices = sorted({record["system"], record["data"]})
+    if not pair:
+        raise SlotError(f"s{slice_no} 属于已装的 iOS {version}，需同时删除 s{pair_slices[0]} 与 s{pair_slices[1]}（加 --pair）")
+    return pair_slices
+
+
+def release(state, slice_no):
+    """释放分区（设备上已删除之后调用）：去掉用途与内容，号码记入 released 不再复用。"""
+    new = json.loads(json.dumps(state))
+    key = str(slice_no)
+    previous = new["slices"].pop(key, None)
+    new["content"].pop(key, None)
+    if slice_no not in new["released"]:
+        new["released"].append(slice_no)
+    _invalidate_version(new, version_of(previous))
+    for version, record in list(new["installed"].items()):
+        if slice_no in (record["system"], record["data"]):
+            new["installed"].pop(version, None)
+            new["boot"].pop(version, None)
+    return new
+
+
+def pair_status(state, version, identified):
+    """把设备上识别出的分区与记录比对。
+
+    identified: {分区号: {"kind": "System"|"Data"|None, "build": ..., "marker": ...}}
+    返回 (状态, 说明)：ok / unknown / mismatch。
+    - unknown：Data 卷仍加密、无法挂载，无法确认（不自动放行）。
+    - mismatch：类型或版本对不上，必须由用户处理。
+    """
+    record = state["installed"].get(version)
+    if not record:
+        return "unknown", f"iOS {version} 未记录为已装"
+    sys_info = identified.get(record["system"]) or {}
+    data_info = identified.get(record["data"]) or {}
+    problems = []
+    if sys_info.get("kind") != "System":
+        problems.append(f"s{record['system']} 不是 System 卷（识别为 {sys_info.get('kind') or '未知'}）")
+    elif VERSION_BY_BUILD.get(sys_info.get("build")) != version:
+        problems.append(f"s{record['system']} 的 build 为 {sys_info.get('build')}，不是 iOS {version}")
+    if data_info.get("kind") is None and data_info.get("encrypted"):
+        return "unknown", f"s{record['data']} 为加密卷且未能挂载，无法确认归属"
+    if data_info.get("kind") != "Data" or data_info.get("marker") != version:
+        problems.append(f"s{record['data']} 不是 iOS {version} 的 Data 卷（标记 {data_info.get('marker') or '无'}）")
+    if problems:
+        return "mismatch", "；".join(problems)
+    return "ok", f"iOS {version}：s{record['system']} / s{record['data']} 与记录一致"
 
 
 def allocate_numbers(state, count):

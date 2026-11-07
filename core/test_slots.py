@@ -53,11 +53,12 @@ class ProtectionTests(unittest.TestCase):
         with self.assertRaises(slots.SlotError):
             slots.check_delete(state, 2)
 
-    def test_other_slots_delete_is_deferred(self):
+    def test_other_slots_can_be_deleted_but_installed_pair_rule_applies(self):
         state = slots.assign(slots.default_state(), 4, "13 Sys")
-        with self.assertRaises(slots.SlotError) as ctx:
-            slots.check_delete(state, 4)
-        self.assertIn("暂缓", str(ctx.exception))
+        self.assertTrue(slots.check_delete(state, 4))
+        state = slots.assign(state, 5, "13 Data")
+        state = slots.record_install(state, "13", 4, 5, "abc")
+        self.assertEqual(slots.delete_targets(state, 4, pair=True), [4, 5])
 
 
 class DonorGateTests(unittest.TestCase):
@@ -164,6 +165,68 @@ class BootDecisionTests(unittest.TestCase):
         state = slots.record_install(slots.default_state(), "13", 4, 5, "abc")
         state["boot"]["13"]["confirmed"] = False
         self.assertEqual(slots.boot_decision(state, "13", "changed", True), "confirm")
+
+
+class DeleteTests(unittest.TestCase):
+    def installed_13(self):
+        state = slots.assign(slots.default_state(), 4, "13 Sys")
+        state = slots.assign(state, 5, "13 Data")
+        return slots.record_install(state, "13", 4, 5, "abc")
+
+    def test_original_and_baseband_never_deleted(self):
+        state = slots.default_state()
+        for n in (1, 2, 3):
+            with self.assertRaises(slots.SlotError):
+                slots.delete_targets(state, n)
+
+    def test_unassigned_slice_deletes_alone(self):
+        self.assertEqual(slots.delete_targets(slots.default_state(), 9), [9])
+
+    def test_installed_pair_requires_pair_flag(self):
+        state = self.installed_13()
+        with self.assertRaises(slots.SlotError) as ctx:
+            slots.delete_targets(state, 4)
+        self.assertIn("--pair", str(ctx.exception))
+        self.assertEqual(slots.delete_targets(state, 4, pair=True), [4, 5])
+
+    def test_release_removes_purpose_and_never_reuses_number(self):
+        state = self.installed_13()
+        state = slots.release(state, 4)
+        state = slots.release(state, 5)
+        self.assertNotIn("4", state["slices"])
+        self.assertNotIn("13", state["installed"])
+        self.assertEqual(sorted(state["released"]), [4, 5])
+        self.assertEqual(slots.allocate_numbers(state, 1), [6])
+
+
+class PairStatusTests(unittest.TestCase):
+    def installed(self):
+        state = slots.assign(slots.default_state(), 4, "13 Sys")
+        state = slots.assign(state, 5, "13 Data")
+        return slots.record_install(state, "13", 4, 5, "abc")
+
+    def ok_identity(self):
+        return {4: {"kind": "System", "build": "17H35", "encrypted": False, "marker": None},
+                5: {"kind": "Data", "build": None, "encrypted": True, "marker": "13"}}
+
+    def test_matching_pair_is_ok(self):
+        self.assertEqual(slots.pair_status(self.installed(), "13", self.ok_identity())[0], "ok")
+
+    def test_encrypted_unmounted_data_is_unknown_not_ok(self):
+        identity = self.ok_identity()
+        identity[5] = {"kind": None, "build": None, "encrypted": True, "marker": None}
+        self.assertEqual(slots.pair_status(self.installed(), "13", identity)[0], "unknown")
+
+    def test_wrong_build_or_marker_is_mismatch(self):
+        identity = self.ok_identity()
+        identity[4]["build"] = "16H88"
+        self.assertEqual(slots.pair_status(self.installed(), "13", identity)[0], "mismatch")
+        identity = self.ok_identity()
+        identity[5]["marker"] = "14"
+        self.assertEqual(slots.pair_status(self.installed(), "13", identity)[0], "mismatch")
+
+    def test_version_build_mapping(self):
+        self.assertEqual(slots.VERSION_BY_BUILD["17H35"], "13")
 
 
 if __name__ == "__main__":

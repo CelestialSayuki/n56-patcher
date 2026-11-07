@@ -1135,6 +1135,10 @@ select,input{font:inherit;background:var(--card);color:var(--ink);border:1px sol
  <tbody id="versions"></tbody></table>
  <pre id="plan"></pre></div>
 
+<div class="card"><h2 id="tIdent"></h2>
+ <div class="row"><button id="btnIdentify"></button><span class="hint" id="identHint"></span></div>
+ <div class="hint" id="pairs"></div></div>
+
 <div class="card"><h2 id="tDonor"></h2>
  <div class="row"><button id="btnVerify"></button><button id="btnSnapshot"></button></div>
  <div class="hint" id="donorHint"></div></div>
@@ -1148,12 +1152,12 @@ const T={
  tDevice:"设备",setDevice:"设置设备ID",devOk:"已设置",devNone:"未设置",donorOk:"donor 快照可用",donorNo:"donor 快照不可用",
  deviceHint:"快照按设备ID分目录保存在 state/donors/，设备ID 由你指定（建议用 ECID）。",
  tSlices:"分区与用途",cSlice:"分区",cPurpose:"用途",cContent:"实际内容",cPerm:"权限",cAction:"操作",
- format:"格式化",clear:"清除用途",delete:"删除（暂缓）",assign:"设定",
+ format:"格式化",clear:"清除用途",delete:"删除",assign:"设定",confirmDelete:"确认删除 {s}？号码将释放，不再复用。",confirmPair:"{s} 属于已装版本：将同时删除该版本的 Sys 与 Data，号码释放且不再复用。继续？",
  tHint:"用途是你的声明；实际内容是分区上物理存在的东西。覆盖原机 12 System 前必须先完成 donor 快照。14 未提交：可声明并建空分区，但不能安装。",
  tVersions:"版本",vVersion:"版本",vStatus:"状态",vSlices:"分区",vAction:"操作",
  plan:"计划",install:"安装",boot:"启动此系统",rebuild:"重建启动包",
  statusNone:"未装",statusOk:"已装",statusStale:"启动包过期",statusBlocked:"不可安装",
- tDonor:"donor 快照",verify:"校验快照",snapshot:"从设备生成快照",donorDeviceHint:"快照需要设备进入 SSH ramdisk（需要 sudo）。",
+ tIdent:"分区识别",identify:"识别分区（设备）",identHint:"需要设备进入 SSH ramdisk（sudo）。System 看 SystemVersion，Data 看安装时写入的标记。",tDonor:"donor 快照",verify:"校验快照",snapshot:"从设备生成快照",donorDeviceHint:"快照需要设备进入 SSH ramdisk（需要 sudo）。",
  tLog:"输出",stop:"停止",running:"运行中…",needSudo:"需要 sudo：请在终端运行，见日志。",
  wrongSlice:"分区号格式应为 s4 这样",none:"（清除）",noDevice:"先设置设备ID",
  confirmFormat:"确认清空 {s} 的全部内容？此操作不可撤销。",confirmInstall:"确认安装 iOS {v}？将清空对应分区。",
@@ -1162,12 +1166,12 @@ const T={
  tDevice:"Device",setDevice:"Set device ID",devOk:"set",devNone:"not set",donorOk:"donor snapshot ready",donorNo:"donor snapshot not ready",
  deviceHint:"Snapshots are stored per device ID under state/donors/. Use the ECID if you can.",
  tSlices:"Partitions and purposes",cSlice:"Slice",cPurpose:"Purpose",cContent:"Actual content",cPerm:"Permissions",cAction:"Actions",
- format:"Format",clear:"Clear purpose",delete:"Delete (deferred)",assign:"Set",
+ format:"Format",clear:"Clear purpose",delete:"Delete",assign:"Set",confirmDelete:"Delete {s}? Its number is released and never reused.",confirmPair:"{s} belongs to an installed version: both its Sys and Data will be deleted; numbers are released and never reused. Continue?",
  tHint:"Purpose is your declaration; content is what is physically on the partition. Overwriting the original 12 System needs a donor snapshot first. 14 is not committed: you may declare it for an empty volume, but it cannot be installed.",
  tVersions:"Versions",vVersion:"Version",vStatus:"Status",vSlices:"Slices",vAction:"Actions",
  plan:"Plan",install:"Install",boot:"Boot this system",rebuild:"Rebuild boot pack",
  statusNone:"not installed",statusOk:"installed",statusStale:"boot pack stale",statusBlocked:"not installable",
- tDonor:"donor snapshot",verify:"Verify snapshot",snapshot:"Snapshot from device",donorDeviceHint:"Snapshotting needs the device in SSH ramdisk (sudo).",
+ tIdent:"Identify partitions",identify:"Identify (device)",identHint:"Needs the device in SSH ramdisk (sudo). System is read from SystemVersion; Data from the marker written at install.",tDonor:"donor snapshot",verify:"Verify snapshot",snapshot:"Snapshot from device",donorDeviceHint:"Snapshotting needs the device in SSH ramdisk (sudo).",
  tLog:"Output",stop:"Stop",running:"running…",needSudo:"Needs sudo: run it in a terminal (see log).",
  wrongSlice:"Slice must look like s4",none:"(clear)",noDevice:"Set device ID first",
  confirmFormat:"Erase all content of {s}? This cannot be undone.",confirmInstall:"Install iOS {v}? The matching partitions will be erased.",
@@ -1176,12 +1180,12 @@ const T={
  tDevice:"裝置",setDevice:"設定裝置ID",devOk:"已設定",devNone:"未設定",donorOk:"donor 快照可用",donorNo:"donor 快照不可用",
  deviceHint:"快照依裝置ID分目錄存放在 state/donors/。",
  tSlices:"分區與用途",cSlice:"分區",cPurpose:"用途",cContent:"實際內容",cPerm:"權限",cAction:"操作",
- format:"格式化",clear:"清除用途",delete:"刪除（暫緩）",assign:"設定",
+ format:"格式化",clear:"清除用途",delete:"刪除",assign:"設定",confirmDelete:"確認刪除 {s}？號碼將釋放，不再復用。",confirmPair:"{s} 屬於已裝版本：將同時刪除該版本的 Sys 與 Data，號碼釋放且不再復用。繼續？",
  tHint:"用途是你的宣告；實際內容是分區上實際存在的東西。覆寫原機 12 System 前必須先完成 donor 快照。14 未提交：可宣告並建空分區，但不能安裝。",
  tVersions:"版本",vVersion:"版本",vStatus:"狀態",vSlices:"分區",vAction:"操作",
  plan:"計畫",install:"安裝",boot:"啟動此系統",rebuild:"重建啟動包",
  statusNone:"未裝",statusOk:"已裝",statusStale:"啟動包過期",statusBlocked:"不可安裝",
- tDonor:"donor 快照",verify:"校驗快照",snapshot:"從裝置生成快照",donorDeviceHint:"快照需要裝置進入 SSH ramdisk（需要 sudo）。",
+ tIdent:"分區識別",identify:"識別分區（裝置）",identHint:"需要裝置進入 SSH ramdisk（sudo）。System 看 SystemVersion，Data 看安裝時寫入的標記。",tDonor:"donor 快照",verify:"校驗快照",snapshot:"從裝置生成快照",donorDeviceHint:"快照需要裝置進入 SSH ramdisk（需要 sudo）。",
  tLog:"輸出",stop:"停止",running:"執行中…",needSudo:"需要 sudo：請在終端執行，見日誌。",
  wrongSlice:"分區號格式應為 s4",none:"（清除）",noDevice:"先設定裝置ID",
  confirmFormat:"確認清空 {s} 的全部內容？此操作無法復原。",confirmInstall:"確認安裝 iOS {v}？對應分區將被清空。",
@@ -1190,12 +1194,12 @@ const T={
  tDevice:"デバイス",setDevice:"デバイスIDを設定",devOk:"設定済み",devNone:"未設定",donorOk:"donor スナップショット利用可",donorNo:"donor スナップショット未準備",
  deviceHint:"スナップショットは state/donors/ にデバイスIDごとに保存されます。",
  tSlices:"パーティションと用途",cSlice:"パーティション",cPurpose:"用途",cContent:"実際の内容",cPerm:"権限",cAction:"操作",
- format:"フォーマット",clear:"用途をクリア",delete:"削除（保留）",assign:"設定",
+ format:"フォーマット",clear:"用途をクリア",delete:"削除",assign:"設定",confirmDelete:"{s} を削除しますか？番号は解放され、再利用されません。",confirmPair:"{s} はインストール済みバージョンに属します。その Sys と Data を両方削除します。番号は解放され再利用されません。続けますか？",
  tHint:"用途はあなたの宣言、実際の内容はパーティション上の実体です。元の 12 System を上書きするには先に donor スナップショットが必要です。14 は未提出：空のボリュームとして宣言できますが、インストールはできません。",
  tVersions:"バージョン",vVersion:"バージョン",vStatus:"状態",vSlices:"パーティション",vAction:"操作",
  plan:"計画",install:"インストール",boot:"このシステムを起動",rebuild:"ブートパックを再構築",
  statusNone:"未インストール",statusOk:"インストール済み",statusStale:"ブートパック失効",statusBlocked:"インストール不可",
- tDonor:"donor スナップショット",verify:"スナップショットを検証",snapshot:"デバイスから作成",donorDeviceHint:"作成にはデバイスを SSH ramdisk にする必要があります（sudo）。",
+ tIdent:"パーティション識別",identify:"識別（デバイス）",identHint:"デバイスを SSH ramdisk にする必要があります（sudo）。System は SystemVersion、Data はインストール時のマーカーで判定します。",tDonor:"donor スナップショット",verify:"スナップショットを検証",snapshot:"デバイスから作成",donorDeviceHint:"作成にはデバイスを SSH ramdisk にする必要があります（sudo）。",
  tLog:"出力",stop:"停止",running:"実行中…",needSudo:"sudo が必要です：ターミナルで実行してください（ログ参照）。",
  wrongSlice:"パーティション番号は s4 の形式で",none:"（クリア）",noDevice:"先にデバイスIDを設定",
  confirmFormat:"{s} の内容をすべて消去しますか？元に戻せません。",confirmInstall:"iOS {v} をインストールしますか？対応するパーティションは消去されます。",
@@ -1221,6 +1225,7 @@ function applyStatic(){
   $('btnAssign').textContent=t('assign');$('tHint').textContent=t('tHint');$('tVersions').textContent=t('tVersions');
   $('vVersion').textContent=t('vVersion');$('vStatus').textContent=t('vStatus');$('vSlices').textContent=t('vSlices');$('vAction').textContent=t('vAction');
   $('tDonor').textContent=t('tDonor');$('btnVerify').textContent=t('verify');$('btnSnapshot').textContent=t('snapshot');
+  $('tIdent').textContent=t('tIdent');$('btnIdentify').textContent=t('identify');$('identHint').textContent=t('identHint');
   $('donorHint').textContent=t('donorDeviceHint');$('tLog').textContent=t('tLog');$('btnStop').textContent=t('stop');
   const sel=$('lang');sel.innerHTML='';[["zh-CN","简体中文"],["en","English"],["zh-TW","繁體中文"],["ja","日本語"]].forEach(([v,l])=>sel.appendChild(el('option',{value:v},l)));
   sel.value=lang;
@@ -1245,7 +1250,10 @@ function render(){
     if(k==='3')sel.disabled=true;
     sel.onchange=()=>assign('s'+k, sel.value||null);
     const td1=el('td');td1.appendChild(sel);tr.appendChild(td1);
-    tr.appendChild(el('td',{class:'mono'},content||'—'));
+    const idn=(S.identified||{})[k];
+    let contentText=content||'—';
+    if(idn&&!idn.skipped&&idn.kind){contentText+='  ·  '+idn.kind+(idn.build?' '+idn.build:'')+(idn.marker?' [marker '+idn.marker+']':'');}
+    tr.appendChild(el('td',{class:'mono'},contentText));
     const perm=el('td',{class:'hint'},(rule.format?'✓ '+t('format'):'✗ '+t('format'))+'  ·  '+t('delete'));
     tr.appendChild(perm);
     const act=el('td');
@@ -1253,9 +1261,12 @@ function render(){
     act.appendChild(el('button',{disabled:blockedFormat,title:rule.why,onclick:()=>formatSlice(k)},t('format')));
     act.appendChild(document.createTextNode(' '));
     act.appendChild(el('button',{disabled:k==='1'||k==='2'||k==='3',onclick:()=>assign('s'+k,null)},t('clear')));
+    act.appendChild(document.createTextNode(' '));
+    act.appendChild(el('button',{disabled:!rule.delete,title:rule.why,onclick:()=>deleteSlice(k)},t('delete')));
     tr.appendChild(act);
     tb.appendChild(tr);
   }
+  $('pairs').textContent=Object.entries(S.pairs||{}).map(([v,p])=>'iOS '+v+': '+p.note).join('\n');
   // 新增分区用途的下拉
   const np=$('newPurpose');np.innerHTML='';
   for(const p of S.purposes){np.appendChild(el('option',{value:p.value},p.value+(p.installable?'':' ('+t('notCommitted')+')')));}
@@ -1267,6 +1278,8 @@ function render(){
     const tr=el('tr');
     tr.appendChild(el('td',{class:'mono'},'iOS '+v));
     let status=rec?(S.boot[v]&&S.boot[v].stale?t('statusStale'):t('statusOk')):(info.implemented?t('statusNone'):t('statusBlocked'));
+    const pair=(S.pairs||{})[v];
+    if(pair&&pair.status!=='ok'&&rec){status+=' · '+(pair.status==='unknown'?'?':'!')+' '+pair.note;}
     tr.appendChild(el('td',{class:rec?(S.boot[v]&&S.boot[v].stale?'warn':'ok'):'mut'},status+(info.implemented?'':' · '+(info.reason||''))));
     const sl=rec?('s'+rec.system+' / s'+rec.data):'—';
     tr.appendChild(el('td',{class:'mono'},sl));
@@ -1306,6 +1319,11 @@ async function plan(v){
   for(const s of (r.steps||[])){lines.push('  '+s.op+(s.slice!==undefined?' s'+s.slice:'')+(s.purpose?'  ('+s.purpose+')':'')+(s.from?'  from '+s.from:''));}
   p.textContent=lines.join('\n');
 }
+async function deleteSlice(k){
+  const rec=Object.values(S.installed||{}).some(r=>r.system===Number(k)||r.data===Number(k));
+  if(!confirm(rec?t('confirmPair').replace('{s}','s'+k):t('confirmDelete').replace('{s}','s'+k))) return;
+  runAction({action:'delete',slice:'s'+k,pair:rec});
+}
 async function setDevice(){
   const id=$('deviceId').value.trim();
   if(!id) return;
@@ -1334,6 +1352,7 @@ $('btnAssign').onclick=()=>{const s=$('newSlice').value.trim();if(!/^s\d+$/.test
 $('btnVerify').onclick=async()=>{const r=await api('/api/slots/run',{action:'verify'});if(r.ok)startPoll();};
 $('btnSnapshot').onclick=()=>runAction({action:'snapshot'});
 $('btnStop').onclick=()=>api('/api/stop',{});
+$('btnIdentify').onclick=()=>runAction({action:'identify'});
 $('lang').onchange=e=>{lang=e.target.value;try{localStorage.setItem('n56-lang',lang)}catch(_){ }applyStatic();render();};
 applyStatic();load();
 </script></body></html>"""
@@ -1345,9 +1364,16 @@ def slots_state_payload():
     from core.slots_cli import STATE_PATH, donor_ready, _donor_dir
     state = slots.load_state(STATE_PATH)
     rules = {k: slots.protection(int(k), v) for k, v in state["slices"].items()}
+    identified = {int(k): v for k, v in state.get("identified", {}).items()}
+    pairs = {}
+    for version in state["installed"]:
+        status, note = slots.pair_status(state, version, identified)
+        pairs[version] = {"status": status, "note": note}
     return {
         "device_id": state.get("device_id"),
         "donor_ready": donor_ready(state),
+        "identified": state.get("identified", {}),
+        "pairs": pairs,
         "slices": state["slices"],
         "content": state["content"],
         "protection": rules,
@@ -1393,7 +1419,7 @@ def _free_slots_hint():
     return 100
 
 
-SLOT_RUN_SUDO = {"snapshot", "format", "install"}
+SLOT_RUN_SUDO = {"snapshot", "format", "install", "delete", "identify"}
 
 
 def slots_run_args(body):
@@ -1408,6 +1434,11 @@ def slots_run_args(body):
         return [py, cli, "slots", "format", body.get("slice", "")]
     if action == "install":
         return [py, cli, "slots", "install", body.get("version", "")]
+    if action == "identify":
+        return [py, cli, "slots", "identify"]
+    if action == "delete":
+        tail = [py, cli, "slots", "delete", body.get("slice", "")]
+        return tail + (["--pair"] if body.get("pair") else [])
     if action == "boot":
         return [py, cli, "slots", "boot", body.get("version", "")]
     if action == "rebuild":

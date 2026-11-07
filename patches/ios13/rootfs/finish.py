@@ -45,6 +45,10 @@ class RootfsFinish(Patch):
 
         log.log("private/var → DataB…")
         ssh.sh("/bin/cp -a /mnt6/private/var/. /mnt7/")
+        if getattr(ctx, "slot", None):
+            # 槽位模式：在 Data 卷写入版本标记，之后识别分区时用它判断归属。
+            from core.slots_device import write_data_marker
+            write_data_marker(ssh, ctx.slot["version"])
 
         log.log("xarts / preboot 目录…")
         ssh.sh("mkdir -p /mnt6/private/xarts /mnt6/private/preboot && "

@@ -10,6 +10,8 @@
   verify                    检查快照是否完整可用
   format <sN>               清空分区内容（需要 ramdisk，受用途权限与 donor 门禁约束）
   install <版本>             按槽位执行安装（卷、清空、rootfs、补丁）、构建启动包并记录
+  identify                  在设备上识别分区（System 看版本、Data 看标记），核对已装记录（需要 ramdisk）
+  delete <sN> [--pair]       删除分区并释放号码（需要 ramdisk；已装版本须 --pair）
   record <版本>              安装并构建后，记录已装状态与启动包输入哈希
   boot-decision <版本>       输出启动包判定：none / ok / rebuild / confirm
   boot <版本> [--confirm]    启动前判定：过期则自动重建（条件满足时），然后启动该系统
@@ -19,6 +21,7 @@ import argparse
 import hashlib
 import json
 import os
+import shutil
 import sys
 
 from . import donors, slots
@@ -280,6 +283,70 @@ def cmd_boot(args):
     return code or 0
 
 
+def _device_flow():
+    """建立 ramdisk 会话（需要设备进入 SSH ramdisk）。返回 (ctx, flow)。"""
+    from core.context import Context
+    from core.flow import Flow
+    from core import patch as patchmod
+    ctx = Context(TARGET, workdir=os.path.join(WORK_ROOT, "device"))
+    flow = Flow(ctx, patchmod.select(ctx.t), identity_check=False)
+    flow.ramdisk()
+    return ctx, flow
+
+
+def cmd_identify(args):
+    """识别设备上的分区：System 看 SystemVersion，Data 看标记文件；s2、s3 不挂载。结果写入记录。"""
+    from core.apfs import Apfs
+    from . import slots_device
+    state = _state()
+    ctx, flow = _device_flow()
+    try:
+        apfs = Apfs(ctx)
+        results = {}
+        for index, _, sb in apfs.volumes():
+            encrypted = apfs.enc_state(sb) == "encrypted"
+            if index in (2, slots.BASEBAND_SLICE):  # s2 为原机 DataA，不挂载；s3 为基带
+                results[index] = {"slice": index, "encrypted": encrypted, "kind": None,
+                                  "build": None, "version": None, "marker": None, "skipped": True}
+                continue
+            results[index] = slots_device.identify_slice(ctx, flow.rd, index, encrypted)
+    finally:
+        flow.close()
+    for version in sorted(state["installed"]):
+        status, note = slots.pair_status(state, version, results)
+        print(f"[{status}] {note}")
+    print("分区识别结果:")
+    for index in sorted(results):
+        info = results[index]
+        print(f"  s{index}: kind={info.get('kind')} build={info.get('build')} "
+              f"marker={info.get('marker')} encrypted={info.get('encrypted')}"
+              + (" (未挂载)" if info.get("skipped") else ""))
+    state["identified"] = {str(k): v for k, v in results.items()}
+    _save(state)
+    return 0
+
+
+def cmd_delete(args):
+    """删除分区（设备上 apfs_deletefs），每删一个就释放一个分区号并保存记录。"""
+    from . import slots_device
+    state = _state()
+    slice_no = _parse_slice(args.slice)
+    targets = slots.delete_targets(state, slice_no, pair=args.pair)
+    ctx, flow = _device_flow()
+    try:
+        for index in targets:
+            owners = [v for v, rec in state["installed"].items() if index in (rec["system"], rec["data"])]
+            slots_device.delete_slice(ctx, flow.rd, index)
+            state = slots.release(state, index)
+            _save(state)
+            for version in owners:
+                shutil.rmtree(_workdir(version), ignore_errors=True)
+            print(f"s{index} 已删除并释放")
+    finally:
+        flow.close()
+    return 0
+
+
 def cmd_install(args):
     """槽位安装：install（卷、rootfs、补丁）→ build（启动包）→ 记录。已记录为已装的版本拒绝执行。"""
     from core.log import Die
@@ -333,6 +400,11 @@ def build_parser():
     rb = sub.add_parser("rebuild")
     rb.add_argument("version")
     rb.set_defaults(fn=cmd_rebuild)
+    dl = sub.add_parser("delete")
+    dl.add_argument("slice")
+    dl.add_argument("--pair", action="store_true", help="删除已装版本时同时删除它的 Sys 与 Data")
+    dl.set_defaults(fn=cmd_delete)
+    sub.add_parser("identify").set_defaults(fn=cmd_identify)
     i = sub.add_parser("install")
     i.add_argument("version")
     i.set_defaults(fn=cmd_install)
