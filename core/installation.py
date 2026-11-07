@@ -80,6 +80,7 @@ class IndependentInstallation:
         for volume in selected.values():
             if volume and volume[0] < config["min_slice"]:
                 log.die(f"{volume_name(volume)} 位于保留卷 s{volume[0]}")
+        # 旧的独立卷路径不深度识别：不挂载加密的 DataB（卷名由配置约定，类型未知时只校验名字）。
         infos = inventory(self.ctx, self.session, volumes)
         system = selected["system"]
         if system:
@@ -91,7 +92,7 @@ class IndependentInstallation:
         data = selected["data"]
         if data:
             info = next(v for v in infos if v.slice == data[0])
-            if info.kind != "Data" or info.build and info.build != self.ctx.t["build"]:
+            if info.kind not in ("Data", "Unknown") or info.build and info.build != self.ctx.t["build"]:
                 log.die(f"{info.name} 与目标系统的数据卷不符")
         missing = sum(volume is None for volume in selected.values())
         limit = apfs.volume_capacity()
@@ -126,6 +127,15 @@ class IndependentInstallation:
         encrypted = apfs.enc_state(present[slot["data"]][2]) == "encrypted"
         if encrypted != self.encrypted_data:
             log.die(f"s{slot['data']} 的保护模式与目标不符")
+        # 非原机分区（s1、s2 之外）的卷名必须与槽位一致，编号对上但卷不是我们的就拒绝。
+        from .slots_device import slot_volume_name
+        for index, kind in ((slot["system"], "Sys"), (slot["data"], "Data")):
+            if index in (1, 2):
+                continue
+            name = present[index][2][NAME_OFF:NAME_OFF + 256].split(b"\0")[0].decode()
+            expected = slot_volume_name(slot["version"], kind)
+            if name != expected:
+                log.die(f"s{index} 的卷名为 {name}，与槽位 {expected} 不符；拒绝使用")
         # 槽位的权限由 core/slots.py 管理；这里不再使用目标的保留卷下限。
         self.ctx.t["volumes"]["min_slice"] = 1
         bind_volumes(self.ctx, slot["system"], slot["data"])

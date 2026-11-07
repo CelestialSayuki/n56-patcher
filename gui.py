@@ -1118,7 +1118,7 @@ select,input{font:inherit;background:var(--card);color:var(--ink);border:1px sol
  <select id="lang" aria-label="language"></select></div></header>
 
 <div class="card"><h2 id="tDevice"></h2>
- <div class="row"><input id="deviceId" size="28" class="mono" placeholder="ECID / ID"><button id="btnDevice"></button>
+ <div class="row"><span class="mono" id="deviceText"></span><button id="btnRebind"></button>
  <span id="donorBadge" class="badge"></span></div>
  <div class="hint" id="deviceHint"></div></div>
 
@@ -1149,8 +1149,8 @@ select,input{font:inherit;background:var(--card);color:var(--ink);border:1px sol
 <script>
 const T={
 "zh-CN":{title:"宗卷设置",sub:"分区先声明用途再建立；s3 基带永不格式化；s1、s2 只能格式化后另作他用",back:"← 返回主界面",
- tDevice:"设备",setDevice:"设置设备ID",devOk:"已设置",devNone:"未设置",donorOk:"donor 快照可用",donorNo:"donor 快照不可用",
- deviceHint:"快照按设备ID分目录保存在 state/donors/，设备ID 由你指定（建议用 ECID）。",
+ tDevice:"设备",rebind:"改绑",deviceUnbound:"未绑定（连接设备后自动绑定）",rebindConfirm:"改绑会把宗卷记录切换到当前连接的设备，原快照保留。确认？",keepData:"保留 Data 原数据",keepExp:"实验性",keepHint:"实验性：不清空 Data 卷，依赖 iOS 13 对原有 keybag 的兼容，未在设备上验证。",confirmKeep:"安装 iOS {v}（保留 Data 原数据，实验性）？Sys 仍会被清空。",donorOk:"donor 快照可用",donorNo:"donor 快照不可用",
+ deviceHint:"设备 ID 是 DFU 阶段读取的 ECID，自动绑定，不再手动填写。快照按它分目录保存在 state/donors/。",
  tSlices:"分区与用途",cSlice:"分区",cPurpose:"用途",cContent:"实际内容",cPerm:"权限",cAction:"操作",
  format:"格式化",clear:"清除用途",delete:"删除",assign:"设定",confirmDelete:"确认删除 {s}？号码将释放，不再复用。",confirmPair:"{s} 属于已装版本：将同时删除该版本的 Sys 与 Data，号码释放且不再复用。继续？",
  tHint:"用途是你的声明；实际内容是分区上物理存在的东西。覆盖原机 12 System 前必须先完成 donor 快照。14 未提交：可声明并建空分区，但不能安装。",
@@ -1161,10 +1161,10 @@ const T={
  tLog:"输出",stop:"停止",running:"运行中…",needSudo:"需要 sudo：请在终端运行，见日志。",
  wrongSlice:"分区号格式应为 s4 这样",none:"（清除）",noDevice:"先设置设备ID",
  confirmFormat:"确认清空 {s} 的全部内容？此操作不可撤销。",confirmInstall:"确认安装 iOS {v}？将清空对应分区。",
- confirmBoot:"启动会重新发送启动链，设备需进入 DFU。继续？",planBlocked:"阻塞：",ready:"可执行",installed:"已记录为已装",notCommitted:"未提交，仅可建空分区"},
+ confirmBoot:"启动会重新发送启动链，设备需进入 DFU。继续？",adopt:"认领",confirmAdopt:"认领 iOS {v}：会检查 Sys 版本，并在 Data 卷写入版本标记。继续？",planBlocked:"阻塞：",ready:"可执行",installed:"已记录为已装",notCommitted:"未提交，仅可建空分区"},
 "en":{title:"Volume settings",sub:"Declare each partition's purpose first; s3 baseband is never formatted; s1 and s2 can only be formatted and repurposed",back:"← Back",
- tDevice:"Device",setDevice:"Set device ID",devOk:"set",devNone:"not set",donorOk:"donor snapshot ready",donorNo:"donor snapshot not ready",
- deviceHint:"Snapshots are stored per device ID under state/donors/. Use the ECID if you can.",
+ tDevice:"Device",rebind:"Rebind",deviceUnbound:"not bound (bound automatically when the device connects)",rebindConfirm:"Rebinding switches the volume record to the connected device. The existing snapshot is kept. Continue?",keepData:"Keep Data contents",keepExp:"experimental",keepHint:"Experimental: Data is not erased. Depends on iOS 13 accepting the original keybag; not verified on a device.",confirmKeep:"Install iOS {v} keeping Data contents (experimental)? Sys is still erased.",donorOk:"donor snapshot ready",donorNo:"donor snapshot not ready",
+ deviceHint:"The device ID is the ECID read in DFU and bound automatically. Snapshots are stored per ID under state/donors/.",
  tSlices:"Partitions and purposes",cSlice:"Slice",cPurpose:"Purpose",cContent:"Actual content",cPerm:"Permissions",cAction:"Actions",
  format:"Format",clear:"Clear purpose",delete:"Delete",assign:"Set",confirmDelete:"Delete {s}? Its number is released and never reused.",confirmPair:"{s} belongs to an installed version: both its Sys and Data will be deleted; numbers are released and never reused. Continue?",
  tHint:"Purpose is your declaration; content is what is physically on the partition. Overwriting the original 12 System needs a donor snapshot first. 14 is not committed: you may declare it for an empty volume, but it cannot be installed.",
@@ -1175,10 +1175,10 @@ const T={
  tLog:"Output",stop:"Stop",running:"running…",needSudo:"Needs sudo: run it in a terminal (see log).",
  wrongSlice:"Slice must look like s4",none:"(clear)",noDevice:"Set device ID first",
  confirmFormat:"Erase all content of {s}? This cannot be undone.",confirmInstall:"Install iOS {v}? The matching partitions will be erased.",
- confirmBoot:"Boot re-sends the boot chain; the device must be in DFU. Continue?",planBlocked:"Blocked: ",ready:"ready",installed:"recorded as installed",notCommitted:"not committed; empty volume only"},
+ confirmBoot:"Boot re-sends the boot chain; the device must be in DFU. Continue?",adopt:"Adopt",confirmAdopt:"Adopt iOS {v}: checks the Sys version and writes a version marker on Data. Continue?",planBlocked:"Blocked: ",ready:"ready",installed:"recorded as installed",notCommitted:"not committed; empty volume only"},
 "zh-TW":{title:"宗卷設定",sub:"分區先宣告用途再建立；s3 基頻永不格式化；s1、s2 只能格式化後另作他用",back:"← 返回主介面",
- tDevice:"裝置",setDevice:"設定裝置ID",devOk:"已設定",devNone:"未設定",donorOk:"donor 快照可用",donorNo:"donor 快照不可用",
- deviceHint:"快照依裝置ID分目錄存放在 state/donors/。",
+ tDevice:"裝置",rebind:"改綁",deviceUnbound:"未綁定（連接裝置後自動綁定）",rebindConfirm:"改綁會把宗卷記錄切換到目前連接的裝置，原快照保留。確認？",keepData:"保留 Data 原資料",keepExp:"實驗性",keepHint:"實驗性：不清空 Data 卷，依賴 iOS 13 對原有 keybag 的相容性，未在裝置上驗證。",confirmKeep:"安裝 iOS {v}（保留 Data 原資料，實驗性）？Sys 仍會被清空。",donorOk:"donor 快照可用",donorNo:"donor 快照不可用",
+ deviceHint:"裝置 ID 是 DFU 階段讀取的 ECID，自動綁定。快照依它分目錄存放在 state/donors/。",
  tSlices:"分區與用途",cSlice:"分區",cPurpose:"用途",cContent:"實際內容",cPerm:"權限",cAction:"操作",
  format:"格式化",clear:"清除用途",delete:"刪除",assign:"設定",confirmDelete:"確認刪除 {s}？號碼將釋放，不再復用。",confirmPair:"{s} 屬於已裝版本：將同時刪除該版本的 Sys 與 Data，號碼釋放且不再復用。繼續？",
  tHint:"用途是你的宣告；實際內容是分區上實際存在的東西。覆寫原機 12 System 前必須先完成 donor 快照。14 未提交：可宣告並建空分區，但不能安裝。",
@@ -1189,10 +1189,10 @@ const T={
  tLog:"輸出",stop:"停止",running:"執行中…",needSudo:"需要 sudo：請在終端執行，見日誌。",
  wrongSlice:"分區號格式應為 s4",none:"（清除）",noDevice:"先設定裝置ID",
  confirmFormat:"確認清空 {s} 的全部內容？此操作無法復原。",confirmInstall:"確認安裝 iOS {v}？對應分區將被清空。",
- confirmBoot:"啟動會重新發送啟動鏈，裝置需進入 DFU。繼續？",planBlocked:"阻塞：",ready:"可執行",installed:"已記錄為已裝",notCommitted:"未提交，僅可建空分區"},
+ confirmBoot:"啟動會重新發送啟動鏈，裝置需進入 DFU。繼續？",adopt:"認領",confirmAdopt:"認領 iOS {v}：會檢查 Sys 版本，並在 Data 卷寫入版本標記。繼續？",planBlocked:"阻塞：",ready:"可執行",installed:"已記錄為已裝",notCommitted:"未提交，僅可建空分區"},
 "ja":{title:"ボリューム設定",sub:"パーティションは用途を宣言してから作成します。s3 ベースバンドは決してフォーマットしません。s1・s2 はフォーマットして別用途にのみ使えます",back:"← 戻る",
- tDevice:"デバイス",setDevice:"デバイスIDを設定",devOk:"設定済み",devNone:"未設定",donorOk:"donor スナップショット利用可",donorNo:"donor スナップショット未準備",
- deviceHint:"スナップショットは state/donors/ にデバイスIDごとに保存されます。",
+ tDevice:"デバイス",rebind:"付け替え",deviceUnbound:"未バインド（接続時に自動でバインド）",rebindConfirm:"付け替えると宗卷記録が接続中のデバイスに切り替わります。既存のスナップショットは残ります。続けますか？",keepData:"Data の内容を保持",keepExp:"実験的",keepHint:"実験的：Data を消去しません。元の keybag を iOS 13 が受け入れることに依存し、デバイスでは未検証です。",confirmKeep:"Data の内容を保持して iOS {v} をインストール（実験的）？Sys は引き続き消去されます。",donorOk:"donor スナップショット利用可",donorNo:"donor スナップショット未準備",
+ deviceHint:"デバイスIDは DFU で読み取った ECID を自動でバインドします。スナップショットは state/donors/ に保存されます。",
  tSlices:"パーティションと用途",cSlice:"パーティション",cPurpose:"用途",cContent:"実際の内容",cPerm:"権限",cAction:"操作",
  format:"フォーマット",clear:"用途をクリア",delete:"削除",assign:"設定",confirmDelete:"{s} を削除しますか？番号は解放され、再利用されません。",confirmPair:"{s} はインストール済みバージョンに属します。その Sys と Data を両方削除します。番号は解放され再利用されません。続けますか？",
  tHint:"用途はあなたの宣言、実際の内容はパーティション上の実体です。元の 12 System を上書きするには先に donor スナップショットが必要です。14 は未提出：空のボリュームとして宣言できますが、インストールはできません。",
@@ -1203,7 +1203,7 @@ const T={
  tLog:"出力",stop:"停止",running:"実行中…",needSudo:"sudo が必要です：ターミナルで実行してください（ログ参照）。",
  wrongSlice:"パーティション番号は s4 の形式で",none:"（クリア）",noDevice:"先にデバイスIDを設定",
  confirmFormat:"{s} の内容をすべて消去しますか？元に戻せません。",confirmInstall:"iOS {v} をインストールしますか？対応するパーティションは消去されます。",
- confirmBoot:"起動はブートチェーンを再送します。デバイスは DFU である必要があります。続けますか？",planBlocked:"ブロック：",ready:"実行可能",installed:"インストール済みとして記録",notCommitted:"未提出。空のボリュームのみ"}
+ confirmBoot:"起動はブートチェーンを再送します。デバイスは DFU である必要があります。続けますか？",adopt:"引き取り",confirmAdopt:"iOS {v} を引き取ります：System のバージョンを確認し、Data にマーカーを書き込みます。続けますか？",planBlocked:"ブロック：",ready:"実行可能",installed:"インストール済みとして記録",notCommitted:"未提出。空のボリュームのみ"}
 };
 let lang=(()=>{try{const s=localStorage.getItem('n56-lang');if(T[s])return s}catch(e){}return navigator.language&&navigator.language.startsWith('zh')?'zh-CN':'en'})();
 const t=k=>(T[lang]&&T[lang][k])||T['zh-CN'][k]||k;
@@ -1219,7 +1219,7 @@ function el(tag,props,text){const e=document.createElement(tag);if(props)for(con
 function applyStatic(){
   document.documentElement.lang=lang==='zh-CN'?'zh-CN':lang;
   $('title').textContent=t('title');$('sub').textContent=t('sub');$('back').textContent=t('back');$('back').href='/';
-  $('tDevice').textContent=t('tDevice');$('btnDevice').textContent=t('setDevice');$('deviceHint').textContent=t('deviceHint');
+  $('tDevice').textContent=t('tDevice');$('btnRebind').textContent=t('rebind');$('deviceHint').textContent=t('deviceHint');
   $('tSlices').textContent=t('tSlices');$('cSlice').textContent=t('cSlice');$('cPurpose').textContent=t('cPurpose');
   $('cContent').textContent=t('cContent');$('cPerm').textContent=t('cPerm');$('cAction').textContent=t('cAction');
   $('btnAssign').textContent=t('assign');$('tHint').textContent=t('tHint');$('tVersions').textContent=t('tVersions');
@@ -1233,8 +1233,8 @@ function applyStatic(){
 
 function render(){
   if(!S) return;
-  $('deviceId').value=S.device_id||'';
-  $('btnDevice').textContent=t('setDevice');
+  $('deviceText').textContent=S.device_id||t('deviceUnbound');
+  $('btnRebind').textContent=t('rebind');
   const db=$('donorBadge');db.textContent=S.donor_ready?t('donorOk'):t('donorNo');db.className='badge '+(S.donor_ready?'ok':'warn');
   // 分区表
   const tb=$('slices');tb.innerHTML='';
@@ -1286,8 +1286,12 @@ function render(){
     const act=el('td');
     act.appendChild(el('button',{onclick:()=>plan(v)},t('plan')));act.appendChild(document.createTextNode(' '));
     act.appendChild(el('button',{disabled:!info.implemented||!!rec,onclick:()=>installVersion(v)},t('install')));act.appendChild(document.createTextNode(' '));
+    const keepBox=el('input',{type:'checkbox',id:'keep-'+v,title:t('keepHint')});
+    const keepLab=el('label',{class:'hint',title:t('keepHint')});keepLab.appendChild(keepBox);keepLab.appendChild(document.createTextNode(' '+t('keepData')+' ('+t('keepExp')+')'));
+    act.appendChild(keepLab);act.appendChild(document.createTextNode(' '));
     act.appendChild(el('button',{disabled:!rec,onclick:()=>runAction({action:'boot',version:v},t('confirmBoot'))},t('boot')));act.appendChild(document.createTextNode(' '));
     act.appendChild(el('button',{disabled:!rec,onclick:()=>runAction({action:'rebuild',version:v})},t('rebuild')));
+    if(!rec){act.appendChild(document.createTextNode(' '));act.appendChild(el('button',{disabled:!Object.values(S.slices).includes(v+' Sys'),onclick:()=>runAction({action:'adopt',version:v},t('confirmAdopt').replace('{v}',v))},t('adopt')));}
     tr.appendChild(act);vb.appendChild(tr);
   }
   $('lang').value=lang;
@@ -1305,8 +1309,9 @@ async function formatSlice(k){
   runAction({action:'format',slice:'s'+k});
 }
 async function installVersion(v){
-  if(!confirm(t('confirmInstall').replace('{v}',v))) return;
-  runAction({action:'install',version:v});
+  const keep=!!(document.getElementById('keep-'+v)||{}).checked;
+  if(!confirm((keep?t('confirmKeep'):t('confirmInstall')).replace('{v}',v))) return;
+  runAction({action:'install',version:v,keep});
 }
 async function plan(v){
   const r=await api('/api/slots/plan',{version:v});
@@ -1324,12 +1329,7 @@ async function deleteSlice(k){
   if(!confirm(rec?t('confirmPair').replace('{s}','s'+k):t('confirmDelete').replace('{s}','s'+k))) return;
   runAction({action:'delete',slice:'s'+k,pair:rec});
 }
-async function setDevice(){
-  const id=$('deviceId').value.trim();
-  if(!id) return;
-  const r=await api('/api/slots/device',{device_id:id});
-  if(r.ok) load();
-}
+
 async function runAction(body, confirmText){
   if(confirmText && !confirm(confirmText)) return;
   const r=await api('/api/slots/run',body);
@@ -1347,7 +1347,7 @@ async function startPoll(){
   },800);
 }
 
-$('btnDevice').onclick=setDevice;
+$('btnRebind').onclick=()=>{if(confirm(t('rebindConfirm')))runAction({action:'rebind'});};
 $('btnAssign').onclick=()=>{const s=$('newSlice').value.trim();if(!/^s\d+$/.test(s)){$('assignMsg').textContent=t('wrongSlice');return;}assign(s,$('newPurpose').value);};
 $('btnVerify').onclick=async()=>{const r=await api('/api/slots/run',{action:'verify'});if(r.ok)startPoll();};
 $('btnSnapshot').onclick=()=>runAction({action:'snapshot'});
@@ -1394,9 +1394,7 @@ def slots_assign(body):
         if not raw.startswith("s") or not raw[1:].isdigit():
             raise slots.SlotError("分区号格式应为 sN")
         value = body.get("purpose") or None
-        state = slots.load_state(STATE_PATH)
-        new = slots.assign(state, int(raw[1:]), value)
-        slots.save_state(STATE_PATH, new)
+        slots.mutate(STATE_PATH, lambda st: slots.assign(st, int(raw[1:]), value))
         return {"ok": True}
     except slots.SlotError as exc:
         return {"ok": False, "error": str(exc)}
@@ -1407,19 +1405,14 @@ def slots_plan(body):
     from core.slots_cli import STATE_PATH, donor_ready
     try:
         state = slots.load_state(STATE_PATH)
-        result = slots.plan_install(state, body.get("version", ""), donor_ready(state), _free_slots_hint())
+        result = slots.plan_install(state, body.get("version", ""), donor_ready(state))
         result["capacity_note"] = "APFS 槽位容量在安装时由设备检查（离线预览不检查）"
         return result
     except slots.SlotError as exc:
         return {"error": str(exc)}
 
 
-def _free_slots_hint():
-    """APFS 末尾可用槽位数需要设备才能读到，离线预览按上限估计；真正的检查在安装时进行。"""
-    return 100
-
-
-SLOT_RUN_SUDO = {"snapshot", "format", "install", "delete", "identify"}
+SLOT_RUN_SUDO = {"snapshot", "format", "install", "delete", "identify", "adopt", "rebind"}
 
 
 def slots_run_args(body):
@@ -1433,9 +1426,13 @@ def slots_run_args(body):
     if action == "format":
         return [py, cli, "slots", "format", body.get("slice", "")]
     if action == "install":
-        return [py, cli, "slots", "install", body.get("version", "")]
+        return [py, cli, "slots", "install", body.get("version", "")] + (["--keep-data"] if body.get("keep") else [])
+    if action == "rebind":
+        return [py, cli, "slots", "rebind-device"]
     if action == "identify":
         return [py, cli, "slots", "identify"]
+    if action == "adopt":
+        return [py, cli, "slots", "adopt", body.get("version", "")]
     if action == "delete":
         tail = [py, cli, "slots", "delete", body.get("slice", "")]
         return tail + (["--pair"] if body.get("pair") else [])
@@ -1512,16 +1509,6 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(200, slots_assign(body))
         if path == "/api/slots/plan":
             return self._send(200, slots_plan(body))
-        if path == "/api/slots/device":
-            from core import slots
-            from core.slots_cli import STATE_PATH
-            device = (body.get("device_id") or "").strip()
-            if not device or any(c in device for c in "/\\ ."):
-                return self._send(200, {"ok": False, "error": "设备ID 不能为空，且不能含路径字符"})
-            state = slots.load_state(STATE_PATH)
-            state["device_id"] = device
-            slots.save_state(STATE_PATH, state)
-            return self._send(200, {"ok": True})
         if path == "/api/slots/run":
             action = body.get("action")
             tail = slots_run_args(body)

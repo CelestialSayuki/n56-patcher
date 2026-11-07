@@ -30,6 +30,7 @@ class Ramdisk:
         self.port = ctx.t.get("ramdisk_port", 2222)
         self.password = ctx.t.get("ramdisk_password", "alpine")
         self._proxy = None
+        self.device_ecid = None   # 设备 ECID（16 位小写十六进制），DFU 或 ramdisk 内读取
         self._ssh_base = [
             ctx.tool("sshpass"), "-p", self.password, "ssh",
             "-o", "StrictHostKeyChecking=no", "-o", "UserKnownHostsFile=/dev/null",
@@ -69,6 +70,7 @@ class Ramdisk:
             return os.path.join(rd_dir, f"{name}.img4")
 
         self.dfu_ensure()
+        self.device_ecid = self.read_ecid_dfu() or self.device_ecid
         self.pwn()
         log.step(1, 6, "发送 iBSS")
         run([irecovery, "-f", img("iBSS")], capture=False); time.sleep(2)
@@ -92,6 +94,21 @@ class Ramdisk:
         run([irecovery, "-c", "bootx"], capture=False)
         log.log("ramdisk 启动链已发送，等待 SSH 就绪…")
         self.wait_ssh(boot=True)
+
+    def read_ecid_dfu(self):
+        """DFU / 恢复模式下 `irecovery -q` 给出 ECID。读不到返回 None。"""
+        from .device_identity import parse_irecovery
+        out = run([self.ctx.tool("irecovery"), "-q"], check=False, timeout=10).stdout or b""
+        return parse_irecovery(out.decode(errors="replace"))
+
+    def read_ecid_ramdisk(self):
+        """SSH ramdisk 内用 ioreg 读设备树的 unique-chip-id（备用来源，未在设备上验证）。"""
+        from .device_identity import parse_ioreg_chip_id
+        out = self.sh("/usr/sbin/ioreg -p IODeviceTree -k unique-chip-id", check=False)
+        ecid = parse_ioreg_chip_id(out.decode(errors="replace"))
+        if ecid:
+            self.device_ecid = ecid
+        return ecid
 
     def dfu_ensure(self):
         irecovery = self.ctx.tool("irecovery")

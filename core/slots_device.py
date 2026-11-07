@@ -13,6 +13,7 @@ import re
 from . import log
 from .apfs import Apfs
 from .slots import DATA_MARKER, VERSION_BY_BUILD
+from .volume_identify import _read_plist
 
 MOUNT = "/mnt9"
 DELETE_TOOL = "/sbin/apfs_deletefs"
@@ -72,49 +73,10 @@ def delete_slice(ctx, rd, slice_no):
     return True
 
 
-def _read_plist(rd, path):
-    data = rd.sh(f"cat {path} 2>/dev/null", check=False)
-    if not data:
-        return None
-    try:
-        return plistlib.loads(data)
-    except Exception:
-        return None
-
-
 def identify_slice(ctx, rd, slice_no, encrypted):
-    """识别一个分区的类型与版本。
-
-    1) 明文卷：只读挂载后，有 SystemVersion.plist 即为 System，并读出 build。
-    2) 有标记文件 DATA_MARKER 即为 Data，并读出版本号。
-    3) 加密卷：需要 SEP 与 keybag，用 -o protect 只读挂载；挂载失败则 kind 为 None。
-    调用方不应对 s2（原机 DataA）与 s3（基带）调用本函数。
-    """
-    info = {"slice": slice_no, "encrypted": encrypted, "kind": None, "build": None,
-            "version": None, "marker": None}
-    protected = encrypted
-    if protected:
-        try:
-            rd.require_sep()
-            rd.mount_install_volume(slice_no, MOUNT, ro=True, protected=True)
-        except (log.Die, SystemExit, RuntimeError):
-            return info
-    else:
-        rd.mount(slice_no, MOUNT, ro=True)
-    try:
-        version_plist = _read_plist(rd, f"{MOUNT}/{SYSTEM_VERSION}")
-        if version_plist is not None:
-            info["kind"] = "System"
-            info["build"] = version_plist.get("ProductBuildVersion")
-            info["version"] = VERSION_BY_BUILD.get(info["build"])
-        marker = rd.sh(f"cat {MOUNT}{DATA_MARKER} 2>/dev/null", check=False).decode(errors="replace").strip()
-        if marker and re.fullmatch(r"[0-9]{1,2}", marker):
-            info["marker"] = marker
-            if info["kind"] is None:
-                info["kind"] = "Data"
-    finally:
-        rd.umount(MOUNT)
-    return info
+    """兼容旧调用：委托给统一识别（core/volume_identify.py），deep 模式。"""
+    from .volume_identify import probe
+    return probe(rd, slice_no, name="", role=0, encrypted=encrypted, deep=True).to_dict()
 
 
 def write_data_marker(ssh, version):
@@ -131,3 +93,30 @@ def snapshot_device(ctx, rd, dest, device_id, expected_build):
 
 __all__ = ["slot_volume_name", "ensure_slot_volumes", "wipe_slice", "delete_slice",
            "identify_slice", "write_data_marker", "snapshot_device", "MOUNT"]
+
+
+def adopt_slice(ctx, rd, slice_no, kind, version, encrypted):
+    """认领：Sys 只读检查版本；Data 写入版本标记（加密时用 -o protect 读写挂载）。返回检查结果字典。"""
+    if kind == "Sys":
+        rd.mount(slice_no, MOUNT, ro=True)
+        try:
+            plist = _read_plist(rd, f"{MOUNT}/{SYSTEM_VERSION}")
+        finally:
+            rd.umount(MOUNT)
+        if plist is None:
+            raise RuntimeError(f"s{slice_no} 没有 SystemVersion.plist，不是系统卷")
+        build = plist.get("ProductBuildVersion")
+        return {"build": build, "version": VERSION_BY_BUILD.get(build)}
+    if encrypted:
+        rd.require_sep()
+        rd.mount_install_volume(slice_no, MOUNT, ro=False, protected=True)
+    else:
+        rd.mount(slice_no, MOUNT, ro=False)
+    try:
+        rd.sh(f"echo {version} > {MOUNT}{DATA_MARKER} && sync")
+        marker = rd.sh(f"cat {MOUNT}{DATA_MARKER}", check=False).decode(errors="replace").strip()
+    finally:
+        rd.umount(MOUNT)
+    if marker != str(version):
+        raise RuntimeError(f"s{slice_no} 写入的标记读回为 {marker!r}，不是 {version}")
+    return {"marker": marker}

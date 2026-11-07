@@ -51,18 +51,38 @@ class Flow:
         if self.ctx.dry_run:
             return
         self.rd.ensure()
+        if self.ctx.slot:
+            # 宗卷安装会清空分区：先确认连接的设备就是宗卷记录里的那台。
+            from .slots_cli import bind_identity
+            from .slots import SlotError
+            try:
+                bind_identity(self.rd)
+            except SlotError as exc:
+                log.die(str(exc))
 
     def _slot_prepare_volumes(self):
-        """槽位模式的卷准备：缺失的卷按序追加，然后清空本次要写入的 Sys 与 Data。
+        """槽位模式的卷准备：缺失的卷按序追加，清空 Sys；Data 默认清空（--keep-data 时保留）。
 
+        每清空一个分区就把它记为已清空并保存记录：中途失败时，记录不会再说它还是原内容。
         权限与 donor 门禁已在 CLI 入口（make_flow）检查过。
         """
         from .slots_device import ensure_slot_volumes, wipe_slice
+        from . import slots
+        from .slots_cli import STATE_PATH
         ensure_slot_volumes(self.ctx, self.rd)
         slot = self.ctx.slot
+
+        def mark(number):
+            slots.mutate(STATE_PATH, lambda s: slots.mark_formatted(s, number))
+
         wipe_slice(self.ctx, self.rd, slot["system"], encrypted=False)
+        mark(slot["system"])
+        if getattr(self.ctx, "keep_data", False):
+            log.warn(f"--keep-data：保留 s{slot['data']} 的原数据（实验性，未在设备上验证）")
+            return
         wipe_slice(self.ctx, self.rd, slot["data"],
                    encrypted=self.ctx.t.get("data_protection") == "encrypted")
+        mark(slot["data"])
 
     def status(self):
         if self.ctx.dry_run:

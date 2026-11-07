@@ -1,4 +1,5 @@
 """宗卷规则：用途声明、权限、donor 门禁、安装计划、启动包判定。纯逻辑，不需要设备。"""
+import os
 import unittest
 
 from core import slots
@@ -121,10 +122,16 @@ class InstallPlanTests(unittest.TestCase):
         self.assertEqual(state["released"], [5])
         self.assertEqual(slots.allocate_numbers(state, 1), [6])
 
-    def test_capacity_is_checked(self):
-        state = slots.default_state()
-        with self.assertRaises(slots.SlotError):
-            slots.plan_install(state, "13", donor_ready=True, free_slots=1)
+    def test_plan_without_declared_purposes_is_blocked_not_allocated(self):
+        plan = slots.plan_install(slots.default_state(), "13", donor_ready=True)
+        self.assertEqual(plan["status"], "blocked")
+        self.assertEqual(plan["steps"], [])
+        self.assertIn("分配", plan["blocked"])
+
+    def test_capacity_is_only_reported_when_not_checked(self):
+        state = slots.assign(slots.default_state(), 4, "13 Sys")
+        state = slots.assign(state, 5, "13 Data")
+        self.assertFalse(slots.plan_install(state, "13", True)["capacity_checked"])
 
     def test_recorded_install_is_not_reinstalled(self):
         state = slots.record_install(slots.default_state(), "13", 4, 5, "abc")
@@ -193,10 +200,17 @@ class DeleteTests(unittest.TestCase):
         state = self.installed_13()
         state = slots.release(state, 4)
         state = slots.release(state, 5)
+        state = slots.prune_installed(state)
         self.assertNotIn("4", state["slices"])
         self.assertNotIn("13", state["installed"])
         self.assertEqual(sorted(state["released"]), [4, 5])
         self.assertEqual(slots.allocate_numbers(state, 1), [6])
+
+    def test_failed_pair_delete_keeps_a_visible_broken_record(self):
+        state = self.installed_13()
+        state = slots.release(state, 4)          # 第二个分区没删成功
+        self.assertIn("13", state["installed"])  # 记录保留，状态检查会显示残缺
+        self.assertEqual(slots.prune_installed(state)["installed"].get("13"), None)
 
 
 class PairStatusTests(unittest.TestCase):
@@ -227,6 +241,48 @@ class PairStatusTests(unittest.TestCase):
 
     def test_version_build_mapping(self):
         self.assertEqual(slots.VERSION_BY_BUILD["17H35"], "13")
+
+
+class FormatAndAdoptTests(unittest.TestCase):
+    def installed_13(self):
+        state = slots.assign(slots.default_state(), 4, "13 Sys")
+        state = slots.assign(state, 5, "13 Data")
+        return slots.record_install(state, "13", 4, 5, "abc")
+
+    def test_formatting_either_slice_clears_install_record_so_reinstall_is_possible(self):
+        state = slots.mark_formatted(self.installed_13(), 5)
+        self.assertNotIn("13", state["installed"])
+        self.assertNotIn("13", state["boot"])
+        plan = slots.plan_install(state, "13", donor_ready=True)
+        self.assertEqual(plan["status"], "ready")
+
+    def test_adopted_install_has_no_boot_record_so_boot_needs_confirmation(self):
+        state = slots.assign(slots.default_state(), 4, "13 Sys")
+        state = slots.assign(state, 5, "13 Data")
+        state = slots.adopt_install(state, "13", 4, 5)
+        self.assertTrue(state["installed"]["13"]["adopted"])
+        self.assertEqual(slots.boot_decision(state, "13", "anything", True), "confirm")
+
+    def test_unmarked_data_volume_is_unknown_not_mismatch(self):
+        state = self.installed_13()
+        identity = {4: {"kind": "System", "build": "17H35", "encrypted": False, "marker": None},
+                    5: {"kind": "Data", "build": None, "encrypted": False, "marker": None}}
+        status, note = slots.pair_status(state, "13", identity)
+        self.assertEqual(status, "unknown")
+        self.assertIn("adopt", note)
+
+    def test_mutate_applies_change_and_persists(self):
+        import tempfile
+        path = os.path.join(tempfile.mkdtemp(), "volumes.json")
+        slots.mutate(path, lambda st: {**st, "device_id": "X1"})
+        self.assertEqual(slots.load_state(path)["device_id"], "X1")
+
+    def test_mutate_does_not_save_when_rule_refuses(self):
+        import tempfile
+        path = os.path.join(tempfile.mkdtemp(), "volumes.json")
+        with self.assertRaises(slots.SlotError):
+            slots.mutate(path, lambda st: slots.assign(st, 3, "13 Sys"))
+        self.assertFalse(os.path.exists(path))
 
 
 if __name__ == "__main__":

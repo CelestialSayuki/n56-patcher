@@ -6,6 +6,7 @@
 - 用途（slices）：用户声明这个分区打算做什么，例如 s1 = "13 Sys"。
 - 实际内容（content）：分区上物理存在的东西，例如 s1 仍是 iOS 12。donor 门禁看的是实际内容。
 """
+import fcntl
 import hashlib
 import json
 import os
@@ -94,6 +95,16 @@ def load_state(path):
     return state
 
 
+def mutate(path, fn):
+    """加锁地读取、修改、保存记录。fn(state) 返回新的 state。CLI 与网页都应通过它写入。"""
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path + ".lock", "w") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        new = fn(load_state(path))
+        save_state(path, new)
+        return new
+
+
 def save_state(path, state):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     tmp = path + ".tmp"
@@ -180,8 +191,13 @@ def check_delete(state, slice_no):
 
 
 def mark_formatted(state, slice_no):
+    """分区内容已清空：所属版本的安装记录与启动包一并失效，之后可以按用途重新安装。"""
     new = json.loads(json.dumps(state))
     new["content"][str(slice_no)] = None
+    for version, record in list(new["installed"].items()):
+        if slice_no in (record["system"], record["data"]):
+            new["installed"].pop(version, None)
+            new["boot"].pop(version, None)
     return new
 
 
@@ -217,16 +233,27 @@ def delete_targets(state, slice_no, pair=False):
 
 
 def release(state, slice_no):
-    """释放分区（设备上已删除之后调用）：去掉用途与内容，号码记入 released 不再复用。"""
+    """释放分区（设备上已删除之后调用）：去掉用途与内容，号码记入 released 不再复用。
+
+    安装记录不在这里删除：成对删除时，中途失败会留下可见的残缺记录，由 prune_installed 在最后清理。
+    """
     new = json.loads(json.dumps(state))
     key = str(slice_no)
     previous = new["slices"].pop(key, None)
     new["content"].pop(key, None)
     if slice_no not in new["released"]:
         new["released"].append(slice_no)
-    _invalidate_version(new, version_of(previous))
+    version = version_of(previous)
+    if version and version in new["boot"]:
+        new["boot"][version]["stale"] = True
+    return new
+
+
+def prune_installed(state):
+    """清理引用了已不存在分区的安装记录（删除整组之后调用）。"""
+    new = json.loads(json.dumps(state))
     for version, record in list(new["installed"].items()):
-        if slice_no in (record["system"], record["data"]):
+        if any(str(record[key]) not in new["slices"] for key in ("system", "data")):
             new["installed"].pop(version, None)
             new["boot"].pop(version, None)
     return new
@@ -250,12 +277,14 @@ def pair_status(state, version, identified):
         problems.append(f"s{record['system']} 不是 System 卷（识别为 {sys_info.get('kind') or '未知'}）")
     elif VERSION_BY_BUILD.get(sys_info.get("build")) != version:
         problems.append(f"s{record['system']} 的 build 为 {sys_info.get('build')}，不是 iOS {version}")
-    if data_info.get("kind") is None and data_info.get("encrypted"):
-        return "unknown", f"s{record['data']} 为加密卷且未能挂载，无法确认归属"
-    if data_info.get("kind") != "Data" or data_info.get("marker") != version:
-        problems.append(f"s{record['data']} 不是 iOS {version} 的 Data 卷（标记 {data_info.get('marker') or '无'}）")
     if problems:
         return "mismatch", "；".join(problems)
+    if data_info.get("kind") is None and data_info.get("encrypted"):
+        return "unknown", f"s{record['data']} 为加密卷且未能挂载，无法确认归属"
+    if data_info.get("marker") is None:
+        return "unknown", f"s{record['data']} 未写入版本标记（早于标记功能，或安装未完成），可用 adopt 认领"
+    if data_info.get("marker") != version:
+        return "mismatch", f"s{record['data']} 的标记为 {data_info.get('marker')}，不是 iOS {version}"
     return "ok", f"iOS {version}：s{record['system']} / s{record['data']} 与记录一致"
 
 
@@ -267,11 +296,11 @@ def allocate_numbers(state, count):
     return list(range(start, start + count))
 
 
-def plan_install(state, version, donor_ready, free_slots):
-    """安装计划。版本未提交、已装、门禁不过、槽位不足时给出阻塞原因。
+def plan_install(state, version, donor_ready, free_slots=None):
+    """安装计划。版本未提交、已装、未声明用途、门禁不过时给出阻塞原因。
 
     half-install 一律按已装处理：不做完成标记，半装后由用户手动格式化或删分区。
-    用途未声明的 Sys/Data 会在末尾新分配分区号。
+    free_slots 为 None 时不检查容量（离线预览）；容量在安装建卷时由设备检查。
     """
     info = VERSIONS.get(version)
     if info is None:
@@ -280,40 +309,26 @@ def plan_install(state, version, donor_ready, free_slots):
         raise SlotError(f"版本 {version} 不可安装：{info.get('reason', '未实现')}")
     if version in state["installed"]:
         return {"version": version, "status": "installed", "steps": [], "blocked": None,
-                "note": "已记录为已装；如需重装，请先手动格式化对应分区"}
+                "note": "已记录为已装；如需重装，先格式化其中任一分区（会清除该版本的安装记录）"}
 
     sys_value, data_value = purpose(version, "Sys"), purpose(version, "Data")
-    targets, new_values = {}, []
-    for value in (sys_value, data_value):
-        existing = slices_of(state, value)
-        if existing:
-            targets[value] = existing[0]
-        else:
-            targets[value] = None
-            new_values.append(value)
+    missing = [v for v in (sys_value, data_value) if not slices_of(state, v)]
+    if missing:
+        return {"version": version, "status": "blocked", "steps": [], "capacity_checked": False,
+                "blocked": "先为 " + "、".join(missing) + " 分配分区（宗卷页面或 slots assign）",
+                "note": None}
 
-    if len(new_values) > free_slots:
-        raise SlotError(f"APFS 容器末尾槽位不足：需要 {len(new_values)} 个，剩余 {free_slots} 个")
-
-    steps = []
-    numbers = allocate_numbers(state, len(new_values))
-    for value in new_values:
-        targets[value] = numbers.pop(0)
-        steps.append({"op": "allocate", "purpose": value, "slice": targets[value]})
-
-    donor_needed = False
-    for value in (sys_value, data_value):
-        slice_no = targets[value]
+    sys_slice = slices_of(state, sys_value)[0]
+    data_slice = slices_of(state, data_value)[0]
+    steps, donor_needed = [], False
+    for value, slice_no in ((sys_value, sys_slice), (data_value, data_slice)):
         if _is_original_12(content_of(state, slice_no)):
             donor_needed = True
         steps.append({"op": "format", "slice": slice_no, "purpose": value,
                       "from": content_of(state, slice_no)})
-
     blocked = None
     if donor_needed and not donor_ready:
         blocked = "覆盖原机 12 系统前必须先完成 donor 快照"
-
-    sys_slice, data_slice = targets[sys_value], targets[data_value]
     steps.extend([
         {"op": "stream", "version": version, "slice": sys_slice},
         {"op": "patch", "version": version},
@@ -321,7 +336,8 @@ def plan_install(state, version, donor_ready, free_slots):
         {"op": "record", "version": version, "system": sys_slice, "data": data_slice},
     ])
     return {"version": version, "status": "blocked" if blocked else "ready",
-            "steps": steps, "blocked": blocked, "note": None}
+            "steps": steps, "blocked": blocked, "note": None,
+            "capacity_checked": free_slots is not None}
 
 
 def record_install(state, version, system_slice, data_slice, inputs_sha):
@@ -349,7 +365,17 @@ def content_consistent(state, version):
             and state["content"].get(str(record["data"])) == purpose(version, "Data"))
 
 
-def boot_decision(state, version, inputs_sha, readback_ok):
+def adopt_install(state, version, system_slice, data_slice):
+    """认领已经装好的系统（安装前没有记录，或没有版本标记）。不记录启动包：启动前需要确认后重建。"""
+    new = json.loads(json.dumps(state))
+    new["installed"][version] = {"system": system_slice, "data": data_slice, "adopted": True}
+    new["content"][str(system_slice)] = purpose(version, "Sys")
+    new["content"][str(data_slice)] = purpose(version, "Data")
+    new["boot"].pop(version, None)
+    return new
+
+
+def boot_decision(state, version, inputs_sha, records_consistent):
     """启动包判定。
 
     none：该版本未装，没有启动包可言。
@@ -362,7 +388,7 @@ def boot_decision(state, version, inputs_sha, readback_ok):
     record = state["boot"].get(version)
     if record and not record.get("stale") and record.get("inputs_sha") == inputs_sha:
         return "ok"
-    if record and record.get("confirmed") and readback_ok:
+    if record and record.get("confirmed") and records_consistent:
         return "rebuild"
     return "confirm"
 

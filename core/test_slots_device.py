@@ -52,6 +52,13 @@ class FakeRamdisk:
                 with open(local, "rb") as stream:
                     return stream.read()
             return b""
+        if cmd.startswith("echo ") and " > " in cmd:
+            value, target = cmd[len("echo "):].split(" > ", 1)
+            target = target.split(" && ")[0].strip()
+            local = os.path.join(self.current, target[len("/mnt9/"):])
+            with open(local, "w") as stream:
+                stream.write(value + "\n")
+            return b""
         if "apfs_deletefs" in cmd:
             slice_no = int(cmd.split("/dev/disk0s1s")[1].split()[0])
             self.deleted.append(slice_no)
@@ -185,6 +192,37 @@ class MarkerTests(unittest.TestCase):
         self.assertEqual(sent, ["echo 13 > /mnt7/.n56-slot && sync"])
         with self.assertRaises(ValueError):
             slots_device.write_data_marker(ssh, "13; rm -rf /")
+
+
+class AdoptTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.mkdtemp(prefix="slots-adopt-")
+        self.sys_root = os.path.join(self.tmp, "sys")
+        self.data_root = os.path.join(self.tmp, "data")
+        version = plistlib.dumps({"ProductVersion": "13.7", "ProductBuildVersion": "17H35"})
+        make_root(self.sys_root, {"System/Library/CoreServices/SystemVersion.plist": version})
+        os.makedirs(self.data_root)
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def test_adopt_system_reports_build_and_version(self):
+        rd = FakeRamdisk({4: self.sys_root})
+        result = slots_device.adopt_slice(None, rd, 4, "Sys", "13", encrypted=False)
+        self.assertEqual(result["version"], "13")
+
+    def test_adopt_data_writes_marker_and_reads_it_back(self):
+        rd = FakeRamdisk({5: self.data_root})
+        result = slots_device.adopt_slice(None, rd, 5, "Data", "13", encrypted=False)
+        self.assertEqual(result["marker"], "13")
+        with open(os.path.join(self.data_root, ".n56-slot")) as stream:
+            self.assertEqual(stream.read().strip(), "13")
+
+    def test_adopt_encrypted_data_that_cannot_unlock_stops(self):
+        rd = FakeRamdisk({5: self.data_root}, encrypted_slices=(5,), unlockable=())
+        with self.assertRaises(log.Die):
+            slots_device.adopt_slice(None, rd, 5, "Data", "13", encrypted=True)
+        self.assertFalse(os.path.exists(os.path.join(self.data_root, ".n56-slot")))
 
 
 if __name__ == "__main__":

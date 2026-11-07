@@ -82,6 +82,8 @@ class Context:
         self.donor_dir = None
         # 宗卷槽位绑定：{'version': '13', 'system': 1, 'data': 2}，由 slots 命令或 --slot 设置。
         self.slot = None
+        # 实验性：槽位安装时不清空 Data 卷（--keep-data）。
+        self.keep_data = False
         self._derived_ready = False
 
     # ---- 路径解析 ----
