@@ -32,4 +32,6 @@ class Die(SystemExit):
 
 def die(msg):
     print(_c(_R, "[ERROR]"), msg, file=sys.stderr, flush=True)
-    raise Die(1)
+    err = Die(1)
+    err.message = str(msg)  # 供离线校验等调用方读取原因
+    raise err
