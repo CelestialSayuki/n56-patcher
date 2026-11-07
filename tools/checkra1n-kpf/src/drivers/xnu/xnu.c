@@ -32,6 +32,25 @@ void (*preboot_hook)(void);
 #   define jit_set_exec(mode) /* nop by default */
 #endif
 
+#if !defined(__arm64__)
+#   include <stdlib.h>
+/* xnu_pf_emit 生成的是 arm64 指令流，只有 arm64 主机能直接执行。
+ * 在 x86_64 主机上跑离线 KPF 时，用 N56_KPF_NOJIT=1 强制走等价的 C 匹配
+ * 路径：内核侧被写入的 trampoline/补丁一字不变，只是匹配循环换成 C 实现。 */
+static int kpf_host_nojit(void)
+{
+    static int cached = -1;
+    if (cached < 0)
+    {
+        const char *v = getenv("N56_KPF_NOJIT");
+        cached = (v && v[0] == '1') ? 1 : 0;
+    }
+    return cached;
+}
+#else
+#   define kpf_host_nojit() 0
+#endif
+
 extern void* jit_alloc(size_t count, size_t size);
 extern void jit_free(void *mem);
 
@@ -1236,7 +1255,7 @@ void xnu_pf_apply_64(xnu_pf_range_t* range, xnu_pf_patchset_t* patchset) {
     }
 }
 void xnu_pf_apply(xnu_pf_range_t* range, xnu_pf_patchset_t* patchset) {
-    if (patchset->jit_matcher) {
+    if (patchset->jit_matcher && !kpf_host_nojit()) {
         // use JIT fastpath
 
         void (*jit_match)(void* stream, void* stream_end);

@@ -106,7 +106,10 @@ void realpanic(const char *str, ...)
     vasprintf(&ptr, str, va);
     va_end(va);
 
-    panic(ptr);
+    // 宿主侧没有内核 panic：直接打印并退出，避免 -Dpanic=realpanic 递归成栈溢出。
+    fprintf(stderr, "\n[kpf panic] %s\n", ptr ? ptr : str);
+    fflush(stderr);
+    _exit(3);
 }
 
 void *ramdisk_buf = NULL;
@@ -124,7 +127,12 @@ static struct {
 
 uint64_t get_ticks(void)
 {
+#if defined(__aarch64__)
     return __builtin_arm_rsr64("cntpct_el0");
+#else
+    // 非 arm64 主机只跑补丁逻辑（不执行注入的 arm64 字节），计时用 TSC 即可。
+    return (uint64_t)__builtin_ia32_rdtsc();
+#endif
 }
 
 void command_register(const char* name, const char* desc, void (*cb)(const char* cmd, char* args))
@@ -349,20 +357,28 @@ static void __attribute__((noreturn)) process_kernel(int fd)
         }
         else if(cmd->cmd == LC_UNIXTHREAD)
         {
+            // 内核镜像恒为 arm64：这里按 arm64_thread_state64 自己的布局读 PC，
+            // 不依赖宿主 SDK 是否提供 <mach/arm/thread_status.h>。
             struct
             {
                 uint32_t cmd;
                 uint32_t cmdsize;
                 uint32_t flavor;
                 uint32_t count;
-                _STRUCT_ARM_THREAD_STATE64 state;
+                uint64_t x[29];
+                uint64_t fp;
+                uint64_t lr;
+                uint64_t sp;
+                uint64_t pc;
+                uint32_t cpsr;
+                uint32_t __pad;
             } *th = (void*)cmd;
-            if(th->flavor != ARM_THREAD_STATE64)
+            if(th->flavor != 6 /* ARM_THREAD_STATE64 */)
             {
                 fprintf(stderr, "Bad thread state flavor.\n");
                 exit(-1);
             }
-            entry = th->state.__pc;
+            entry = th->pc;
         }
     }
 

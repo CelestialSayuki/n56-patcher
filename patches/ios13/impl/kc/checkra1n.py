@@ -1,6 +1,7 @@
 """Apply offline KPF and retain the existing N56 generic boot changes."""
 import json
 import os
+import platform
 from pathlib import Path
 
 from core.context import REPO
@@ -13,6 +14,9 @@ def apply_profile(ctx, stock, generic):
          "CFLAGS=-Wno-error=unused-but-set-variable"])
     output = ctx.wk("kc.checkra1n.raw")
     env = dict(os.environ, N56_KPF_OUTPUT=output, N56_KPF_GENERIC=str(generic))
+    if platform.machine() != "arm64":
+        # Intel 主机不能执行 arm64 匹配器，改用等价的 C 匹配循环。
+        env["N56_KPF_NOJIT"] = "1"
     run([str(source / "kpf-test.macos"), "-n", str(stock)], env=env)
     original = Path(stock).read_bytes()
     boot = Path(generic).read_bytes()
