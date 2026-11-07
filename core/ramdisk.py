@@ -102,13 +102,66 @@ class Ramdisk:
     def start_proxy(self):
         if self._proxy and self._proxy.poll() is None:
             return
-        # 复用已有 iproxy；没有则起一个
-        if subprocess.run(["pgrep", "-x", "iproxy"], capture_output=True).returncode == 0:
+        if self._alive():
             return
         self._proxy = subprocess.Popen(
             [self.ctx.tool("iproxy"), str(self.port), "22"],
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         time.sleep(2)
+
+    def close(self):
+        if self._proxy and self._proxy.poll() is None:
+            self._proxy.terminate()
+            self._proxy.wait(timeout=5)
+
+    def verify_ramdisk(self):
+        model = self.sh("/usr/sbin/sysctl -n hw.model").decode().strip().lower()
+        release = self.sh("/usr/sbin/sysctl -n kern.osrelease").decode().strip()
+        mounts = self.sh("/sbin/mount").decode()
+        if model != self.ctx.t["device"]["model"]:
+            log.die(f"安装目标需要 N56，当前为 {model}")
+        if not any(("/dev/md" in line and " on / " in line)
+                   or line.startswith("root_device on / (hfs,")
+                   for line in mounts.splitlines()):
+            log.die("请先启动 SSH ramdisk")
+        if not release.startswith("18."):
+            log.die(f"systembag 创建使用 iOS 12 ramdisk，当前内核为 {release}")
+
+    def check_mountpoint(self, device, mountpoint):
+        mounts = self.sh("/sbin/mount").decode()
+        line = next((line for line in mounts.splitlines() if f" on {mountpoint} " in line), "")
+        if line and not line.startswith(device + " "):
+            log.die(f"{mountpoint} 当前挂载 {line.split()[0]}")
+
+    def mount_install_volume(self, slice_no, mountpoint, ro=False, protected=False):
+        device = f"/dev/disk0s1s{slice_no}"
+        self.check_mountpoint(device, mountpoint)
+        if protected:
+            self.sh(f'/sbin/mount | grep -q "{device} on {mountpoint}" || '
+                    f'{{ /sbin/mount_apfs -o protect {device} {mountpoint} || '
+                    f'/sbin/mount_apfs {device} {mountpoint}; }}')
+        else:
+            self.mount(slice_no, mountpoint, ro=ro)
+
+    def require_sep(self):
+        self.ensure_sep()
+        result = self.sh("/usr/libexec/seputil --ping 2>&1")
+        if b"ping failed" in result.lower():
+            log.die("SEP 未响应，先完成 SEP 加载")
+
+    def copy_tree(self, source, dest, exclude=()):
+        options = " ".join(f"--exclude='{name}'" for name in exclude)
+        producer = subprocess.Popen(
+            self.ssh_argv() + [f"/usr/bin/tar -cpf - {options} -C {source} ."],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        consumer = subprocess.Popen(
+            self.ssh_argv() + [f"/usr/bin/tar --numeric-owner -xpf - -C {dest}"],
+            stdin=producer.stdout, stderr=subprocess.PIPE)
+        producer.stdout.close()
+        _, dest_error = consumer.communicate()
+        _, source_error = producer.communicate()
+        if producer.returncode or consumer.returncode:
+            log.die("数据复制失败：" + (source_error or dest_error or b"").decode(errors="replace"))
 
     def wait_ssh(self, boot=False, tries=120):
         self.start_proxy()

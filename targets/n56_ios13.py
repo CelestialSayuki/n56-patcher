@@ -1,21 +1,18 @@
 # -*- coding: utf-8 -*-
 """iPhone 6 Plus (N56AP) × iOS 13.7：本地 donor 与完整 KC 构建链。"""
 
+from copy import deepcopy
+from targets._n56 import DEVICE, TOOLS
+
 TARGET = {
     "name": "n56-ios13",
+    "version": "ios13",
+    "os_version": "13.7",
     "source_root": "donors",
 
     # ===================== 设备级常量（跨 iOS 版本不变）=====================
-    "device": {
-        "model": "n56ap",
-        "product": "iPhone7,1",
-        "ecid": "",
-        "udid": "acf519ceb4a8a1434979cf9aaebef3899df5ccd0",
-        "pmu": "d2186",
-        "touch": "multi-touch,n56",
-        "codec": "CS42L67",
-        "charger": "SN2400",
-    },
+    "device": deepcopy(DEVICE),
+
     # 第二系统根分区号：s4。kairos 把 iBEC 的 root-matching 改成 disk0s1s4。
     "root_part": 4,
     # 卷布局：建 s4=SystemB / s5=DataB（role 0），最后改 role。
@@ -44,18 +41,7 @@ TARGET = {
     },
 
     # ===================== 工具链（仓库 tools/）=====================
-    "tools": {
-        "img4": "tools/img4lib/img4",
-        "devicetree-repack": "tools/devicetree-parse/devicetree-repack",
-        "iBoot64Patcher": "tools/SSHRD_Script/Darwin/iBoot64Patcher",
-        "KPlooshFinder": "tools/SSHRD_Script/Darwin/KPlooshFinder",
-        "gaster": ["tools/SSHRD_Script/Darwin/gaster", "tools/bin/gaster"],
-        "irecovery": "tools/SSHRD_Script/Darwin/irecovery",
-        "iproxy": "tools/SSHRD_Script/Darwin/iproxy",
-        "sshpass": "tools/SSHRD_Script/Darwin/sshpass",
-        "Kernel64Patcher": "tools/dualra1n/binaries/Darwin/Kernel64Patcher",
-        "kairos": "tools/dualra1n/binaries/Darwin/kairos",
-    },
+    "tools": deepcopy(TOOLS),
 
     # ===================== donor 源（本地 donors/）=====================
     "donors": {
@@ -72,6 +58,7 @@ TARGET = {
     },
 
     "full_trustcache": True,
+    "trustcache_builder": "patches.ios13.impl.rootfs.trustcache",
     "profile_cdhashes": [
         "ea9b6b492e5f1fc2e1692a0ec93c65ab594c20c4",  # bluetoothd.xpc13
         "e001b09ea59f73cc2804d1654059138ed571029a",  # BlueTool 16H88

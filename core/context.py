@@ -9,6 +9,8 @@ Context 是所有 patch 和阶段共享的句柄：
   - ctx.ssh(...)  ramdisk SSH（经 core.ramdisk 注入）
 """
 import importlib.util
+import importlib
+from copy import deepcopy
 import hashlib
 import json
 import os
@@ -18,6 +20,7 @@ import subprocess
 import sys
 import time
 import zipfile
+from pathlib import Path
 
 from . import log
 
@@ -45,7 +48,7 @@ def load_target(name):
     spec.loader.exec_module(mod)
     if not hasattr(mod, "TARGET"):
         log.die(f"{path} 未定义 TARGET")
-    t = mod.TARGET
+    t = deepcopy(mod.TARGET)
     t.setdefault("_path", path)
     return t
 
@@ -61,16 +64,20 @@ class Context:
         if not os.path.isdir(self.source_root):
             log.die(f"donor 目录不存在: {self.source_root}")
 
-        self.derived_root = DERIVED_DIR
+        self.derived_root = os.path.join(REPO, self.t.get("derived_root", DERIVED_DIR))
 
-        self.work = workdir or os.path.join(REPO, "build",
-                                            f"{self.t['name']}-{time.strftime('%Y%m%d-%H%M%S')}")
+        default_work = self.t.get("workdir") or os.path.join(
+            "build", f"{self.t['name']}-{time.strftime('%Y%m%d-%H%M%S')}")
+        self.work = workdir or os.path.join(REPO, default_work)
         self.work = os.path.abspath(self.work)
         os.makedirs(self.work, exist_ok=True)
         self._ssh = None   # 由 core.ramdisk 建立会话后注入
         self._source_mounts = {}
         self._input_hashes = {}
         self._device_system_verified = False
+        self.patch_reports = {}
+        self.installation = None
+        self._derived_ready = False
 
     # ---- 路径解析 ----
     def src(self, rel):
@@ -106,21 +113,22 @@ class Context:
 
     def ensure_derived(self):
         """缺少从 IPSW 生成的输入时，现场生成。"""
-        sys.path.insert(0, os.path.join(REPO, "tools"))
-        try:
-            import extract_ipsw
-        finally:
-            sys.path.pop(0)
-        if all(os.path.exists(os.path.join(DERIVED_DIR, rel)) for rel in extract_ipsw.OUTPUTS):
+        if self._derived_ready:
+            return
+        builder = importlib.import_module(self.t.get("input_builder", "tools.extract_ipsw"))
+        if not self.t.get("ipsw_inputs") and all(
+                os.path.exists(os.path.join(self.derived_root, rel)) for rel in builder.OUTPUTS):
             return
         log.log("从 IPSW 生成构建输入…")
-        extract_ipsw.generate(self.ipsw_input("n56"), self.ipsw_input("n66"), self.ipsw_input("j96"))
+        builder.generate(self.ipsw_input("n56"), self.ipsw_input("n66"),
+                         self.ipsw_input("j96"), out=Path(self.derived_root))
+        self._derived_ready = True
 
     def derived(self, key):
         rel = self.t["derived"].get(key)
         if rel is None:
             log.die(f"目标清单未声明派生输入: {key}")
-        path = os.path.join(DERIVED_DIR, rel)
+        path = os.path.join(self.derived_root, rel)
         if key in ("ibss_src", "ibec_dec"):
             if not os.path.exists(path):
                 self._decrypt_iboot()

@@ -17,7 +17,7 @@
 
 ---
 
-デフォルトでは、クリーンな J96 カーネルから KC を再構築し、iBSS、iBEC、DeviceTree、TrustCache も生成します（ブートイメージは計 5 つ）。カーネルと DeviceTree の変換は本リポジトリの `patches/impl/` を直接呼び出し、ファームウェアの入力はローカルの `donors/` に置きます。
+デフォルトでは、クリーンな J96 カーネルから KC を再構築し、iBSS、iBEC、DeviceTree、TrustCache も生成します（ブートイメージは計 5 つ）。カーネルと DeviceTree の変換は本リポジトリの `patches/<version>/impl/` を直接呼び出し、ファームウェアの入力はローカルの `donors/` に置きます。
 
 プロジェクトは最初から最後まで動作を確認済みで、最終的なブートパッケージにはハードウェア対応、DataB の復号、checkra1n が含まれます。技術的な結論は [docs/conclusions.md](docs/conclusions.md)（中国語）を参照してください。
 
@@ -35,7 +35,7 @@ python3 -m pip install -r requirements.txt
 python3 tools/setup.py
 ```
 
-`tools/setup.py` は `donors/`（checkra1n のユーザーランドと iOS 14 の fsck、apfs.fs）を生成し、gaster をソースからビルドします。初回ビルドでは iBSS と iBEC を復号するため、デバイスを DFU にしておく必要があります。
+`tools/setup.py` は `donors/`（checkra1n のユーザーランドと apfsios14 ツールセットの fsck、apfs.fs）を生成し、gaster をソースからビルドします。初回ビルドでは iBSS と iBEC を復号するため、デバイスを DFU にしておく必要があります。
 
 SSH ramdisk は DFU 状態で一度だけ生成します（インターネット接続が必要）：
 
@@ -183,8 +183,8 @@ sudo python3 n56patcher.py install \
 <summary><b>ソースの構成</b></summary>
 
 - `targets/`：デバイス、入力パス、機能の選択。
-- `patches/kc/`、`patches/dt/`、`patches/rootfs/`：ビルドとインストールの手順。
-- `patches/impl/`：カーネル、ドライバ、DeviceTree を実際に変更するソースと ABI マップ。
+- `patches/<version>/kc/`、`patches/<version>/dt/`、`patches/<version>/rootfs/`：ビルドとインストールの手順。
+- `patches/<version>/impl/`：カーネル、ドライバ、DeviceTree を実際に変更するソースと ABI マップ。
 - `core/`：依存関係の順序付け、パス解決、ツール呼び出し、ramdisk、APFS。
 - `tools/`：バージョン固定の上流 submodule、初期化ツール、入力インポートツール。[UPSTREAM.md](tools/UPSTREAM.md) を参照してください。
 

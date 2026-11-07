@@ -2,7 +2,7 @@
 
 一个 patch = 一层里的一件事，一个文件。requires 补齐依赖，after 安排已选补丁的顺序。
 
-layer  : kc | dt | rootfs          （iBSS/iBEC/TrustCache 是目标级固定组件，由 flow 直接构建）
+layer  : ibec | kc | dt | rootfs   （iBSS/TrustCache 是目标级固定组件）
 role   : base | transform | overlay | stream | finalize
   - base      : 提供某层的起始二进制（kc 的起始内核、dt 的起始设备树）。每层选且仅选一个。
   - transform : 在起始二进制上原地叠加的变换（kc 的 pmu/mt/chestnut…、dt 的功能补充）。顺序由 requires/after 决定。
@@ -22,7 +22,7 @@ import os
 
 from . import log
 
-LAYER_ORDER = ["dt", "kc", "rootfs"]
+LAYER_ORDER = ["ibec", "dt", "kc", "rootfs"]
 ROLE_ORDER = {"base": 0, "transform": 1, "stream": 2, "overlay": 3, "finalize": 4}
 _REGISTRY = []
 
@@ -47,26 +47,33 @@ class Patch:
     def apply(self, ctx, art=None):
         raise NotImplementedError(f"{self.id} 未实现 apply")
 
+    def prepare(self, ctx):
+        """提前准备需要 DFU 的构建输入。"""
+        pass
+
     def __repr__(self):
         return f"<{self.id} {self.layer}/{self.role} feat={self.feature}>"
 
 
-def discover(patches_dir=None):
-    """导入 patches/ 下所有模块，填充注册表。幂等。"""
+def discover(patches_dir=None, *, version="ios13"):
+    """加载共享补丁与目标系统的补丁。"""
     _REGISTRY.clear()
     patches_dir = patches_dir or os.path.join(
         os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "patches")
-    for layer in sorted(os.listdir(patches_dir)):
-        ldir = os.path.join(patches_dir, layer)
-        if not os.path.isdir(ldir):
-            continue
-        for fn in sorted(os.listdir(ldir)):
-            if not fn.endswith(".py") or fn.startswith("_"):
+    for group in ("shared", version):
+        for layer in LAYER_ORDER:
+            ldir = os.path.join(patches_dir, group, layer)
+            if not os.path.isdir(ldir):
                 continue
-            path = os.path.join(ldir, fn)
-            spec = importlib.util.spec_from_file_location(f"n56patch_{layer}_{fn[:-3]}", path)
-            mod = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(mod)
+            for fn in sorted(os.listdir(ldir)):
+                if not fn.endswith(".py") or fn.startswith("_"):
+                    continue
+                path = os.path.join(ldir, fn)
+                name = f"patches.{group}.{layer}.{fn[:-3]}"
+                spec = importlib.util.spec_from_file_location(name, path)
+                mod = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(mod)
+    _REGISTRY.sort(key=lambda cls: (cls.layer, cls.__module__.rsplit(".", 1)[-1]))
     return list(_REGISTRY)
 
 
@@ -103,7 +110,7 @@ def select(target):
     选中规则：patch.feature ∈ target['features'] 或 patch.id ∈ target.get('patches')，
     kc_patches 可覆盖 KC transform 选择；exclude 排除补丁；bases 指定各层基底。
     """
-    discover()
+    discover(version=target.get("version", "ios13"))
     inst = _instances()
     features = set(target.get("features", []))
     want_ids = set(target.get("patches", []))

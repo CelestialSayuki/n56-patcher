@@ -13,6 +13,7 @@ import os
 import struct
 import subprocess
 import time
+import shlex
 
 from . import log
 
@@ -96,7 +97,7 @@ class Apfs:
         nx = self._latest_nxsb()
         omap_oid = struct.unpack_from("<Q", nx, 0xA0)[0]
         max_fs = struct.unpack_from("<I", nx, 0xB4)[0]
-        fs_oids = [o for o in struct.unpack_from(f"<{max_fs}Q", nx, 0xB8) if o]
+        fs_oids = struct.unpack_from(f"<{max_fs}Q", nx, 0xB8)
         om = self.read_block(omap_oid)
         tree = self.read_block(struct.unpack_from("<Q", om, 0x30)[0])
         flags, level, nkeys = struct.unpack_from("<HHI", tree, 32)
@@ -114,6 +115,8 @@ class Apfs:
                 m[oid] = (xid, paddr)
         out = []
         for idx, oid in enumerate(fs_oids, 1):
+            if not oid:
+                continue
             paddr = m[oid][1]
             sb = self.read_block(paddr)
             if sb[32:36] != b"APSB":
@@ -124,10 +127,9 @@ class Apfs:
     def describe(self, idx, paddr, sb):
         role = struct.unpack_from("<H", sb, ROLE_OFF)[0]
         name = sb[NAME_OFF:NAME_OFF + 256].split(b"\0")[0].decode(errors="replace")
-        ck = "ok" if self.checksum_ok(sb) else "BAD"
-        return (f"s{idx}  slot={idx - 1}  {name:16s} "
+        return (f"s{idx}  {name:16s} "
                 f"role=0x{role:x} ({ROLES.get(role, '?')})  {self.enc_state(sb):11s}  "
-                f"已用 {human(self.used_bytes(sb)):>10s}  block={paddr}  cksum={ck}")
+                f"已用 {human(self.used_bytes(sb)):>10s}")
 
     # ---- 加密状态（与 role 是独立字段）----
     def fs_flags(self, sb):
@@ -156,6 +158,26 @@ class Apfs:
         return vols
 
     # ---- 建卷 ----
+    def volume_capacity(self):
+        return struct.unpack_from("<I", self._latest_nxsb(), 0xB4)[0]
+
+    def append_volume(self, name, *, encrypted=False):
+        volumes = self.volumes()
+        index = max((v[0] for v in volumes), default=0) + 1
+        limit = self.volume_capacity()
+        if index > limit:
+            log.die("APFS 容器末尾没有可用卷槽位")
+        protection = " -P" if encrypted else ""
+        log.log(f"追加 {name} → s{index}")
+        # newfs_apfs 的 fsindex 为零基索引；显式指定以保留布局中的空洞。
+        self.ssh.sh(f"/sbin/newfs_apfs -A{protection} -o fsindex={index - 1} "
+                    f"-v {shlex.quote(name)} /dev/disk0s1", timeout=180)
+        volume = next((v for v in self.volumes()
+                       if v[2][NAME_OFF:NAME_OFF + 256].split(b"\0")[0].decode() == name), None)
+        if volume is None or volume[0] != index:
+            log.die(f"{name} 的实际卷号与追加位置不符")
+        return volume
+
     def create_volumes(self, names=("SystemB", "DataB"), encrypt_data=False):
         """若 s4/s5 不存在则建（role 0）。encrypt_data 时给 Data 卷加 -P 开内容保护。
 
@@ -206,7 +228,7 @@ class Apfs:
                 return
 
     # ---- 改 role ----
-    def set_roles(self, targets, write=False):
+    def set_roles(self, targets, write=False, allow_duplicates=False):
         """targets: {卷号: role}；write=False 仅 dry-run。改前需卸载目标卷。"""
         vols = self.volumes()
         for v in vols:
@@ -229,7 +251,7 @@ class Apfs:
             _, paddr, sb = vol
             if not self.checksum_ok(sb):
                 log.die(f"s{idx}: 现有校验和无效，拒绝改动")
-            if role and role in used:
+            if role and role in used and not allow_duplicates:
                 log.die(f"role 0x{role:x} 已被 s{used[role]} 占用")
             new = bytearray(sb)
             struct.pack_into("<H", new, ROLE_OFF, role)

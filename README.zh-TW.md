@@ -17,7 +17,7 @@
 
 ---
 
-預設從乾淨的 J96 核心重建 KC，同時產生 iBSS、iBEC、DeviceTree、TrustCache，共五個啟動映像。核心和裝置樹轉換直接呼叫本儲存庫的 `patches/impl/`，韌體輸入放在本機 `donors/`。
+預設從乾淨的 J96 核心重建 KC，同時產生 iBSS、iBEC、DeviceTree、TrustCache，共五個啟動映像。核心和裝置樹轉換直接呼叫本儲存庫的 `patches/<version>/impl/`，韌體輸入放在本機 `donors/`。
 
 專案已從頭到尾跑通，最終啟動包包含硬體適配、DataB 解密和 checkra1n。技術結論見 [docs/conclusions.md](docs/conclusions.md)（簡體中文）。
 
@@ -35,7 +35,7 @@ python3 -m pip install -r requirements.txt
 python3 tools/setup.py
 ```
 
-`tools/setup.py` 會產生 `donors/`（checkra1n 使用者空間和 iOS14 的 fsck、apfs.fs）並從原始碼建置 gaster。首次建置需裝置處於 DFU，用於解密 iBSS、iBEC。
+`tools/setup.py` 會產生 `donors/`（checkra1n 使用者空間和 apfsios14 工具集的 fsck、apfs.fs）並從原始碼建置 gaster。首次建置需裝置處於 DFU，用於解密 iBSS、iBEC。
 
 SSH ramdisk 需在 DFU 下產生一次（需連網）：
 
@@ -183,8 +183,8 @@ sudo python3 n56patcher.py install \
 <summary><b>原始碼位置</b></summary>
 
 - `targets/`：裝置、輸入路徑、功能選擇。
-- `patches/kc/`、`patches/dt/`、`patches/rootfs/`：建置與安裝步驟。
-- `patches/impl/`：實際修改核心、驅動程式和裝置樹的原始碼與 ABI 對應。
+- `patches/<version>/kc/`、`patches/<version>/dt/`、`patches/<version>/rootfs/`：建置與安裝步驟。
+- `patches/<version>/impl/`：實際修改核心、驅動程式和裝置樹的原始碼與 ABI 對應。
 - `core/`：相依排序、路徑解析、工具呼叫、ramdisk 和 APFS。
 - `tools/`：固定版本的上游 submodule、初始化和輸入匯入工具，見 [UPSTREAM.md](tools/UPSTREAM.md)。
 

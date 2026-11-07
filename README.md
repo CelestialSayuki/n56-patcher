@@ -17,9 +17,9 @@
 
 ---
 
-默认从干净 J96 内核重建 KC，同时生成 iBSS、iBEC、DeviceTree、TrustCache 五个启动镜像。内核和设备树变换直接调用本仓库 `patches/impl/`，固件输入放在本地 `donors/`。
+默认从干净 J96 内核重建 KC，同时生成 iBSS、iBEC、DeviceTree、TrustCache 五个启动镜像。内核、设备树与系统补丁按版本放在 `patches/ios13/`；共用算法与设备资源放在 `patches/shared/`。
 
-项目已从头到尾跑通，最终启动包包含硬件适配、DataB 解密和 checkra1n。技术结论见 [docs/conclusions.md](docs/conclusions.md)。
+iOS 13.7 已跑通，启动包包含硬件适配、DataB 解密和 checkra1n。参见 [13.7 技术结论](docs/conclusions.md) 和 [源码结构](docs/patch-layout.md)。
 
 > [!WARNING]
 > 本工具会在设备上创建卷并写入系统，操作前请自行备份。本项目与 Apple 无关，按现状提供，风险由使用者自行承担。
@@ -35,7 +35,7 @@ python3 -m pip install -r requirements.txt
 python3 tools/setup.py
 ```
 
-`tools/setup.py` 会生成 `donors/`（checkra1n 用户态和 iOS14 的 fsck、apfs.fs）并从源码构建 gaster。首次构建需设备处于 DFU，用于解密 iBSS、iBEC。
+`tools/setup.py` 会生成 `donors/`（checkra1n 用户态，以及 apfsios14 工具集中的 fsck、apfs.fs）并从源码构建 gaster。首次构建需设备处于 DFU，用于解密 iBSS、iBEC。
 
 SSH ramdisk 需在 DFU 下生成一次（需联网）：
 
@@ -89,7 +89,7 @@ flowchart LR
 
 ## 功能
 
-默认选择全功能。`--features` 按功能选择各层补丁，`--patches` 单独覆盖 KC 选择；依赖自动补齐。
+默认目标为 `n56-ios13`。默认选择该版本的全部功能。`--features` 按功能选择各层补丁，`--patches` 单独覆盖 KC 选择；依赖自动补齐。
 
 | 功能 | KC patch ID | 自动带入 |
 | --- | --- | --- |
@@ -175,16 +175,16 @@ sudo python3 n56patcher.py install \
   --j96-ipsw /path/to/iPad_64bit_TouchID_13.7_17H35_Restore.ipsw
 ```
 
-当前 profile 对应 SystemA 16H88、N66/J96 17H35。流程会检查 build、关键文件摘要和所有字节补丁的原始内容。
+13.7 profile 对应 SystemA 16H88、N66/J96 17H35。
 
 </details>
 
 <details>
 <summary><b>源码位置</b></summary>
 
-- `targets/`：设备、输入路径、功能选择。
-- `patches/kc/`、`patches/dt/`、`patches/rootfs/`：构建与安装步骤。
-- `patches/impl/`：实际修改内核、驱动和设备树的源码与 ABI 映射。
+- `targets/`：共用设备配置与各系统目标。
+- `patches/shared/`：设备资源、原生材料和共用移植算法。
+- `patches/ios13/`：按 KC、DT、rootfs 分层的版本补丁、实现与 ABI 映射。
 - `core/`：依赖排序、路径解析、工具调用、ramdisk 和 APFS。
 - `tools/`：固定版本的上游 submodule、初始化和输入导入工具，见 [UPSTREAM.md](tools/UPSTREAM.md)。
 

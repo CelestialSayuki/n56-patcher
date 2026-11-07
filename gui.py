@@ -42,8 +42,8 @@ def target_features(name):
         t = load_target(name)
     except SystemExit:
         return [], []
-    patchmod.discover()
-    allf = sorted({c.feature for c in patchmod._REGISTRY})
+    classes = patchmod.discover(version=t.get("version", "ios13"))
+    allf = sorted({c.feature for c in classes})
     return sorted(t.get("features", [])), allf
 
 
@@ -193,7 +193,7 @@ input:focus-visible+.sw{outline:2px solid var(--amber);outline-offset:2px}
 .ph h2{font:650 12.5px/1.3 var(--sans)}
 .ph small{color:var(--mut);font-size:12px}
 .ph .end{margin-left:auto;display:flex;flex-wrap:wrap;gap:6px}
-.chain{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));margin-top:8px;
+.chain{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));margin-top:8px;
  background:repeating-linear-gradient(90deg,var(--line) 0 1px,transparent 1px 8px) 0 0/100% 5px no-repeat}
 .chain li{position:relative;min-width:0}
 .chain li:not(:last-child)::after{content:"";position:absolute;z-index:0;left:calc(10px + 8px);right:calc(-10px - 8px);top:25px;height:2px;background:var(--line2)}

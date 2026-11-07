@@ -3,6 +3,7 @@
 /ipsw/
 /state/
 /build/
+/research/
 /extracted/
 *.ipsw
 *.dmg

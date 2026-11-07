@@ -17,7 +17,7 @@
 
 ---
 
-By default, the tool rebuilds the KC from a clean J96 kernel and also generates iBSS, iBEC, DeviceTree and TrustCache, for five boot images in total. Kernel and DeviceTree transforms call `patches/impl/` in this repository directly, and firmware inputs live in the local `donors/` directory.
+By default, the tool rebuilds the KC from a clean J96 kernel and also generates iBSS, iBEC, DeviceTree and TrustCache, for five boot images in total. Kernel and DeviceTree transforms call `patches/<version>/impl/` in this repository directly, and firmware inputs live in the local `donors/` directory.
 
 The project has been run end to end. The final boot bundle includes the hardware adaptation, DataB decryption and checkra1n. Technical conclusions are in [docs/conclusions.md](docs/conclusions.md) (Chinese).
 
@@ -35,7 +35,7 @@ python3 -m pip install -r requirements.txt
 python3 tools/setup.py
 ```
 
-`tools/setup.py` generates `donors/` (the checkra1n userland plus fsck and apfs.fs from iOS 14) and builds gaster from source. The first build needs the device in DFU to decrypt iBSS and iBEC.
+`tools/setup.py` generates `donors/` (the checkra1n userland plus fsck and apfs.fs from the apfsios14 tool set) and builds gaster from source. The first build needs the device in DFU to decrypt iBSS and iBEC.
 
 Generate the SSH ramdisk once while the device is in DFU (requires internet access):
 
@@ -183,8 +183,8 @@ The current profile targets SystemA 16H88 and N66/J96 17H35. The flow checks the
 <summary><b>Source layout</b></summary>
 
 - `targets/`: device, input paths and feature selection.
-- `patches/kc/`, `patches/dt/`, `patches/rootfs/`: build and install steps.
-- `patches/impl/`: source and ABI maps that actually modify the kernel, drivers and DeviceTree.
+- `patches/<version>/kc/`, `patches/<version>/dt/`, `patches/<version>/rootfs/`: build and install steps.
+- `patches/<version>/impl/`: source and ABI maps that actually modify the kernel, drivers and DeviceTree.
 - `core/`: dependency ordering, path resolution, tool invocation, ramdisk and APFS.
 - `tools/`: pinned upstream submodules plus setup and input import tools. See [UPSTREAM.md](tools/UPSTREAM.md).
 

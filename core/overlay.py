@@ -64,8 +64,8 @@ class SourceOverlay(Patch):
             "copy": 'if [ -d "$src" ]; then mkdir -p "$dst"; cp -a "$src/." "$dst/"; '
                     'else mkdir -p "${dst%/*}"; cp -p "$src" "$dst"; fi',
             "copy-if-missing":
-                    'if [ -d "$src" ]; then mkdir -p "$dst"; cp -an "$src/." "$dst/"; '
-                    'elif [ ! -e "$dst" ]; then mkdir -p "${dst%/*}"; cp -p "$src" "$dst"; fi',
+                    'if [ ! -e "$dst" ]; then mkdir -p "${dst%/*}"; '
+                    'cp -a "$src" "$dst"; fi',
         }.get(item.op)
         if operation is None:
             log.die(f"{item.op} 不能使用 device copy")
