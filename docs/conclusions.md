@@ -44,7 +44,7 @@
 - 新 DataB 的 `systembag.kb` 由 iOS 12 ramdisk 的 `MKBKeyBagCreateSystem` 创建；iOS 13 `keybagd --init` 只加载，不生成。
 - 创建 systembag 时要保留现有 `BAG1` 包裹材料（`KBSaveSystemBagHandle` 第 5 参数改为 1），否则会替换设备全局的 EffaceableStorage 记录，影响 DataA。
 - 不要在 ramdisk 中挂载 s2 或加密的 s5。
-- ramdisk 启动时 SEP 未加载（`seputil --ping` 返回 `ping failed`）。此时 `newfs_apfs -P` 建 DataB 会一直卡住，容器被锁，连只读挂载 s1 也超时，只能重启。流程改为建卷前先加载 SEP，这个顺序尚待全新安装验证。
+- ramdisk 启动时 SEP 未加载（`seputil --ping` 返回 `ping failed`）。此时 `newfs_apfs -P` 建 DataB 会一直卡住，容器被锁，连只读挂载 s1 也超时，只能重启。流程改为建卷前先加载 SEP。从零执行端到端安装（`all`）已一次跑通。
 
 ## checkra1n
 
@@ -78,5 +78,5 @@
 
 ## 管线补齐的安装步骤
 
-- systembag：`rootfs.finish` 在加密模式下加载 SEP 固件、挂载 DataB（先试 `-o protect`，失败则普通挂载），再用 `tools/systembag/create_systembag.c` 和打过 `PRESERVE_BAG1` 补丁的 ramdisk `MobileKeyBag` 创建。助手与补丁已和旧版比对，这组挂载和加载顺序按旧记录重建，尚待全新安装验证。
+- systembag：`rootfs.finish` 在加密模式下加载 SEP 固件、挂载 DataB（先试 `-o protect`，失败则普通挂载），再用 `tools/systembag/create_systembag.c` 和打过 `PRESERVE_BAG1` 补丁的 ramdisk `MobileKeyBag` 创建。助手与补丁已和旧版比对，这组挂载和加载顺序已在从零执行端到端安装（`all`）时跑通。
 - Cydia：`rootfs.cydia` 下载 Loader 使用的 `strap.tar.lzma`、`cydia.tar.lzma`（SHA-256 固定），解包到 SystemB。首次开机由 `n56-init.sh` 执行 `dpkg --configure -a` 和 `uicache`，日志为 `/var/log/n56-cydia.log`，成功后创建 `/.bootstrapped`。

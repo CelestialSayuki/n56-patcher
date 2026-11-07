@@ -19,7 +19,7 @@
 
 默认从干净 J96 内核重建 KC，同时生成 iBSS、iBEC、DeviceTree、TrustCache 五个启动镜像。内核、设备树与系统补丁按版本放在 `patches/ios13/`；共用算法与设备资源放在 `patches/shared/`。
 
-iOS 13.7 已跑通，启动包包含硬件适配、DataB 解密和 checkra1n。参见 [13.7 技术结论](docs/conclusions.md) 和 [源码结构](docs/patch-layout.md)。
+iOS 13.7 已跑通，启动包包含硬件适配、DataB 解密和 checkra1n。从零开始执行 `all` 可一次完成全部安装步骤。参见 [13.7 技术结论](docs/conclusions.md) 和 [源码结构](docs/patch-layout.md)。
 
 > [!WARNING]
 > 本工具会在设备上创建卷并写入系统，操作前请自行备份。本项目与 Apple 无关，按现状提供，风险由使用者自行承担。
