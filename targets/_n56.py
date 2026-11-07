@@ -3,7 +3,7 @@
 DEVICE = {'model': 'n56ap',
  'product': 'iPhone7,1',
  'ecid': '',
- 'udid': 'acf519ceb4a8a1434979cf9aaebef3899df5ccd0',
+ 'udid': '',
  'pmu': 'd2186',
  'touch': 'multi-touch,n56',
  'codec': 'CS42L67',
