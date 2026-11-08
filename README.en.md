@@ -37,6 +37,8 @@ python3 tools/setup.py
 
 `tools/setup.py` generates `donors/` (the checkra1n userland plus fsck and apfs.fs from the apfsios14 tool set) and builds gaster from source. The first build needs the device in DFU to decrypt iBSS and iBEC.
 
+If downloading checkra1n fails with `CERTIFICATE_VERIFY_FAILED`, the python.org build of Python has no root certificates installed: the script falls back to the system CA bundle or `curl`. You can also run `Install Certificates.command` from the Python folder, or download the 0.12.4 DMG manually and run `CHECKRA1N_DMG=/path/checkra1n.dmg python3 tools/setup.py`.
+
 Generate the SSH ramdisk once while the device is in DFU (requires internet access):
 
 ```sh

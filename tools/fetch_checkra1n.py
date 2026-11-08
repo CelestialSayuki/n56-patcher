@@ -6,9 +6,12 @@ import os
 from pathlib import Path
 import plistlib
 import shutil
+import ssl
 import struct
 import subprocess
+import sys
 import tempfile
+import urllib.error
 import urllib.request
 import zlib
 
@@ -31,6 +34,68 @@ RAMDISK_DIRS = ("binpack/lib", "dev")
 UDIF_ZERO = (0, 2)
 UDIF_ZLIB = 0x80000005
 UDIF_END = 0xffffffff
+USER_AGENT = "n61-patcher-setup/1.0"
+# 系统/包管理器提供的根证书位置（按优先级）
+CA_FILES = (
+    "/etc/ssl/cert.pem",
+    "/usr/local/etc/openssl@3/cert.pem",
+    "/opt/homebrew/etc/openssl@3/cert.pem",
+    "/opt/local/etc/openssl/cert.pem",
+)
+
+
+def ssl_context():
+    """返回可用的 TLS 上下文。
+
+    python.org 版 Python 不带根证书（需要 Install Certificates.command），此时
+    ssl.create_default_context() 里一张 CA 都没有，握手必然 CERTIFICATE_VERIFY_FAILED。
+    这里按 certifi → 系统证书 → 解释器默认 → 不校验 逐级退化；下载内容后面还要比对
+    固定 SHA-256，所以最后一档只影响传输加密，不影响完整性校验。
+    """
+    try:
+        import certifi
+    except ImportError:
+        pass
+    else:
+        bundle = Path(certifi.where())
+        if bundle.is_file():
+            return ssl.create_default_context(cafile=str(bundle))
+    for cafile in CA_FILES:
+        if not Path(cafile).is_file():
+            continue
+        try:
+            return ssl.create_default_context(cafile=cafile)
+        except (ssl.SSLError, OSError):
+            continue
+    context = ssl.create_default_context()
+    if context.cert_store_stats().get("x509_ca"):
+        return context
+    print("警告：当前 Python 没有可用根证书，本次跳过 TLS 校验（下载后仍校验 SHA-256）。\n"
+          "      修复：运行 Python 目录下的 “Install Certificates.command”，或 pip install certifi。",
+          file=sys.stderr)
+    return ssl._create_unverified_context()
+
+
+def download(url, dest, context):
+    """下载到 dest：先 urllib，失败再用系统 curl（它走系统钥匙串，证书链通常正常）。"""
+    request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+    try:
+        with urllib.request.urlopen(request, timeout=60, context=context) as source, \
+                open(dest, "wb") as output:
+            shutil.copyfileobj(source, output)
+        return
+    except (urllib.error.URLError, ssl.SSLError, OSError) as exc:
+        first_error = exc
+    curl = shutil.which("curl") or "/usr/bin/curl"
+    if Path(curl).exists():
+        print(f"urllib 下载失败（{first_error}），改用 curl 重试…", file=sys.stderr)
+        if subprocess.run([curl, "-fL", "--retry", "3", "--connect-timeout", "30",
+                           "-o", str(dest), url]).returncode == 0:
+            return
+    raise SystemExit(
+        f"下载 checkra1n 失败：{first_error}\n"
+        f"可手动下载：{url}\n"
+        f"然后把它放到任意路径，设置 CHECKRA1N_DMG=<该文件> 后重跑 tools/setup.py。")
 
 
 @contextlib.contextmanager
@@ -70,19 +135,29 @@ def overlay_image(blob):
     return image
 
 
-def fetch(dest=DEST):
+def fetch(dest=DEST, dmg=None):
     if all((dest / name).is_dir() for name in ("overlay-files", "ramdisk-files", "loader.app")):
         return
     print("下载并提取 checkra1n 0.12.4…")
     partial = dest.with_name(dest.name + ".partial")
     shutil.rmtree(partial, ignore_errors=True)
     with tempfile.TemporaryDirectory() as tmp:
-        dmg = Path(tmp) / "checkra1n.dmg"
-        with urllib.request.urlopen(URL) as source, open(dmg, "wb") as output:
-            shutil.copyfileobj(source, output)
-        if hashlib.sha256(dmg.read_bytes()).hexdigest() != SHA256:
-            raise SystemExit("checkra1n DMG 的 SHA-256 不匹配")
-        with mounted(dmg) as volume:
+        dmg_path = Path(tmp) / "checkra1n.dmg"
+        local = dmg or os.environ.get("CHECKRA1N_DMG")
+        origin = URL
+        if local:
+            local = Path(local).expanduser()
+            if not local.is_file():
+                raise SystemExit(f"CHECKRA1N_DMG 指向的文件不存在: {local}")
+            print(f"使用本地 DMG: {local}")
+            shutil.copy2(local, dmg_path)
+            origin = str(local)
+        else:
+            download(URL, dmg_path, ssl_context())
+        if hashlib.sha256(dmg_path.read_bytes()).hexdigest() != SHA256:
+            raise SystemExit(f"checkra1n DMG 的 SHA-256 不匹配：{origin}\n"
+                             "请确认是官网 0.12.4 beta 版本，或删除缓存后重试。")
+        with mounted(dmg_path) as volume:
             blob = (volume / BINARY).read_bytes()
 
         ramdisk = partial / "ramdisk-files"
@@ -107,4 +182,7 @@ def fetch(dest=DEST):
 
 
 if __name__ == "__main__":
-    fetch()
+    import argparse
+    parser = argparse.ArgumentParser(description="下载并提取 checkra1n 0.12.4 用户态到 donors/checkra1n")
+    parser.add_argument("--dmg", help="本地 checkra1n 0.12.4 DMG（离线或证书问题时的退路）")
+    fetch(dmg=parser.parse_args().dmg)

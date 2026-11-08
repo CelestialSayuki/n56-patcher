@@ -37,6 +37,8 @@ python3 tools/setup.py
 
 `tools/setup.py` は `donors/`（checkra1n のユーザーランドと apfsios14 ツールセットの fsck、apfs.fs）を生成し、gaster をソースからビルドします。初回ビルドでは iBSS と iBEC を復号するため、デバイスを DFU にしておく必要があります。
 
+checkra1n のダウンロードで `CERTIFICATE_VERIFY_FAILED` が出る場合、python.org 版 Python にルート証明書が入っていません。スクリプトはシステムの証明書バンドルか `curl` に自動で切り替えます。Python フォルダの `Install Certificates.command` を実行するか、0.12.4 の DMG を手動で取得して `CHECKRA1N_DMG=/path/checkra1n.dmg python3 tools/setup.py` でオフライン実行することもできます。
+
 SSH ramdisk は DFU 状態で一度だけ生成します（インターネット接続が必要）：
 
 ```sh

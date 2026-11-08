@@ -37,6 +37,8 @@ python3 tools/setup.py
 
 `tools/setup.py` 会生成 `donors/`（checkra1n 用户态，以及 apfsios14 工具集中的 fsck、apfs.fs）并从源码构建 gaster。首次构建需设备处于 DFU，用于解密 iBSS、iBEC。
 
+下载 checkra1n 时若报 `CERTIFICATE_VERIFY_FAILED`，是 python.org 版 Python 没装根证书：脚本会自动改用系统证书或 `curl`；也可运行 Python 目录下的 `Install Certificates.command`，或手动下载 0.12.4 DMG 后用 `CHECKRA1N_DMG=/path/checkra1n.dmg python3 tools/setup.py` 离线完成。
+
 SSH ramdisk 需在 DFU 下生成一次（需联网）：
 
 ```sh
