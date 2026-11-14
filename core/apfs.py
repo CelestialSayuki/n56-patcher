@@ -47,11 +47,21 @@ class Apfs:
         return self.ctx.ssh
 
     # ---- 原始块读写 ----
+    READ_TRIES = 3
+
     def read_block(self, n):
-        b = self.ssh.sh(f"dd if={RDEV} bs={BS} skip={n} count=1 2>/dev/null")
-        if len(b) != BS:
-            log.die(f"块 {n} 读取长度异常: {len(b)}")
-        return b
+        # 实机遇到过 ramdisk SSH 偶发认证失败，单个块读不到。只读操作重试，
+        # 最终失败就中止，绝不带着空块或半个块继续解析。
+        detail = ""
+        for attempt in range(1, self.READ_TRIES + 1):
+            r = self.ssh.sh(f"dd if={RDEV} bs={BS} skip={n} count=1 2>/dev/null", check=False)
+            if len(r) == BS:
+                return r
+            detail = f"读到 {len(r)} 字节"
+            if attempt < self.READ_TRIES:
+                log.warn(f"块 {n} 读取失败（{detail}），重试 {attempt}/{self.READ_TRIES - 1}…")
+                time.sleep(1)
+        log.die(f"块 {n} 读取失败（{detail}，已重试 {self.READ_TRIES - 1} 次；检查 ramdisk SSH 是否稳定）")
 
     def write_block(self, n, data):
         assert len(data) == BS
