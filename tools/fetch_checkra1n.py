@@ -34,7 +34,7 @@ RAMDISK_DIRS = ("binpack/lib", "dev")
 UDIF_ZERO = (0, 2)
 UDIF_ZLIB = 0x80000005
 UDIF_END = 0xffffffff
-USER_AGENT = "n61-patcher-setup/1.0"
+USER_AGENT = "n56-patcher-setup/1.0"
 # 系统/包管理器提供的根证书位置（按优先级）
 CA_FILES = (
     "/etc/ssl/cert.pem",
