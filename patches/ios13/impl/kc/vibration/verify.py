@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
-"""Read back the saved DRV2604 candidate, including its provider dispatches."""
+"""Read back the saved DRV2604 candidate, including its provider dispatches.
+
+单独运行（仓库根目录）：python3 -m patches.ios13.impl.kc.vibration.verify <transplant 输出目录> [--input <候选内核>]
+"""
 import argparse
 import json
 from pathlib import Path
 import struct
-import sys
 
-from paths import OUTPUT
-from patches.shared.impl.kc.vibration.analyze_abi import CODE_END, CODE_START, ROOT, virtual_loads, vtable
-from patches.ios13.impl.kc.vibration.profile import HERE, profile
-PWM_META13 = profile()["pwm_meta"]
+from patches.shared.impl.kc.vibration.analyze_abi import CODE_END, CODE_START, virtual_loads, vtable
+from patches.ios13.impl.kc.vibration.profile import PWM_META as PWM_META13
 from patches.shared.impl.kc.vibration.transplant import BUNDLE, SPLIT
-from macho import Kernel
-from port import check_region, instructions, sha
+from patches.shared.impl.kc.sn2400.macho import Kernel
+from patches.shared.impl.kc.sn2400.port import check_region, instructions, sha
 
 
-def verify(directory=OUTPUT, input_path=None):
+def verify(directory, input_path=None):
     directory = Path(directory)
     audit = json.loads((directory / 'audit.json').read_text())
     donor, baseline = Kernel(audit['donor']), Kernel(audit['baseline'])
@@ -140,9 +140,11 @@ def verify(directory=OUTPUT, input_path=None):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('directory', nargs='?', type=Path, default=OUTPUT)
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument('directory', nargs='?', type=Path, help='transplant 输出目录（含 audit.json）')
     parser.add_argument("--input", type=Path)
-    parser.add_argument("--out", type=Path)
+    parser.add_argument("--out", type=Path, help='同 directory')
     args = parser.parse_args()
+    if (args.out or args.directory) is None:
+        parser.error('需要给出 transplant 输出目录（directory 或 --out）')
     verify(args.out or args.directory, args.input)

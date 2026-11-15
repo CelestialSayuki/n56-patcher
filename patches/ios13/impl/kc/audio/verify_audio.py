@@ -1,18 +1,20 @@
 #!/usr/bin/env python3
-"""Check the built audio image and its relocation records."""
+"""Check the built audio image and its relocation records.
+
+单独运行（仓库根目录）：python3 -m patches.ios13.impl.kc.audio.verify_audio --out <transplant 输出目录> [--input <候选内核>]
+"""
 from patches.shared.impl.kc.audio.image import native_tables
 import argparse
 from pathlib import Path
 import json
 import struct
 
-from inspect_port import HERE, PATHS, Kernel, disassemble
-from paths import OUTPUT
-from transplant_audio import CODE_START, CODE_END, NEW_BUNDLE, OLD_BUNDLE
-from prelink_xml import validate
+from patches.ios13.impl.kc.audio.inspect_port import Kernel, disassemble
+from patches.ios13.impl.kc.audio.transplant_audio import CODE_START, CODE_END, NEW_BUNDLE, OLD_BUNDLE
+from patches.ios13.impl.kc.audio.prelink_xml import validate
 
 
-def verify(input_path=None, output_dir=OUTPUT):
+def verify(input_path, output_dir):
     build = Path(output_dir)
     audit = json.loads((build / 'audit.json').read_text())
     baseline = Kernel(audit['baseline'])
@@ -115,8 +117,8 @@ def verify(input_path=None, output_dir=OUTPUT):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--input", type=Path)
-    parser.add_argument("--out", type=Path, default=OUTPUT)
+    parser.add_argument("--out", type=Path, required=True, help='transplant_audio 的输出目录（含 audit.json）')
     args = parser.parse_args()
     verify(args.input, args.out)

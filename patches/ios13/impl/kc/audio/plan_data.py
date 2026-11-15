@@ -1,11 +1,13 @@
-"""Build the CS42L67 hybrid transplant's data allocations and address map."""
+"""Build the CS42L67 hybrid transplant's data allocations and address map.
+
+单独运行（仓库根目录）：python3 -m patches.ios13.impl.kc.audio.plan_data --input <13 内核>
+"""
+import argparse
 import json
-from pathlib import Path
 import struct
 
-from kernel_externs import disassemble, real
+from patches.ios13.impl.kc.audio.kernel_externs import Kernel, disassemble, real
 
-HERE = Path(__file__).resolve().parent
 BSS_OLD = 0xfffffff008a8c5a8
 BSS_NEW = 0xfffffff007763000
 BSS_SIZE = 0x7a0
@@ -27,10 +29,6 @@ def number(value):
     return int(value, 0) if isinstance(value, str) else value
 
 
-def load(name):
-    return json.loads((HERE / name).read_text())
-
-
 def cstring(kernel, address):
     segment = next(s for s in kernel.segs if s['vm'] <= address < s['vm'] + s['fs'])
     limit = min(4096, segment['vm'] + segment['fs'] - address)
@@ -50,10 +48,12 @@ def has_source_pointer(kernel, data):
 
 
 class GapAllocator:
-    def __init__(self, target, reserved=()):
+    """在输入内核的空闲区间里分配只读数据；space 为 Analysis.allocation_space() 的结果。"""
+
+    def __init__(self, target, space, reserved=()):
         self.target = target
         self.claims = target.claims() + [(start, end, 'reserved') for start, end in reserved]
-        manifest = load('allocation-space.json')
+        manifest = space
         self.gaps = {name: [[number(item['start']), number(item['start']) + item['size']]
                             for item in manifest[name]]
                      for name in ('__PRELINK_TEXT', '__PLK_DATA_CONST')}
@@ -94,8 +94,11 @@ def bss_plan(target):
     raise ValueError('__DATA load command not found')
 
 
-def make_data_plan(source, target, source_refs, code_start, code_end, reserved=()):
-    """Return data addresses, prepared blobs, pointer slide slots and BSS patch."""
+def make_data_plan(source, target, source_refs, code_start, code_end, analysis, reserved=()):
+    """Return data addresses, prepared blobs, pointer slide slots and BSS patch.
+
+    analysis 为本次构建的 Analysis，取其内核入口映射、音频家族 ABI、Mikey ABI 与空闲区间。
+    """
     refs = [dict(pc=number(r['pc']), old=number(r['old']), kind=r['kind'])
             for r in source_refs if code_start <= number(r['pc']) < code_end
             and r['kind'] not in ('b', 'bl')
@@ -105,10 +108,10 @@ def make_data_plan(source, target, source_refs, code_start, code_end, reserved=(
         addresses[old] = new
         addresses[old + 16] = new + 16
     addresses[0xfffffff007004000] = next(s['vm'] for s in target.segs if s['name'] == '__TEXT')
-    kernel = load('kernel-extern-map.json')
+    kernel = analysis.kernel_extern_map()
     for old, record in kernel['data_globals'].items():
         addresses[number(old)] = number(record.get('to', record.get('target_existing_pointer_slot')))
-    family = load('audio-family-abi.json')
+    family = analysis.family_abi()
     for record in family['global_objects']:
         addresses[number(record['metaclass12'])] = number(record['metaclass13'])
         if record.get('vtable12') and record.get('vtable13'):
@@ -118,7 +121,7 @@ def make_data_plan(source, target, source_refs, code_start, code_end, reserved=(
         for record in family.get(key, []):
             if 'to_address' in record:
                 addresses[number(record['from_address'])] = number(record['to_address'])
-    mikey = load('mikey-abi.json')
+    mikey = analysis.mikey_abi()
     addresses.update({number(old): number(new) for old, new in mikey['pointer_map'].items()})
     for record in mikey['static_parent_vtable_bases']:
         addresses[number(record['old'])] = number(record['new'])
@@ -127,7 +130,7 @@ def make_data_plan(source, target, source_refs, code_start, code_end, reserved=(
     unresolved = []
     blobs = []
     pointer_slots = []
-    allocator = GapAllocator(target, reserved)
+    allocator = GapAllocator(target, analysis.allocation_space(), reserved)
 
     def add_interval(address, size, kind):
         page = address & ~4095
@@ -197,13 +200,20 @@ def make_data_plan(source, target, source_refs, code_start, code_end, reserved=(
                 bss=bss_plan(target), unresolved=unresolved)
 
 
-if __name__ == '__main__':
-    from kernel_externs import Kernel, SOURCE, TARGET
-    references = load('donor-references.json')['references']
-    plan = make_data_plan(Kernel(SOURCE), Kernel(TARGET), references,
-                          0xfffffff0086efd38, 0xfffffff0086f6664)
+def main(argv=None):
+    from patches.ios13.impl.kc.audio.analysis import add_arguments, from_arguments
+    parser = argparse.ArgumentParser(description=__doc__)
+    add_arguments(parser)
+    analysis = from_arguments(parser.parse_args(argv))
+    references = analysis.donor_references()['references']
+    plan = make_data_plan(Kernel(analysis.paths['12']), Kernel(analysis.paths['13']), references,
+                          0xfffffff0086efd38, 0xfffffff0086f6664, analysis)
     print(json.dumps(dict(addresses=len(plan['addresses']),
                           blobs=[dict(address=hex(b['address']), old_start=hex(b['old_start']),
                                       size=len(b['data']), kind=b['kind']) for b in plan['blobs']],
                           pointer_slots=len(plan['pointer_slots']),
                           bss=plan['bss'], unresolved=plan['unresolved'])))
+
+
+if __name__ == '__main__':
+    main()

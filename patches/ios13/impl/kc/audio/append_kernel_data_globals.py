@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
-"""Append the audio driver's data symbols and metaclass pointer slots."""
+"""Append the audio driver's data symbols and metaclass pointer slots.
+
+单独运行（仓库根目录）：python3 -m patches.ios13.impl.kc.audio.append_kernel_data_globals --input <13 内核>
+"""
+import argparse
 import json
 import struct
 
-from kernel_externs import HERE, ROOT, SOURCE, TARGET, Kernel, address_registers, disassemble, metaclasses, real
+from patches.ios13.impl.kc.audio.kernel_externs import Kernel, address_registers, disassemble, metaclasses, real
 
 
 META_SLOTS = (0xfffffff00749c928, 0xfffffff00749d120, 0xfffffff00749dea8)
@@ -11,11 +15,13 @@ LOG_DEFAULT = 0xfffffff008a5b95c
 STACK_GUARD = 0xfffffff008a12080
 
 
-def main():
-    source, target = Kernel(SOURCE), Kernel(TARGET)
-    symbols = json.loads((HERE.parent / 'vibration/target-symbols.json').read_text())
+def data_globals(paths, symbols, references):
+    """音频读取的内核数据符号与 metaClass 指针槽（并入 kernel-extern-map 的 data_globals）。
+
+    paths 见 inspect_port.kernel_paths；symbols 为 13 符号表；references 为 donor 代码引用列表。
+    """
+    source, target = Kernel(paths['12']), Kernel(paths['13'])
     classes = metaclasses(source, 0xfffffff007cb0d60)
-    references = json.loads((HERE / 'donor-references.json').read_text())['references']
     uses = {address: [hex(entry['pc']) for entry in references if entry['old'] == address]
             for address in (*META_SLOTS, LOG_DEFAULT, STACK_GUARD)}
     log_target = int(symbols['__os_log_default'], 16)
@@ -48,11 +54,15 @@ def main():
                                       source_class_initializer=source_class['initializer'],
                                       how=f'旧 RO 槽指向 {name} 的 gMetaClass；名称由源 OSMetaClass 初始化实参确认，13 原生 metaClass 指针槽读回同一目标 gMetaClass。',
                                       resolution='在注入 RO 段写入 target_pointee，并把旧 LDR 槽地址映射到新槽。')
-    path = HERE / 'kernel-extern-map.json'
-    report = json.loads(path.read_text())
-    report['data_globals'] = globals_map
-    path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
-    print(json.dumps(dict(data_globals=globals_map), ensure_ascii=False))
+    return globals_map
+
+
+def main(argv=None):
+    from patches.ios13.impl.kc.audio.analysis import add_arguments, from_arguments
+    parser = argparse.ArgumentParser(description=__doc__)
+    add_arguments(parser)
+    report = from_arguments(parser.parse_args(argv)).kernel_extern_map()
+    print(json.dumps(dict(data_globals=report['data_globals']), ensure_ascii=False))
 
 
 if __name__ == '__main__':

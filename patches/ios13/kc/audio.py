@@ -1,6 +1,6 @@
-"""CS42L67 音频驱动。"""
+"""CS42L67 音频驱动（与 14.8 一样在进程内构建，显式传入输入内核、输出目录与 derived）。"""
 from core.patch import Patch
-from core.impl import transform
+from patches.ios13.impl.kc.audio.transplant_audio import build
 
 
 class KcAudio(Patch):
@@ -21,4 +21,5 @@ class KcAudio(Patch):
     note = "CS42L67 音频驱动"
 
     def apply(self, ctx, art):
-        return transform(ctx, "kc/audio/transplant_audio.py", art, "audio", True)
+        ctx.ensure_derived()
+        return str(build(art, ctx.wk("audio"), ctx.derived_root))

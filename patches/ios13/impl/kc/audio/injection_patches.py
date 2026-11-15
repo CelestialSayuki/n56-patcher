@@ -1,14 +1,11 @@
 """Instruction adjustments for the retained CS42L67 code and module init."""
 from patches.shared.impl.kc.audio.image import native_tables
-import json
-from pathlib import Path
 import struct
 
 from capstone import Cs, CS_ARCH_ARM64, CS_MODE_LITTLE_ENDIAN
-from inspect_port import Kernel
+from patches.ios13.impl.kc.audio.inspect_port import Kernel
 
 
-HERE = Path(__file__).resolve().parent
 CODE_START = 0xfffffff0086efd38
 CODE_END = 0xfffffff0086f6660
 THIS_HELPERS = {
@@ -46,11 +43,11 @@ def _address(value):
     return int(value, 16) if isinstance(value, str) else value
 
 
-def _metadata():
-    abi = json.loads((HERE / 'audio-family-abi.json').read_text())
-    audit = json.loads((HERE / 'port-audit.json').read_text())
-    refs = json.loads((HERE / 'donor-references.json').read_text())['references']
-    mikey = json.loads((HERE / 'mikey-abi.json').read_text())
+def _metadata(analysis):
+    abi = analysis.family_abi()
+    audit = analysis.port_audit()
+    refs = analysis.donor_references()['references']
+    mikey = analysis.mikey_abi()
     consumers = {row['pc'] for row in refs if row['kind'] == 'adrp/memory'}
     mikey_sites = {_address(row['address']) for row in mikey['instruction_patches']}
     main = next(row for row in audit['classes']['12'] if row['name'] == 'AppleCS42L67Audio')
@@ -142,11 +139,14 @@ def _load_patch(source, address, old_offset, new_offset, kind):
     return dict(address=address, old_word=word, new_word=new_word, kind=kind)
 
 
-def instruction_patches(source):
-    """Return address/old_word/new_word/kind records; source is a Kernel or KC path."""
+def instruction_patches(source, analysis):
+    """Return address/old_word/new_word/kind records; source is a Kernel or KC path.
+
+    analysis 为本次构建的 Analysis（音频家族 ABI、类表、donor 引用与 Mikey ABI）。
+    """
     if not hasattr(source, 'read'):
         source = Kernel(source)
-    abi, mikey, consumers, mikey_sites, main_entries = _metadata()
+    abi, mikey, consumers, mikey_sites, main_entries = _metadata(analysis)
     patches = {}
 
     def add(address, old_offset, new_offset, kind):
@@ -174,11 +174,11 @@ def instruction_patches(source):
     return [patches[address] for address in sorted(patches)]
 
 
-def unclassified_high_slots(source):
+def unclassified_high_slots(source, analysis):
     """List high virtual loads awaiting a class map, excluding relocation consumers."""
     if not hasattr(source, 'read'):
         source = Kernel(source)
-    abi, _, consumers, mikey_sites, _ = _metadata()
+    abi, _, consumers, mikey_sites, _ = _metadata(analysis)
     mapped = {_address(row['load_site']) for row in abi['main_virtual_calls']} | ADDITIONAL_RECEIVERS.keys()
     return [dict(address=address, slot=slot)
             for address, slot in _virtual_loads(_instructions(source)).items()

@@ -1,20 +1,24 @@
 #!/usr/bin/env python3
-"""Build the CS42L67 audio KC using native 12 code and the 13 shared classes."""
+"""Build the CS42L67 audio KC using native 12 code and the 13 shared classes.
+
+构建时由 patches/ios13/kc/audio.py 在进程内调用 build()。
+单独运行（仓库根目录）：
+  python3 -m patches.ios13.impl.kc.audio.transplant_audio --input <13 内核> --out <输出目录> [--derived <目录>]
+"""
 from patches.shared.impl.kc.audio.image import native_tables
 import argparse
-import base64
 import json
 from pathlib import Path
 import struct
-import xml.etree.ElementTree as ET
 
-from inspect_port import HERE, PATHS, Kernel
-from paths import OUTPUT
-from injection_patches import instruction_patches
-from plan_data import make_data_plan
+from core.context import DERIVED_DIR
+from patches.ios13.impl.kc.audio.analysis import Analysis
+from patches.ios13.impl.kc.audio.inspect_port import Kernel
+from patches.ios13.impl.kc.audio.injection_patches import instruction_patches
+from patches.ios13.impl.kc.audio.plan_data import make_data_plan
 from patches.shared.impl.kc.audio.relocate_audio import Piece, Relocator
-from table_plan import build_tables
-from equalizer_ids import patches as equalizer_patches
+from patches.ios13.impl.kc.audio.table_plan import build_tables
+from patches.ios13.impl.kc.audio.equalizer_ids import patches as equalizer_patches
 
 OLD_BUNDLE = 'com.apple.driver.AppleCS42L81Audio'
 NEW_BUNDLE = 'com.apple.driver.AppleCS42L67Audio'
@@ -22,10 +26,6 @@ CODE_START = 0xfffffff0086efd38
 CODE_END = 0xfffffff0086f6660
 RETIRED_START = 0xfffffff006155000
 RETIRED_END = 0xfffffff006159534
-
-
-def read_json(name):
-    return json.loads((HERE / name).read_text())
 
 
 def free_regions(kernel, host_name, alignment=8):
@@ -45,15 +45,21 @@ def free_regions(kernel, host_name, alignment=8):
 from patches.shared.impl.kc.audio.image import segment, header_commands, rewrite_prelink
 
 
-def build(input_path=PATHS['13'], output_dir=OUTPUT):
+def build(input_path, output_dir, derived):
+    """把 CS42L67 移植进 input_path，写 output_dir/kernelcache.audio.raw 与 audit.json，返回内核路径。
+
+    derived 为从 IPSW 生成的输入目录（含 12 donor）。分析结果按本次输入现算一次，写进输出目录并在本次构建内复用。
+    """
     input_path = Path(input_path).resolve()
-    source, target = Kernel(PATHS['12']), Kernel(input_path)
+    analysis = Analysis(derived, input_path, output_dir)
+    donor = analysis.paths['12']
+    source, target = Kernel(donor), Kernel(input_path)
     candidate = bytearray(target.data)
-    external = {int(a, 16): int(b, 16) for a, b in read_json('kernel-extern-map.json')['map'].items()}
-    family = read_json('audio-family-abi.json')
+    external = {int(a, 16): int(b, 16) for a, b in analysis.kernel_extern_map()['map'].items()}
+    family = analysis.family_abi()
     for entry in family['external_functions']:
         external[int(entry['from_address'], 16)] = int(entry['to_address'], 16)
-    mikey = read_json('mikey-abi.json')
+    mikey = analysis.mikey_abi()
     external.update({int(a, 16): int(b, 16) for a, b in mikey['pointer_map'].items()})
 
     first_size = 0x4020
@@ -72,13 +78,13 @@ def build(input_path=PATHS['13'], output_dir=OUTPUT):
     header_size = 32 + sum(len(c) for c in initial_commands)
     if header_capacity < header_size:
         raise ValueError('No contiguous audio header space')
-    references = read_json('donor-references.json')['references']
-    data_plan = make_data_plan(source, target, references, CODE_START, CODE_END,
+    references = analysis.donor_references()['references']
+    data_plan = make_data_plan(source, target, references, CODE_START, CODE_END, analysis,
                               reserved=[(header_address, header_address + header_size)])
     if data_plan['unresolved']:
         raise ValueError(f"Unresolved data: {data_plan['unresolved']}")
     addresses = dict(data_plan['addresses'])
-    addresses.update(build_tables(source, target, lambda address: address)['addresses'])
+    addresses.update(build_tables(source, target, lambda address: address, analysis.mikey_abi())['addresses'])
 
     def remap(address):
         for piece in pieces:
@@ -93,7 +99,7 @@ def build(input_path=PATHS['13'], output_dir=OUTPUT):
     tables = [(e['start'], e['end']) for e in native_tables()]
     relocator = Relocator(source, CODE_START, CODE_END, pieces, remap, tables)
     code_refs = relocator.run()
-    patches = instruction_patches(source)
+    patches = instruction_patches(source, analysis)
     patches += [dict(address=int(e['address'], 16), old_word=int(e['old_word'], 16),
                      new_word=int(e['new_word'], 16), kind='Mikey ABI')
                 for e in mikey['instruction_patches']]
@@ -115,7 +121,7 @@ def build(input_path=PATHS['13'], output_dir=OUTPUT):
         if word != original:
             raise ValueError(f'ABI patch overlaps address relocation {pc:#x}')
         relocator.put(relocated, struct.pack('<I', patch['new_word']))
-    table_plan = build_tables(source, target, remap)
+    table_plan = build_tables(source, target, remap, analysis.mikey_abi())
     for piece in pieces:
         at = target.offset(piece.new, piece.used)
         candidate[at:at + piece.used] = piece.buffer[:piece.used]
@@ -155,7 +161,7 @@ def build(input_path=PATHS['13'], output_dir=OUTPUT):
     output = Path(output_dir)
     output.mkdir(parents=True, exist_ok=True)
     (output / 'kernelcache.audio.raw').write_bytes(candidate)
-    audit = dict(source=str(PATHS['12']), baseline=str(input_path),
+    audit = dict(source=str(donor), baseline=str(input_path),
                  header_address=header_address, header_size=header_size,
                  code_pieces=[dict(old=p.old, new=p.new, size=p.size, capacity=p.capacity,
                                   used=p.used) for p in pieces],
@@ -171,11 +177,18 @@ def build(input_path=PATHS['13'], output_dir=OUTPUT):
     print('Built', output / 'kernelcache.audio.raw')
     print('Code pieces', [(hex(p.new), p.size, p.used - p.size) for p in pieces])
     print('ABI patches', len(patch_addresses), 'header bytes', header_size)
+    return output / 'kernelcache.audio.raw'
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument('--input', type=Path, required=True, help='iOS 13 输入内核（raw）')
+    parser.add_argument('--out', type=Path, required=True, help='输出目录')
+    parser.add_argument('--derived', type=Path, default=Path(DERIVED_DIR),
+                        help='从 IPSW 生成的输入目录，默认 ipsw/cache/derived')
+    args = parser.parse_args(argv)
+    build(args.input, args.out, args.derived)
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--input", type=Path, default=PATHS["13"])
-    parser.add_argument("--out", type=Path, default=OUTPUT)
-    args = parser.parse_args()
-    build(args.input, args.out)
+    main()

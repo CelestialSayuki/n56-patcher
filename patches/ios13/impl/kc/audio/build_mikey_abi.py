@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
-"""Emit the Mikey adaptation table consumed by the CS42L67 injector."""
+"""Emit the Mikey adaptation table consumed by the CS42L67 injector.
+
+单独运行（仓库根目录）：python3 -m patches.ios13.impl.kc.audio.build_mikey_abi --input <13 内核>
+"""
+import argparse
 import json
 import struct
 
-from inspect_port import HERE, Kernel, MASK, PATHS, disassemble
-from mikey_inspect import AUDIT, CLASSES, function_end, function_starts
+from patches.ios13.impl.kc.audio.inspect_port import HERE, Kernel, MASK, disassemble
+from patches.ios13.impl.kc.audio.mikey_inspect import classes, function_end, function_starts
 
 
 def h(value):
@@ -85,10 +89,10 @@ LOAD_PATCHES = [
 ]
 
 
-def table_report(leaf, parent, native_parent, translate):
-    old = CLASSES['12'][leaf]
-    base = CLASSES['12'][parent]
-    native = CLASSES['13'][native_parent]
+def table_report(layouts, leaf, parent, native_parent, translate):
+    old = layouts['12'][leaf]
+    base = layouts['12'][parent]
+    native = layouts['13'][native_parent]
     slots = [{'source': 'native13', 'address': h(p)} for p in native['slots']]
     overrides = []
     for n, address in enumerate(old['slots']):
@@ -105,8 +109,10 @@ def table_report(leaf, parent, native_parent, translate):
                 overrides=overrides, rebuilt_entries=slots)
 
 
-def main():
-    kernels = {tag: Kernel(PATHS[tag]) for tag in ('12', '13')}
+def mikey_abi(paths, audit):
+    """Mikey 类表、外部函数与指令调整；paths 见 inspect_port.kernel_paths，audit 为 port_audit 的结果。"""
+    CLASSES = classes(audit)
+    kernels = {tag: Kernel(paths[tag]) for tag in ('12', '13')}
     old = kernels['12']
     donor_report = json.loads((HERE / 'donor-code.json').read_text())
     branches = {int(b['target'], 16): b for b in donor_report['external_branches']}
@@ -181,7 +187,7 @@ def main():
         own_functions[name] = [dict(start=h(p), end=h(function_end(starts, p)))
                                for p in starts if any(a <= p < b for a, b in ranges)]
     report = dict(
-        source=str(PATHS['12']), target=str(PATHS['13']),
+        source=str(paths['12']), target=str(paths['13']),
         pointer_map=pointer_map, external_function_map=external,
         shared_function_map=shared, shared_vtable_function_map=shared_vtable_map,
         shared_classes=shared_classes, static_parent_vtable_bases=parent_bases,
@@ -206,15 +212,24 @@ def main():
             },
         },
         classes={
-            'AppleCS42L67Mikey': table_report('AppleCS42L67Mikey', 'AppleCSHTDCodecMikey',
+            'AppleCS42L67Mikey': table_report(CLASSES, 'AppleCS42L67Mikey', 'AppleCSHTDCodecMikey',
                                              'AppleCSHTDCodecMikey', mikey_slot),
-            'AppleCS42L67MikeyBus': table_report('AppleCS42L67MikeyBus', 'AppleCSCodecLineOutMikeyBus',
+            'AppleCS42L67MikeyBus': table_report(CLASSES, 'AppleCS42L67MikeyBus', 'AppleCSCodecLineOutMikeyBus',
                                                 'AppleCSCodecLineOutMikeyBus', bus_slot),
         },
     )
-    (HERE / 'mikey-abi.json').write_text(json.dumps(report, indent=2) + '\n')
-    print(json.dumps(dict(external_functions=len(external), shared_direct_functions=len(shared),
-                          instruction_patches=len(patches), shared_vtable_functions=len(shared_vtable_map),
+    return report
+
+
+def main(argv=None):
+    from patches.ios13.impl.kc.audio.analysis import add_arguments, from_arguments
+    parser = argparse.ArgumentParser(description=__doc__)
+    add_arguments(parser)
+    report = from_arguments(parser.parse_args(argv)).mikey_abi()
+    print(json.dumps(dict(external_functions=len(report['external_function_map']),
+                          shared_direct_functions=len(report['shared_function_map']),
+                          instruction_patches=len(report['instruction_patches']),
+                          shared_vtable_functions=len(report['shared_vtable_function_map']),
                           mikey_overrides=len(report['classes']['AppleCS42L67Mikey']['overrides']),
                           bus_overrides=len(report['classes']['AppleCS42L67MikeyBus']['overrides']))))
 

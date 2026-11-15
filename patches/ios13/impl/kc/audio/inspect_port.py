@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
-"""Inspect the native CS42L67 donor and the iOS 13 audio interfaces."""
-import json
+"""Inspect the native CS42L67 donor and the iOS 13 audio interfaces.
+
+单独运行（仓库根目录）：python3 -m patches.ios13.impl.kc.audio.inspect_port --input <13 内核>
+"""
+import argparse
 from pathlib import Path
 import struct
-import sys
 
-from paths import ROOT, DERIVED, INPUT, OUTPUT
 HERE = Path(__file__).resolve().parent
-from macho import Kernel
-from analyze13 import build_stub_map, cstr, resolve_regs
+from patches.shared.impl.kc.sn2400.macho import Kernel
+from patches.ios13.impl.kc.vibration.analyze13 import build_stub_map, cstr, resolve_regs
 from capstone import Cs, CS_ARCH_ARM64, CS_MODE_LITTLE_ENDIAN
 
 MASK = (1 << 64) - 1
@@ -17,11 +18,16 @@ SHARED = ['com.apple.driver.AppleEmbeddedAudio',
           'com.apple.driver.AppleCSEmbeddedAudio',
           'com.apple.driver.AppleEmbeddedMikeyBus',
           'com.apple.iokit.IOMikeyBusFamily']
-PATHS = {
-    '12': DERIVED / 'extracted/n56ap_ios12/kernelcache.release.iphone7.decompressed',
-    '13': INPUT,
-    'n66_13': DERIVED / 'extracted/n66ap_ios13/kernelcache.release.n66.decompressed',
-}
+
+
+def kernel_paths(derived, target):
+    """本次分析用到的三份内核：12 donor、13 输入内核、N66 13（只用来确认它没有 CS42L67）。"""
+    derived = Path(derived)
+    return {
+        '12': derived / 'extracted/n56ap_ios12/kernelcache.release.iphone7.decompressed',
+        '13': Path(target),
+        'n66_13': derived / 'extracted/n66ap_ios13/kernelcache.release.n66.decompressed',
+    }
 
 
 def real(pointer):
@@ -121,8 +127,9 @@ def add_vtables(kernel, classes, legacy):
             entry['slots'] = read_vtable(kernel, candidates[0], legacy)
 
 
-def main():
-    kernels = {tag: Kernel(path) for tag, path in PATHS.items()}
+def port_audit(paths):
+    """两版共用音频类的注册、大小与 vtable；paths 见 kernel_paths。"""
+    kernels = {tag: Kernel(path) for tag, path in paths.items()}
     layouts = {}
     for tag in ('12', '13'):
         kernel = kernels[tag]
@@ -131,13 +138,19 @@ def main():
                    for entry in registrations(kernel, bundle, tag == '12')]
         add_vtables(kernel, classes, tag == '12')
         layouts[tag] = classes
-    report = {
-        'donor': str(PATHS['12']), 'target': str(PATHS['13']),
+    return {
+        'donor': str(paths['12']), 'target': str(paths['13']),
         'n66_has_cs42l67': BUNDLE in kernels['n66_13'].kexts,
         'n66_codec': [b for b in kernels['n66_13'].kexts if 'CS42L' in b],
         'selected_donor': 'native iOS 12', 'classes': layouts,
     }
-    (HERE / 'port-audit.json').write_text(json.dumps(report, indent=2) + '\n')
+
+
+def main(argv=None):
+    from patches.ios13.impl.kc.audio.analysis import add_arguments, from_arguments
+    parser = argparse.ArgumentParser(description=__doc__)
+    add_arguments(parser)
+    layouts = from_arguments(parser.parse_args(argv)).port_audit()['classes']
     names = ('AppleEmbeddedAudio', 'AppleCSSPIAudio', 'AppleCSHTDCodecMikey',
              'AppleMikeyBus', 'AppleCS42L67Audio', 'AppleCS42L67Mikey',
              'AppleCS42L67MikeyBus', 'AppleCSCodecMikeyBus')

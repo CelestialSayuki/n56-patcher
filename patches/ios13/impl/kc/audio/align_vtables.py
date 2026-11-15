@@ -1,10 +1,16 @@
 #!/usr/bin/env python3
-"""Suggest monotonic audio vtable alignments for method review."""
+"""Suggest monotonic audio vtable alignments for method review.
+
+单独运行（仓库根目录）：
+  python3 -m patches.ios13.impl.kc.audio.align_vtables --input <13 内核> [--out <目录>]
+给 --out 时同时写 vtable-alignment.json。
+"""
+import argparse
 import difflib
 import json
 import re
 
-from inspect_port import HERE, Kernel, PATHS, disassemble
+from patches.ios13.impl.kc.audio.inspect_port import Kernel, disassemble
 
 
 def signature(kernel, address):
@@ -57,9 +63,9 @@ def align(old, new):
                 method_pairs=pairs[::-1], requires_method_review=True)
 
 
-def main():
-    audit = json.loads((HERE / 'port-audit.json').read_text())
-    kernels = {tag: Kernel(PATHS[tag]) for tag in ('12', '13')}
+def alignments(paths, audit):
+    """AppleCSSPIAudio、AppleCSHTDCodecMikey 两类 12→13 的 vtable 对齐建议。"""
+    kernels = {tag: Kernel(paths[tag]) for tag in ('12', '13')}
     results = {}
     for name in ('AppleCSSPIAudio', 'AppleCSHTDCodecMikey'):
         tables = {
@@ -72,7 +78,19 @@ def main():
         weak = sum(p['similarity'] < .55 for p in result['method_pairs'])
         print(name, 'suggested inserted slots', result['suggested_inserted_slots13'],
               'pairs requiring closer review', weak)
-    (HERE / 'vtable-alignment.json').write_text(json.dumps(results, indent=2) + '\n')
+    return results
+
+
+def main(argv=None):
+    from patches.ios13.impl.kc.audio.analysis import add_arguments, from_arguments
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    add_arguments(parser)
+    args = parser.parse_args(argv)
+    analysis = from_arguments(args)
+    results = alignments(analysis.paths, analysis.port_audit())
+    if args.out is not None:
+        args.out.mkdir(parents=True, exist_ok=True)
+        (args.out / 'vtable-alignment.json').write_text(json.dumps(results, indent=2) + '\n')
 
 
 if __name__ == '__main__':

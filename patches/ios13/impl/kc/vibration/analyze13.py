@@ -3,7 +3,7 @@
 their OSMetaClass registrations (size/super), and C++ vtables. Never touches a device."""
 import sys, struct, json, argparse
 from pathlib import Path
-from macho import Kernel
+from patches.shared.impl.kc.sn2400.macho import Kernel
 from capstone import Cs, CS_ARCH_ARM64, CS_MODE_LITTLE_ENDIAN
 
 MASK = (1 << 64) - 1

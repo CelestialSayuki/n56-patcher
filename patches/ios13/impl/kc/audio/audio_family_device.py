@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """ARMIIS allocation and virtual-interface changes used by shared Mikey audio."""
 import struct
-from inspect_port import MASK, disassemble, registrations, add_vtables, pointer
+from patches.ios13.impl.kc.audio.inspect_port import MASK, disassemble, registrations, add_vtables, pointer
 
 START = 0xfffffff0086efd38
 SIZE = 39392

@@ -2,7 +2,7 @@
 """Track receiver origins for virtual calls in native CS42L67 main code."""
 import json
 import struct
-from inspect_port import HERE, MASK, disassemble, pointer
+from patches.ios13.impl.kc.audio.inspect_port import HERE, MASK, disassemble, pointer
 
 START = 0xfffffff0086efd38
 END = 0xfffffff0086f4d80

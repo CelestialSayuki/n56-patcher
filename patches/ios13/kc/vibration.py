@@ -1,6 +1,6 @@
-"""DRV2604 震动驱动。"""
+"""DRV2604 震动驱动（与 14.8 一样在进程内构建，显式传入输入内核、输出目录与 derived）。"""
 from core.patch import Patch
-from core.impl import transform
+from patches.ios13.impl.kc.vibration.transplant import build
 
 
 class KcVibration(Patch):
@@ -13,4 +13,5 @@ class KcVibration(Patch):
     note = "DRV2604 震动驱动"
 
     def apply(self, ctx, art):
-        return transform(ctx, "kc/vibration/transplant.py", art, "vibration", True)
+        ctx.ensure_derived()
+        return str(build(art, ctx.wk("vibration"), ctx.derived_root))

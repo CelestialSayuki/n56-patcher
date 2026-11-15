@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
-"""Inspect CS42L67 audio-family entry points and layout changes."""
+"""Inspect CS42L67 audio-family entry points and layout changes.
+
+单独运行（仓库根目录）：python3 -m patches.ios13.impl.kc.audio.audio_family_inspect --input <13 内核>
+"""
+import argparse
 import json
 import struct
-from inspect_port import HERE, PATHS, Kernel, code_range, disassemble, registrations, add_vtables, MASK
+from patches.ios13.impl.kc.audio.inspect_port import HERE, Kernel, code_range, disassemble, registrations, add_vtables, MASK
 
 PAIRS = {
     0xfffffff00801afb4: (0xfffffff00609c424, 'IOAudio2 scalar control dictionary factory'),
@@ -78,8 +82,12 @@ def layout_evidence(kernels):
                                          dict(offset12=0x1e0, offset13=0x210)]))
 
 
-def main():
-    kernels = {tag: Kernel(PATHS[tag]) for tag in ('12', '13')}
+def family_abi(paths, audit):
+    """音频家族外部函数、共用类与字段的 12→13 对应。
+
+    paths 见 inspect_port.kernel_paths；audit 为 port_audit 的结果。
+    """
+    kernels = {tag: Kernel(paths[tag]) for tag in ('12', '13')}
     branches = json.loads((HERE / 'donor-code.json').read_text())['external_branches']
     maps = []
     for branch in branches:
@@ -114,10 +122,9 @@ def main():
                                 size12=old['size'], size13=new['size'],
                                 vtable12=hex(old['vtable']) if 'vtable' in old else None,
                                 vtable13=hex(new['vtable']) if 'vtable' in new else None))
-    from audio_family_calls import analyze
-    from audio_family_globals import analyze as analyze_globals
-    from audio_family_device import analyze as analyze_device
-    audit = json.loads((HERE / 'port-audit.json').read_text())
+    from patches.ios13.impl.kc.audio.audio_family_calls import analyze
+    from patches.ios13.impl.kc.audio.audio_family_globals import analyze as analyze_globals
+    from patches.ios13.impl.kc.audio.audio_family_device import analyze as analyze_device
     main_analysis = analyze(kernels['12'], audit)
     main_spi_sites = ['0xfffffff0086f44ac', '0xfffffff0086f4528',
                       '0xfffffff0086f4b5c', '0xfffffff0086f4ca4',
@@ -149,7 +156,7 @@ def main():
                    dict(role='EmbeddedAudio command-gate dictionary',
                         offset12=0x108, offset13=0xf0,
                         read12='0xfffffff00802ce0c', read13='0xfffffff0060bd3ec')]
-    out = dict(donor=str(PATHS['12']), target=str(PATHS['13']),
+    out = dict(donor=str(paths['12']), target=str(paths['13']),
                external_functions=maps, global_objects=objects,
                constructor_destructor_mappings=[entry for entry in maps
                                                if 'constructor' in entry['role'] or 'destructor' in entry['role']],
@@ -159,9 +166,16 @@ def main():
                main_analysis_scope=main_analysis['scope'],
                referenced_global_cells=analyze_globals(kernels['12'], audit, objects))
     out.update(analyze_device(kernels, audit))
-    (HERE / 'audio-family-abi.json').write_text(json.dumps(out, indent=2) + '\n')
-    print('Mapped external functions:', len(maps))
-    print('Provider class objects:', len(objects))
+    return out
+
+
+def main(argv=None):
+    from patches.ios13.impl.kc.audio.analysis import add_arguments, from_arguments
+    parser = argparse.ArgumentParser(description=__doc__)
+    add_arguments(parser)
+    out = from_arguments(parser.parse_args(argv)).family_abi()
+    print('Mapped external functions:', len(out['external_functions']))
+    print('Provider class objects:', len(out['global_objects']))
 
 
 if __name__ == '__main__':

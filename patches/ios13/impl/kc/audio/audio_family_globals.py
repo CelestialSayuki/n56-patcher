@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Map borrowed audio vtable cells and metaclass references."""
-from inspect_port import MASK, disassemble, pointer
+from patches.ios13.impl.kc.audio.inspect_port import MASK, disassemble, pointer
 
 MAIN = 0xfffffff0086efd38
 SIZE = 39392

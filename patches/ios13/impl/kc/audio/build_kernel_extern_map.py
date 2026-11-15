@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
-"""Record the audio driver's verified iOS 12 to iOS 13 kernel entries."""
+"""Record the audio driver's verified iOS 12 to iOS 13 kernel entries.
+
+单独运行（仓库根目录）：python3 -m patches.ios13.impl.kc.audio.build_kernel_extern_map --input <13 内核>
+"""
+import argparse
 import json
 import struct
 
-from kernel_externs import HERE, ROOT, SOURCE, TARGET, Kernel, disassemble, metaclasses
+from patches.ios13.impl.kc.audio.kernel_externs import HERE, Kernel, disassemble, metaclasses
 
 
 SYMBOL_MAP = {
@@ -81,9 +85,12 @@ def branch_target(kernel, call):
     return call + immediate * 4
 
 
-def main():
-    source, target = Kernel(SOURCE), Kernel(TARGET)
-    symbols = json.loads((HERE.parent / 'vibration/target-symbols.json').read_text())
+def extern_map(paths, symbols):
+    """音频调用的内核函数在 13 里的入口（data_globals 由 Analysis 另行补上）。
+
+    paths 见 inspect_port.kernel_paths；symbols 为 13 输入内核的符号表。
+    """
+    source, target = Kernel(paths['12']), Kernel(paths['13'])
     donor = json.loads((HERE / 'donor-code.json').read_text())
     classes = metaclasses(source, 0xfffffff007cb0d60)
     reverse = {}
@@ -124,13 +131,19 @@ def main():
               for provider in ('kernel', 'com.apple.driver.AppleARMPlatform')}
     assert counts == {'kernel': 32, 'com.apple.driver.AppleARMPlatform': 2}
     assert confirmed['0xfffffff007cfc4b4']['to'] == '0xfffffff0075f82e4'
-    report = dict(source=str(SOURCE), target=str(TARGET), counts=counts, confirmed=confirmed,
-                  map={before: record['to'] for before, record in confirmed.items()}, unresolved=[],
-                  iosleep=dict(source='0xfffffff007cfc4b4', target='0xfffffff0075f82e4',
-                               scale=1000000, source_delay='0xfffffff0076b4a5c',
-                               target_delay='0xfffffff0070efbc8'))
-    (HERE / 'kernel-extern-map.json').write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
-    print(json.dumps(dict(counts=counts, unresolved=report['unresolved'], output=str(HERE / 'kernel-extern-map.json'))))
+    return dict(source=str(paths['12']), target=str(paths['13']), counts=counts, confirmed=confirmed,
+                map={before: record['to'] for before, record in confirmed.items()}, unresolved=[],
+                iosleep=dict(source='0xfffffff007cfc4b4', target='0xfffffff0075f82e4',
+                             scale=1000000, source_delay='0xfffffff0076b4a5c',
+                             target_delay='0xfffffff0070efbc8'))
+
+
+def main(argv=None):
+    from patches.ios13.impl.kc.audio.analysis import add_arguments, from_arguments
+    parser = argparse.ArgumentParser(description=__doc__)
+    add_arguments(parser)
+    report = from_arguments(parser.parse_args(argv)).kernel_extern_map()
+    print(json.dumps(dict(counts=report['counts'], unresolved=report['unresolved'])))
 
 
 if __name__ == '__main__':

@@ -1,12 +1,9 @@
 """Plan the CS42L67 class and metaclass tables in the native CS42L81 slots."""
-import json
-from pathlib import Path
 import struct
 
-from inspect_port import real
+from patches.ios13.impl.kc.audio.inspect_port import real
 
 
-HERE = Path(__file__).resolve().parent
 OLD_AUDIO_PARENT = 0xfffffff0075360a8
 NEW_AUDIO_PARENT = 0xfffffff006e1c418
 TABLES = (
@@ -31,8 +28,11 @@ def _audio_slot(slot):
     return slot + (1 if slot < 178 else 4)
 
 
-def build_tables(source, target, remap):
-    """Return integer-address writes, address aliases, and logical class slots."""
+def build_tables(source, target, remap, mikey):
+    """Return integer-address writes, address aliases, and logical class slots.
+
+    mikey 为 Analysis.mikey_abi() 的结果（取其中重建的 Mikey 类表）。
+    """
     audio = _read_slots(target, NEW_AUDIO_PARENT, 341) + [0, 0]
     old_audio = _read_slots(source, TABLES[0][1], 339, legacy=True)
     old_parent = _read_slots(source, OLD_AUDIO_PARENT, 337, legacy=True)
@@ -40,13 +40,13 @@ def build_tables(source, target, remap):
         if slot >= len(old_parent) or value != old_parent[slot]:
             audio[_audio_slot(slot)] = remap(value)
 
-    mikey = json.loads((HERE / 'mikey-abi.json').read_text())['classes']
+    mikey_classes = mikey['classes']
     class_slots = {'AppleCS42L67Audio': audio}
     for name in ('AppleCS42L67Mikey', 'AppleCS42L67MikeyBus'):
         class_slots[name] = [
             remap(int(entry['address'], 16)) if entry['source'] == 'donor12'
             else int(entry['address'], 16)
-            for entry in mikey[name]['rebuilt_entries']
+            for entry in mikey_classes[name]['rebuilt_entries']
         ]
 
     writes = []

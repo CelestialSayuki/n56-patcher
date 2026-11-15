@@ -1,7 +1,7 @@
 """Use the iOS13 EQ identifier at every CS42L67 control boundary."""
 import struct
 
-from inspect_port import disassemble
+from patches.ios13.impl.kc.audio.inspect_port import disassemble
 
 SITES = {
     0xfffffff0086f0708: 'get buffer',
