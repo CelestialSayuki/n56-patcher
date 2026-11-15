@@ -76,6 +76,7 @@ flowchart LR
 ```
 
 > [!IMPORTANT]
+> - Hardware acceptance requires both paths: the custom DFU chain must boot iOS 13, and Apple's stock chain must boot iOS 12 without sending custom components. `s3=0x80 / s4=0x1 / s5=0x40` must exactly match the DeviceTree fstab contract; omitting any one of them causes an early iOS 13 boot failure.
 > - A restore invalidates the old IM4M and old boot bundles. `build` only checks that `state/IM4M.bin` exists, not whether it is stale, so run `extract-im4m` before building on its own.
 > - Each web UI stage uses its own `build/` directory, so when you run stages separately `boot` does not reuse the output of `build`. Use “端到端” (end to end) for a fresh install.
 > - `--dry-run` only prints the flow. It does not access or write to the device and does not produce build output.
