@@ -16,6 +16,8 @@ import time
 
 from patches.shared.donor_whitelist import union
 
+from . import log
+
 MANIFEST = "manifest.json"
 PARTIAL_SUFFIX = ".partial"
 
@@ -191,3 +193,46 @@ __all__ = [
     "DonorError", "build_manifest", "finalize", "snapshot_tree", "snapshot_device",
     "verify", "load_manifest", "donor_path", "snapshot_dir", "require_ready", "missing_entries",
 ]
+
+
+# 每次刷机都会按设备重新个性化签名的文件。快照若来自上一次刷机，这些文件就是旧的：
+# 旧的 SEP 固件让 seputil --load 直接内核崩溃（实机），旧的基带票据让基带起不来。
+PERSONALIZED = (
+    "usr/standalone/firmware/sep-firmware.img4",
+    "usr/local/standalone/firmware/Baseband/Mav10/bbticket.der",
+    "usr/local/standalone/firmware/Baseband/Mav10/sbl1.mbn",
+)
+
+
+def refresh_if_stale(session, system_slice, dest, device_id, expected_build):
+    """设备上的 iOS 12 还在时，比对个性化文件；与快照不一致说明快照来自上一次刷机，重新生成。
+    iOS 12 已删（s1 读不到这些文件）时沿用现有快照。返回 True 表示快照已更新。"""
+    session.mount(system_slice, "/mnt1", ro=True)
+    try:
+        stale = []
+        for rel in PERSONALIZED:
+            data = session.sh(f'cat "/mnt1/{rel}" 2>/dev/null', check=False)
+            if not data:
+                return False
+            local = os.path.join(dest, rel)
+            if not os.path.isfile(local):
+                stale.append(rel)
+                continue
+            with open(local, "rb") as stream:
+                if hashlib.sha256(stream.read()).digest() != hashlib.sha256(data).digest():
+                    stale.append(rel)
+    finally:
+        session.umount("/mnt1")
+    if not stale:
+        return False
+    log.warn("donor 快照来自上一次刷机（" + "、".join(os.path.basename(r) for r in stale) + " 与设备不同），重新生成")
+    aside = dest + ".stale-" + time.strftime("%Y%m%d-%H%M%S")
+    os.replace(dest, aside)
+    try:
+        snapshot_device(session, system_slice, dest, device_id, expected_build)
+    except BaseException:
+        if not os.path.exists(dest):
+            os.replace(aside, dest)
+        raise
+    log.log(f"donor 快照已更新（旧快照留在 {aside}）")
+    return True

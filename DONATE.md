@@ -10,6 +10,14 @@ If n56-patcher helped you, tips are welcome and support future updates. Tips are
 
 n56-patcher が役に立ったら、今後の更新を支援していただけると嬉しいです。寄付は任意で、特典はありません。
 
+这个项目到现在光 AI 就用掉了 **1500 多美元额度** 的 token 🥺 一杯奶茶钱也是莫大的鼓励 🙏
+
+So far this project has used **over US$1,500 worth of AI token quota** 🥺 Even a coffee helps a lot 🙏
+
+這個專案到現在光 AI 就用掉了 **1500 多美元額度** 的 token 🥺 一杯奶茶錢也是莫大的鼓勵 🙏
+
+このプロジェクトは AI のトークンを **1,500 ドル分以上の枠** 使っています 🥺 コーヒー一杯分でも大きな励みです 🙏
+
 | 微信 · WeChat Pay | 支付宝 · Alipay |
 | :---: | :---: |
 | <img src="docs/assets/donate/wechat.jpg" width="260" alt="WeChat Pay"> | <img src="docs/assets/donate/alipay.jpg" width="260" alt="Alipay"> |

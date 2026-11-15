@@ -6,6 +6,7 @@
 - 用途（slices）：用户声明这个分区打算做什么，例如 s1 = "13 Sys"。
 - 实际内容（content）：分区上物理存在的东西，例如 s1 仍是 iOS 12。donor 门禁看的是实际内容。
 """
+import copy
 import fcntl
 import hashlib
 import json
@@ -19,8 +20,23 @@ BASEBAND = "baseband"
 VERSIONS = {
     "12": {"implemented": True, "source_only": True, "reason": "仅作为 donor 来源"},
     "13": {"implemented": True},
-    "14": {"implemented": False, "reason": "target 未提交"},
+    "14": {"implemented": True},
 }
+# 可安装版本对应的目标清单（targets/<name>.py）。宗卷的设备操作、安装、重建与启动都按它选目标。
+VERSION_TARGETS = {"13": "n56-ios13", "14": "n56-ios14"}
+
+
+def data_protection_of(state, version, default=None):
+    """宗卷设置里为该版本选定的 Data 保护模式（encrypted / none）；未选时返回 default。"""
+    return state.get("data_protection", {}).get(version, default)
+
+
+def set_data_protection(state, version, mode):
+    if mode not in ("encrypted", "none"):
+        raise SlotError(f"未知的 Data 保护模式: {mode}")
+    new = copy.deepcopy(state)
+    new.setdefault("data_protection", {})[version] = mode
+    return new
 
 
 class SlotError(ValueError):

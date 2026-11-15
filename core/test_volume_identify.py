@@ -49,6 +49,31 @@ class ProbeTests(unittest.TestCase):
         self.assertEqual(vi.probe(rd, 3, "Baseband", 0x80, False).kind, "Baseband")
         self.assertEqual(rd.commands, [])
 
+    def test_volume_already_mounted_elsewhere_is_read_in_place(self):
+        # 安装流程已把 SystemA 只读挂在 /mnt1；再挂到探测点会 Resource busy。
+        class Mounted(FakeRamdisk):
+            def mount(self, slice_no, mnt, ro=False):
+                raise AssertionError("已挂载的卷不应再挂载")
+
+            def sh(self, cmd, data=None, check=True, timeout=120):
+                if cmd.startswith("cat "):
+                    self.commands.append(cmd)
+                    path = cmd.split(" ", 1)[1].split(" 2>")[0].strip()
+                    for mountpoint, slice_no in self.mounts.items():
+                        if path.startswith(mountpoint + "/"):
+                            local = os.path.join(self.roots[slice_no], path[len(mountpoint) + 1:])
+                            if os.path.isfile(local):
+                                with open(local, "rb") as stream:
+                                    return stream.read()
+                    return b""
+                return super().sh(cmd, data, check, timeout)
+
+        rd = Mounted({1: self.sys_root})
+        rd.mounts["/mnt1"] = 1
+        info = vi.probe(rd, 1, "SystemA", 0, encrypted=False)
+        self.assertEqual((info.kind, info.build), ("System", "17H35"))
+        self.assertEqual(rd.mounts, {"/mnt1": 1})
+
     def test_unmarked_plain_volume_is_unknown(self):
         blank = tempfile.mkdtemp()
         info = vi.probe(FakeRamdisk({6: blank}), 6, "x", 0, encrypted=False)

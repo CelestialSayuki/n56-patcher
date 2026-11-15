@@ -41,7 +41,7 @@ def build_framework(ctx):
 
 
 def ensure_systembag(ctx, artifacts=None):
-    """需已只读挂载 /mnt1、读写挂载 /mnt6；本函数加载 SEP 并挂载 /mnt7。"""
+    """需已读写挂载 /mnt6；本函数加载 SEP（有 donor 快照时用快照里的固件）并挂载 /mnt7。"""
     ssh = ctx.ssh
     ssh.require_sep()
     device = f'/dev/disk0s1s{ctx.t["mounts"]["data_b"]}'

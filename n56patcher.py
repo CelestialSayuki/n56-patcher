@@ -2,7 +2,28 @@
 # -*- coding: utf-8 -*-
 """N56 第二系统构建与安装入口。
 
---target 选择系统；list 查看补丁；build 构建五件套；install 安装；all 端到端执行。
+阶段：
+  ramdisk       引导 SSH ramdisk（已在运行时直接沿用）
+  extract-im4m  从设备 NOR 重提本机 IM4M（刷机后必做）
+  volumes       建第二系统的 System / Data 卷
+  rootfs        清空目标 System 卷并写入系统镜像（需要 root）
+  patch-rootfs  写入 overlay 补丁、初始化 Data、设置卷 role
+  install       volumes + rootfs + patch-rootfs（需要 root）
+  build         构建 iBSS / iBEC / DeviceTree / TrustCache / KernelCache
+  boot          经 DFU 发送启动链（缺启动包时先 build）
+  all           端到端：上面全部（需要 root）
+  list          列出当前选择的补丁
+  status        读取设备上各卷的版本与 role（需要 ramdisk）
+
+宗卷（分区用途、donor 快照、识别、格式化…）用 n56patcher.py slots，见 slots --help。
+
+示例：
+  sudo python3 n56patcher.py all --target n56-ios14              # 按卷名自动选卷
+  python3 n56patcher.py slots --target n56-ios14 identify          # 先识别设备分区
+  python3 n56patcher.py slots assign s4 "14 Sys" && python3 n56patcher.py slots assign s5 "14 Data"
+  python3 n56patcher.py slots protect 14 encrypted
+  sudo python3 n56patcher.py all --slot 14                         # 按宗卷安装，目标随版本
+  python3 n56patcher.py build --target n56-ios14 --with watch --without camera
 """
 import argparse
 import os
@@ -27,9 +48,17 @@ def build_parser():
     p.add_argument("stage", choices=[
         "ramdisk", "extract-im4m", "volumes", "rootfs", "patch-rootfs",
         "build", "boot", "install", "all", "list", "status"])
-    p.add_argument("--target", default="n56-ios13", help="目标清单名（targets/<name>.py）")
+    from core.context import TARGETS_DIR
+    targets = sorted(fn[:-3].replace("_", "-") for fn in os.listdir(TARGETS_DIR)
+                     if fn.endswith(".py") and not fn.startswith("_"))
+    p.add_argument("--target", default=None,
+                   help=f"目标清单（{' / '.join(targets)}）；默认：用 --slot 时随版本，否则 n56-ios13")
     p.add_argument("--features", default=None,
-                   help="逗号分隔，覆盖清单的 features 选挂")
+                   help="逗号分隔，整体替换清单的 features")
+    p.add_argument("--with", dest="with_features", default=None, metavar="FEATURES",
+                   help="逗号分隔，在清单（或 --features）基础上追加功能")
+    p.add_argument("--without", dest="without_features", default=None, metavar="FEATURES",
+                   help="逗号分隔，从清单（或 --features）里去掉功能")
     p.add_argument("--patches", default=None,
                    help="逗号分隔的 KC patch ID，覆盖 KC 功能选择；空串选择基础 KC")
     p.add_argument("--exclude", default=None,
@@ -45,7 +74,8 @@ def build_parser():
     p.add_argument("--keep-data", action="store_true",
                    help="实验性：--slot 安装时不清空 Data 卷（未在设备上验证）")
     p.add_argument("--slot", default=None, metavar="VERSION",
-                   help="按宗卷槽位安装该版本（如 13），卷号由 slots 记录给出，默认工作目录 build/slots/<版本>")
+                   help="按宗卷槽位安装该版本（13 或 14）：卷号与 Data 保护模式取自宗卷记录"
+                        "（先用 slots assign / protect 设定），目标随版本，默认工作目录 build/slots/<版本>")
     p.add_argument("--allow-manual", action="store_true", help="执行 manual 的 patch")
     p.add_argument("--dry-run", action="store_true", help="只演练，不碰设备/不产出")
     p.add_argument("--no-identity-check", action="store_true", help="boot 时不校验设备身份")
@@ -87,6 +117,9 @@ def slot_binding(version, stage):
 def make_flow(args):
     slot = donor = None
     workdir = args.workdir
+    if args.target is None:
+        from core import slots
+        args.target = slots.VERSION_TARGETS.get(args.slot, "n56-ios13") if args.slot else "n56-ios13"
     if args.slot:
         slot, donor = slot_binding(args.slot, args.stage)
         if workdir is None:
@@ -97,6 +130,15 @@ def make_flow(args):
         ctx.donor_dir = donor
         ctx.keep_data = bool(getattr(args, "keep_data", False))
         ctx.t["volumes"]["min_slice"] = 1
+    if slot:
+        from core import slots
+        from core.slots_cli import STATE_PATH
+        expected = slots.VERSION_TARGETS.get(args.slot)
+        if expected and ctx.t["name"] != expected:
+            log.die(f"宗卷槽位 {args.slot} 对应目标 {expected}，当前目标是 {ctx.t['name']}（加 --target {expected}）")
+        if not args.data_protection:
+            # 宗卷设置里为该版本选定的 Data 保护模式；安装、重建、启动都用它，启动包哈希才一致
+            args.data_protection = slots.data_protection_of(slots.load_state(STATE_PATH), args.slot)
     if args.bootargs:
         ctx.t["bootargs"] = args.bootargs
     if args.data_protection:
@@ -109,6 +151,12 @@ def make_flow(args):
         ctx.set_ipsw_input("j96", args.j96_ipsw)
     if args.features is not None:
         ctx.t["features"] = [x.strip() for x in args.features.split(",") if x.strip()]
+    if args.with_features:
+        extra = [x.strip() for x in args.with_features.split(",") if x.strip()]
+        ctx.t["features"] = list(dict.fromkeys(ctx.t.get("features", []) + extra))
+    if args.without_features:
+        drop = {x.strip() for x in args.without_features.split(",") if x.strip()}
+        ctx.t["features"] = [f for f in ctx.t.get("features", []) if f not in drop]
     if args.patches is not None:
         ctx.t["kc_patches"] = [x.strip() for x in args.patches.split(",") if x.strip()]
     if args.exclude is not None:
@@ -157,10 +205,49 @@ def main(argv=None):
         dispatch[args.stage]()
     finally:
         flow.close()
+    if args.slot and args.stage == "all" and not args.dry_run:
+        # 与 slots install 一致：端到端装完后把该版本记为已装（启动包哈希取本次 build）
+        import argparse as _argparse
+        from core import slots
+        from core.slots_cli import cmd_record
+        try:
+            cmd_record(_argparse.Namespace(version=args.slot))
+        except slots.SlotError as exc:
+            log.warn(f"安装记录未写入：{exc}")
     return 0
 
 
+def _terminate_as_interrupt(signum, frame):
+    # GUI 的「取消」发 SIGTERM。默认处理会直接退出、不跑 finally，留下占端口的 iproxy；
+    # 按 Ctrl-C 处理，让 flow.close() 照常收尾。
+    raise KeyboardInterrupt
+
+
+def _return_ownership(repo):
+    """经 sudo 运行时，生成的文件归 root，之后不经 sudo 的阶段（GUI 的识别、build 等）就写不进去。
+    退出前把 build/、state/、ipsw/ 下的文件属主还给调用 sudo 的用户（不进入挂载点）。"""
+    uid, gid = os.environ.get("SUDO_UID"), os.environ.get("SUDO_GID")
+    if os.geteuid() != 0 or not uid or not gid:
+        return
+    for top in ("build", "state", "ipsw"):
+        top = os.path.join(repo, top)
+        if not os.path.isdir(top):
+            continue
+        for current, dirs, files in os.walk(top):
+            dirs[:] = [d for d in dirs if not os.path.ismount(os.path.join(current, d))]
+            for name in [*dirs, *files, None]:
+                path = current if name is None else os.path.join(current, name)
+                try:
+                    os.lchown(path, int(uid), int(gid))
+                except OSError:
+                    pass
+
+
 if __name__ == "__main__":
+    import signal
+    signal.signal(signal.SIGTERM, _terminate_as_interrupt)
+    import atexit
+    atexit.register(_return_ownership, os.path.dirname(os.path.abspath(__file__)))
     try:
         sys.exit(main())
     except log.Die as e:

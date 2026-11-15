@@ -1,0 +1,67 @@
+{
+  "confirmed": {
+    "0xfffffff007cb0d60": {
+      "to": "0xfffffff007636bb0",
+      "name": "OSMetaClass::OSMetaClass(this,name,super,size)"
+    },
+    "0xfffffff007cb1a68": {
+      "to": "0xfffffff007637458",
+      "name": "OSMetaClass::~OSMetaClass (D2)"
+    },
+    "0xfffffff007cb4a64": {
+      "to": "0xfffffff007639508",
+      "name": "OSObject::operator delete(void*,size_t)"
+    },
+    "0xfffffff007cb4b54": {
+      "to": "0xfffffff0076394b8",
+      "name": "OSObject::operator new(size_t)"
+    },
+    "0xfffffff007cb24b4": {
+      "to": "0xfffffff007637c10",
+      "name": "OSMetaClass::instanceConstructed() const"
+    },
+    "0xfffffff007cb0ef4": {
+      "to": "0xfffffff007636d58",
+      "name": "OSMetaClassBase::safeMetaCast(obj,meta)"
+    },
+    "0xfffffff007671740": {
+      "to": "0xfffffff0070f8a20",
+      "name": "memset"
+    },
+    "0xfffffff007e805d0": {
+      "to": "0xfffffff005dca5d0",
+      "name": "AppleARMPWM::AppleARMPWM() 构造器"
+    },
+    "0xfffffff007e805f4": {
+      "to": "0xfffffff005dca5f0",
+      "name": "AppleARMPWM::~AppleARMPWM() 析构器"
+    },
+    "0xfffffff0076bb268": {
+      "to": "0xfffffff00774f304",
+      "name": "panic (vararg)"
+    },
+    "0xfffffff007e6caa0": {
+      "to": "0xfffffff005db0094",
+      "name": "getFunction(this,name)：按名查对象、调其虚表+0x28"
+    },
+    "0xfffffff007cfc594": {
+      "to": "0xfffffff007680380",
+      "name": "IOLog(fmt,...)"
+    },
+    "0xfffffff007dbdf80": {
+      "to": "0xfffffff00772d918",
+      "name": "PE_parse_boot_argn(name,buf,maxlen)：读 drv2604-force_rtp / drv2604-debug"
+    },
+    "0xfffffff007680650": {
+      "to": "0xfffffff0071088ac",
+      "name": "__stack_chk_fail：以 'Kernel stack memory corruption detected' panic"
+    },
+    "0xfffffff007cb1d5c": {
+      "to": "0xfffffff0076375f4",
+      "name": "OSMetaClass::getClassName()：className=metaclass->[0x18]; return className->getCStringNoCopy()"
+    }
+  },
+  "pwm_metaclass": "0xfffffff007901688",
+  "pwm_vtable": "0xfffffff006d9e130",
+  "pwm_meta_vtable": "0xfffffff006d9e6f8"
+}

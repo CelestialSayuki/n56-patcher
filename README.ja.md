@@ -2,16 +2,17 @@
 
 # n56-patcher
 
-**iPhone 6 Plus（N56AP / iPhone7,1）で iOS 13.7 をセカンドシステムとして動かすためのビルド・インストールツール**
+**iPhone 6 Plus（N56AP / iPhone7,1）で iOS 13.7 / 14.8 をセカンドシステムとして動かすためのビルド・インストールツール**
 
 [简体中文](README.md) · [English](README.en.md) · [繁體中文](README.zh-TW.md) · 日本語
 
 ![Device](https://img.shields.io/badge/Device-iPhone%206%20Plus-0A84FF?style=flat-square&logo=apple&logoColor=white)
 ![iOS](https://img.shields.io/badge/iOS-13.7%20(17H35)-5E5CE6?style=flat-square)
+![iOS](https://img.shields.io/badge/iOS-14.8%20(18H17)-5E5CE6?style=flat-square)
 ![Host](https://img.shields.io/badge/Host-macOS%20%2B%20Xcode-30363D?style=flat-square)
 ![Language](https://img.shields.io/badge/Python-3-3776AB?style=flat-square&logo=python&logoColor=white)
 
-[クイックスタート](#クイックスタート) · [機能](#機能) · [高度な使い方](#高度な使い方) · [作者](#作者) · [プロジェクトの支援](#プロジェクトの支援)
+[クイックスタート](#クイックスタート) · [iOS 14.8](#ios-148) · [機能](#機能) · [高度な使い方](#高度な使い方) · [作者](#作者) · [プロジェクトの支援](#プロジェクトの支援)
 
 </div>
 
@@ -19,7 +20,9 @@
 
 デフォルトでは、クリーンな J96 カーネルから KC を再構築し、iBSS、iBEC、DeviceTree、TrustCache も生成します（ブートイメージは計 5 つ）。カーネルと DeviceTree の変換は本リポジトリの `patches/<version>/impl/` を直接呼び出し、ファームウェアの入力はローカルの `donors/` に置きます。
 
-プロジェクトは最初から最後まで動作を確認済みで、最終的なブートパッケージにはハードウェア対応、DataB の復号、checkra1n が含まれます。技術的な結論は [docs/conclusions.md](docs/conclusions.md)（中国語）を参照してください。
+プロジェクトは最初から最後まで動作を確認済みで、最終的なブートパッケージにはハードウェア対応、DataB の復号、checkra1n が含まれます。技術的な結論は [docs/conclusions/13.md](docs/conclusions/13.md)（中国語）を参照してください。Touch ID は iOS 12 SEP の通信ブリッジで動作します。
+
+iOS 14.8 は起動と脱獄ができ、ハードウェアとシステム機能はすべて動作しています。[iOS 14.8](#ios-148) を参照してください。
 
 > [!WARNING]
 > このツールはデバイス上にボリュームを作成し、システムを書き込みます。事前にバックアップを取ってください。本プロジェクトは Apple とは無関係で、現状のまま提供されます。使用に伴うリスクは利用者が負うものとします。
@@ -86,8 +89,31 @@ flowchart LR
 | --- | --- |
 | `ipsw/` | 自分でダウンロードした IPSW。カーネル、DeviceTree、TC、Wi-Fi ファームウェア、Health ライブラリはビルド時に `ipsw/cache/derived/` へ自動生成されます |
 | `donors/` | `tools/setup.py` が生成するファームウェア入力 |
-| `state/` | IM4M。`--data-protection none` には `state/keybags.tar` を別途用意する必要がありますが、デフォルトの `encrypted` では不要です |
+| `state/` | IM4M。iOS 13 で `--data-protection none` を使う場合は `state/keybags.tar` を別途用意する必要があります。デフォルトの `encrypted` と iOS 14 では不要です |
 | `build/` | 生成結果 |
+
+## iOS 14.8
+
+ターゲット `n56-ios14` は、J96 14.8 のカーネルとシステムイメージ、N66 14.8 のドライバと iPhone 用リソースを使い、独立した System14 / Data14 ボリュームにインストールします。Data14 はデフォルトで暗号化します（`--data-protection none` で無効化できます）。`ipsw/` には次も置いてください：
+
+```text
+ipsw/iPhone_5.5_14.8_18H17_Restore.ipsw            # N66
+ipsw/iPad_64bit_TouchID_14.8_18H17_Restore.ipsw    # J96
+```
+
+iOS 12.5.8 を復元したら、デバイスを DFU にして次のコマンドを一度実行すると、現在の段階まで（checkra1n、Cydia、USB SSH を含む）インストールできます。Web インターフェイスでターゲット `n56-ios14`、ステージ「エンドツーエンド」を選んでも同じです：
+
+```sh
+sudo python3 n56patcher.py all --target n56-ios14
+```
+
+| 動作済み |
+| --- |
+| タッチ、表示、Wi-Fi、Bluetooth、ベースバンド、オーディオ、振動、センサー、カメラ、ヘルスケア、アクティベーションと iCloud、脱獄、Touch ID、NFC/Apple Pay、Apple Watch のペアリング、iCloud バックアップ（暗号化 Data が必要） |
+
+Touch ID（機能 `touchid`）はデフォルトで有効です。カーネルには iOS 12 SEP の通信ブリッジと、初期化・登録・照合のプロトコル変換を組み込みました。13.7 と 14.8 の両方に対応しています。指紋センサーは SEP との工場出荷時のペアリングが必要で、センサーを交換した端末はネイティブの iOS 12 と同じく登録できません。
+
+16 GB モデルは容量に余裕がありません。インストール前に [docs/conclusions/14.md](docs/conclusions/14.md)（中国語）の「空間」の節を読んでください。現状、初回起動、技術的な詳細もこの文書にまとめています。
 
 ## 機能
 
@@ -102,6 +128,7 @@ flowchart LR
 | `wifi` | `kc.wifi` | ベース KC |
 | `vibration` | `kc.vibration` | ベース KC |
 | `sep` | `kc.legacy_sep` | ベース KC |
+| `touchid` | `kc.touchid` | SEP（実験的、下記参照） |
 | `audio` | `kc.audio` | ベース KC |
 
 ## 高度な使い方
@@ -130,7 +157,7 @@ Health オーバーレイは、まず N66 17H35 から対象 50 バンドルの�
 
 `ui` オーバーレイは N66 17H35 から Health、電話、Wallet を配置し、不足または内容の異なる iPhone Settings のリソースと設定バンドルのバイナリをすべて上書きして、起動ロゴ、アプリアイコン、壁紙を補います。アプリ本体は N66 iOS 13.7 由来のものだけを受け付けます。
 
-クリーンビルドの KC、iBSS、DeviceTree は実機のブートパッケージとバイト単位で一致します。iBEC は boot-args を内包しており、デフォルトでは `serial=3` を含みません。シリアルログが必要な場合は `--bootargs` で上書きしてください。TrustCache は同じビルドで書き込んだ rootfs と対になるため、インストール済みのデバイスは自身のブートパッケージを使い続けます。詳しくは[技術的な結論](docs/conclusions.md#trustcache-配套)（中国語）を参照してください。
+クリーンビルドの KC、iBSS、DeviceTree は実機のブートパッケージとバイト単位で一致します。iBEC は boot-args を内包しており、デフォルトでは `serial=3` を含みません。シリアルログが必要な場合は `--bootargs` で上書きしてください。TrustCache は同じビルドで書き込んだ rootfs と対になるため、インストール済みのデバイスは自身のブートパッケージを使い続けます。詳しくは[技術的な結論](docs/conclusions/13.md#trustcache-配套)（中国語）を参照してください。
 
 </details>
 
@@ -207,7 +234,9 @@ sudo python3 n56patcher.py install \
 
 ## プロジェクトの支援
 
-このプロジェクトが役に立ったら、[ご支援](DONATE.md)いただけると嬉しいです。
+このプロジェクトが役に立ったら、[ご支援](DONATE.md)いただけると嬉しいです 🥺
+
+正直に言うと、iOS 13 と 14 を少しずつ動かすために、このプロジェクトは AI のトークンをこれまでに **1,500 ドル分以上の枠** 使っています……。時間の節約になったなら、コーヒー一杯分でも本当に励みになります 🥺🙏
 
 ## ライセンス
 

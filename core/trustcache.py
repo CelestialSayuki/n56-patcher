@@ -101,6 +101,22 @@ class TrustCache:
             log.die(f"codesign 未输出 sha256 cdhash: {path}")
         return bytes.fromhex(match.group(1))
 
+    HASH_SHA1 = 1
+    HASH_SHA256 = 2
+
+    @staticmethod
+    def _cdhash_any(path):
+        """(cdhash, 哈希类型)：优先 sha256；只有 sha1 CodeDirectory 的第三方二进制
+        （Cydia 底包里的旧工具）取 sha1 cdhash，TrustCache 条目的类型字节写 1。"""
+        result = subprocess.run(["codesign", "-d", "-vvvv", path], capture_output=True, text=True)
+        if result.returncode:
+            log.die(f"无法读取 cdhash: {path}\n{result.stderr}")
+        for name, kind in (("sha256", TrustCache.HASH_SHA256), ("sha1", TrustCache.HASH_SHA1)):
+            match = re.search(rf"CandidateCDHash {name}=([0-9a-f]{{40}})", result.stderr)
+            if match:
+                return bytes.fromhex(match.group(1)), kind
+        log.die(f"codesign 未输出 cdhash: {path}")
+
     def build_full(self):
         import importlib
         builder = importlib.import_module(self.ctx.t["trustcache_builder"])

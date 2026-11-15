@@ -2,16 +2,17 @@
 
 # n56-patcher
 
-**iPhone 6 Plus（N56AP / iPhone7,1）的 iOS 13.7 第二系统构建与安装工具**
+**iPhone 6 Plus（N56AP / iPhone7,1）的 iOS 13.7 / 14.8 第二系统构建与安装工具**
 
 简体中文 · [English](README.en.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md)
 
 ![Device](https://img.shields.io/badge/Device-iPhone%206%20Plus-0A84FF?style=flat-square&logo=apple&logoColor=white)
 ![iOS](https://img.shields.io/badge/iOS-13.7%20(17H35)-5E5CE6?style=flat-square)
+![iOS](https://img.shields.io/badge/iOS-14.8%20(18H17)-5E5CE6?style=flat-square)
 ![Host](https://img.shields.io/badge/Host-macOS%20%2B%20Xcode-30363D?style=flat-square)
 ![Language](https://img.shields.io/badge/Python-3-3776AB?style=flat-square&logo=python&logoColor=white)
 
-[快速开始](#快速开始) · [功能](#功能) · [进阶用法](#进阶用法) · [作者](#作者) · [支持项目](#支持项目)
+[快速开始](#快速开始) · [iOS 14.8](#ios-148) · [功能](#功能) · [进阶用法](#进阶用法) · [作者](#作者) · [支持项目](#支持项目)
 
 </div>
 
@@ -19,7 +20,9 @@
 
 默认从干净 J96 内核重建 KC，同时生成 iBSS、iBEC、DeviceTree、TrustCache 五个启动镜像。内核、设备树与系统补丁按版本放在 `patches/ios13/`；共用算法与设备资源放在 `patches/shared/`。
 
-iOS 13.7 已跑通，启动包包含硬件适配、DataB 解密和 checkra1n。从零开始执行 `all` 可一次完成全部安装步骤。参见 [13.7 技术结论](docs/conclusions.md) 和 [源码结构](docs/patch-layout.md)。
+iOS 13.7 已跑通，启动包包含硬件适配、DataB 解密和 checkra1n。从零开始执行 `all` 可一次完成全部安装步骤。参见 [13.7 技术结论](docs/conclusions/13.md) 和 [源码结构](docs/patch-layout.md)。Touch ID 已接入 iOS 12 SEP 收发桥。
+
+iOS 14.8 已能进系统并越狱，硬件与系统功能均已可用，见 [iOS 14.8](#ios-148)。
 
 > [!WARNING]
 > 本工具会在设备上创建卷并写入系统，操作前请自行备份。本项目与 Apple 无关，按现状提供，风险由使用者自行承担。
@@ -86,8 +89,31 @@ flowchart LR
 | --- | --- |
 | `ipsw/` | 自行下载的 IPSW；内核、设备树、TC、Wi-Fi 固件和 Health 库由构建自动生成到 `ipsw/cache/derived/` |
 | `donors/` | `tools/setup.py` 生成的固件输入 |
-| `state/` | IM4M；`--data-protection none` 还需要自备 `state/keybags.tar`，默认的 `encrypted` 不需要 |
+| `state/` | IM4M；iOS 13 用 `--data-protection none` 时还需要自备 `state/keybags.tar`，默认的 `encrypted` 和 iOS 14 都不需要 |
 | `build/` | 生成结果 |
+
+## iOS 14.8
+
+目标 `n56-ios14`：J96 14.8 内核与系统镜像、N66 14.8 驱动和 iPhone 资源，装在独立的 System14 / Data14 卷上，Data14 默认加密（`--data-protection none` 可改为不加密）。`ipsw/` 里另外放：
+
+```text
+ipsw/iPhone_5.5_14.8_18H17_Restore.ipsw            # N66
+ipsw/iPad_64bit_TouchID_14.8_18H17_Restore.ipsw    # J96
+```
+
+刷回 iOS 12.5.8 后，设备进 DFU，执行一次即可装到当前阶段（含 checkra1n、Cydia 和 USB SSH），网页界面里选目标 `n56-ios14`、阶段“端到端”效果相同：
+
+```sh
+sudo python3 n56patcher.py all --target n56-ios14
+```
+
+| 已可用 |
+| --- |
+| 触屏、显示、Wi-Fi、蓝牙、基带、音频、震动、传感器、相机、健康、激活与 iCloud、越狱、Touch ID、NFC/Apple Pay、Apple Watch 配对、iCloud 备份（需加密 Data） |
+
+Touch ID（功能 `touchid`）默认开启，内核已接入 iOS 12 SEP 收发桥，包含初始化、录入和匹配的协议转换，13.7 与 14.8 均已接入。指纹模块需与 SEP 原厂配对，换过模块的机器和原生 iOS 12 一样无法录入。
+
+16 GB 机型空间很紧，装之前请先看 [docs/conclusions/14.md](docs/conclusions/14.md) 的“空间”一节。现状、首次开机和技术细节都在这份文档里。
 
 ## 功能
 
@@ -102,6 +128,7 @@ flowchart LR
 | `wifi` | `kc.wifi` | 基础 KC |
 | `vibration` | `kc.vibration` | 基础 KC |
 | `sep` | `kc.legacy_sep` | 基础 KC |
+| `touchid` | `kc.touchid` | SEP（实验性，见下） |
 | `audio` | `kc.audio` | 基础 KC |
 
 ## 进阶用法
@@ -132,7 +159,7 @@ Health 覆盖层先从 N66 17H35 部署 50 个目标 bundle 的全部非 Mach-O 
 
 `ui` 覆盖层从 N66 17H35 部署 Health、电话、Wallet，覆盖所有缺失或内容不同的 iPhone Settings 资源与设置 bundle 二进制，并补齐启动 Logo、App 图标和壁纸。App 本体只接受 N66 iOS 13.7 来源。
 
-干净构建的 KC、iBSS、DeviceTree 与实机启动包逐字节一致；iBEC 内嵌 boot-args，默认已去掉 `serial=3`。需要串口日志时用 `--bootargs` 覆盖。TrustCache 与同一次构建写入的 rootfs 配套，已安装设备继续使用自己的启动包，见[技术结论](docs/conclusions.md#trustcache-配套)。
+干净构建的 KC、iBSS、DeviceTree 与实机启动包逐字节一致；iBEC 内嵌 boot-args，默认已去掉 `serial=3`。需要串口日志时用 `--bootargs` 覆盖。TrustCache 与同一次构建写入的 rootfs 配套，已安装设备继续使用自己的启动包，见[技术结论](docs/conclusions/13.md#trustcache-配套)。
 
 </details>
 
@@ -209,7 +236,9 @@ sudo python3 n56patcher.py install \
 
 ## 支持项目
 
-如果这个项目帮到了你，欢迎[打赏支持](DONATE.md)。
+如果这个项目帮到了你，欢迎[打赏支持](DONATE.md) 🥺
+
+说句心里话：为了把 iOS 13、14 一点一点跑起来，这个项目到现在光 AI 就用掉了 **1500 多美元额度** 的 token……如果它帮你省了时间，请我喝杯奶茶也好，一块两块都是莫大的鼓励 🥺🙏
 
 ## 许可证
 

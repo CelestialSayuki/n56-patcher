@@ -10,9 +10,11 @@ from unittest import mock
 from core import log, slots_device
 from core.slots import VERSION_BY_BUILD
 
+PREFIX = slots_device.MOUNT + "/"
+
 
 class FakeRamdisk:
-    """模拟 ramdisk：每个分区对应一个本地目录；挂载后 /mnt9 指向它。"""
+    """模拟 ramdisk：每个分区对应一个本地目录；挂载后探测挂载点指向它。"""
 
     def __init__(self, roots, encrypted_slices=(), unlockable=()):
         self.roots = roots                       # {分区号: 本地目录}
@@ -47,7 +49,7 @@ class FakeRamdisk:
             return "".join(f"/dev/disk0s1s{n} on {m} (apfs)\n" for m, n in self.mounts.items()).encode()
         if cmd.startswith("cat "):
             path = cmd.split(" ", 1)[1].split(" 2>")[0].strip()
-            local = os.path.join(self.current, path[len("/mnt9/"):]) if path.startswith("/mnt9/") else None
+            local = os.path.join(self.current, path[len(PREFIX):]) if path.startswith(PREFIX) else None
             if local and os.path.isfile(local):
                 with open(local, "rb") as stream:
                     return stream.read()
@@ -55,7 +57,7 @@ class FakeRamdisk:
         if cmd.startswith("echo ") and " > " in cmd:
             value, target = cmd[len("echo "):].split(" > ", 1)
             target = target.split(" && ")[0].strip()
-            local = os.path.join(self.current, target[len("/mnt9/"):])
+            local = os.path.join(self.current, target[len(PREFIX):])
             with open(local, "w") as stream:
                 stream.write(value + "\n")
             return b""
@@ -141,8 +143,30 @@ class DeleteTests(unittest.TestCase):
                     return b"Failed to delete fs /dev/disk0s1s5.\n"
                 return super().sh(cmd, data, check, timeout)
         rd = Refuse({5: tempfile.mkdtemp()})
-        with self.assertRaises(RuntimeError):
+        fake_apfs = SimpleNamespace(volumes=lambda: [])
+        with mock.patch.object(slots_device, "Apfs", return_value=fake_apfs):
+            with self.assertRaises(RuntimeError):
+                slots_device.delete_slice(None, rd, 5)
+
+    def test_encrypted_volume_loads_sep_before_delete(self):
+        # 加密卷的 apfs_deletefs 和 newfs_apfs -P 一样要 SEP，否则一直等（实机卡满 120 秒）
+        order = []
+
+        class Tracking(FakeRamdisk):
+            def require_sep(self):
+                order.append("sep")
+
+            def sh(self, cmd, data=None, check=True, timeout=120):
+                if "apfs_deletefs" in cmd:
+                    order.append("delete")
+                return super().sh(cmd, data, check, timeout)
+
+        rd = Tracking({5: tempfile.mkdtemp()})
+        listings = iter([[(5, 0, b"")], []])
+        fake_apfs = SimpleNamespace(volumes=lambda: next(listings), enc_state=lambda sb: "encrypted")
+        with mock.patch.object(slots_device, "Apfs", return_value=fake_apfs):
             slots_device.delete_slice(None, rd, 5)
+        self.assertEqual(order, ["sep", "delete"])
 
 
 class VolumeCreationTests(unittest.TestCase):
@@ -159,11 +183,13 @@ class VolumeCreationTests(unittest.TestCase):
             def append_volume(self, name, encrypted=False, index=None):
                 created.append((name, encrypted, index))
 
+        rd = SimpleNamespace(require_sep=lambda: created.append("sep"))
         ctx = SimpleNamespace(slot={"version": "13", "system": 4, "data": 5},
                               t={"data_protection": "encrypted"})
         with mock.patch.object(slots_device, "Apfs", FakeApfs):
-            slots_device.ensure_slot_volumes(ctx, None)
-        self.assertEqual(created, [("System13", False, 4), ("Data13", True, 5)])
+            slots_device.ensure_slot_volumes(ctx, rd)
+        # 加密的 Data 卷要先起 SEP，否则设备上的 newfs_apfs -P 会一直等（boot95 卡了 180 秒）
+        self.assertEqual(created, [("System13", False, 4), "sep", ("Data13", True, 5)])
 
     def test_existing_slot_volume_is_not_recreated(self):
         created = []

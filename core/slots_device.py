@@ -13,9 +13,8 @@ import re
 from . import log
 from .apfs import Apfs
 from .slots import DATA_MARKER, VERSION_BY_BUILD
-from .volume_identify import _read_plist
+from .volume_identify import MOUNT, _read_plist
 
-MOUNT = "/mnt9"
 DELETE_TOOL = "/sbin/apfs_deletefs"
 SYSTEM_VERSION = "System/Library/CoreServices/SystemVersion.plist"
 
@@ -33,6 +32,9 @@ def ensure_slot_volumes(ctx, rd):
         if index in present:
             continue
         encrypted = kind == "Data" and ctx.t.get("data_protection") == "encrypted"
+        if encrypted:
+            # newfs_apfs -P 要靠 SEP 的密钥服务；SEP 没起来时它会一直等，不报错（与 Installation.prepare 一致）
+            rd.require_sep()
         apfs.append_volume(slot_volume_name(slot["version"], kind), encrypted=encrypted, index=index)
         present.add(index)
 
@@ -61,6 +63,12 @@ def wipe_slice(ctx, rd, slice_no, encrypted=False):
 
 def delete_slice(ctx, rd, slice_no):
     """删除一个卷：先卸载所有挂载点，再调用 apfs_deletefs。成功后核对卷已不在容器中。"""
+    apfs = Apfs(ctx)
+    volume = next((v for v in apfs.volumes() if v[0] == slice_no), None)
+    if volume is not None and apfs.enc_state(volume[2]) == "encrypted":
+        # 加密卷：apfs_deletefs 和 newfs_apfs -P 一样要 SEP，
+        # SEP 没起来时会一直等，不报错（2026-11-15 实机卡满 120 秒超时）。
+        rd.require_sep()
     for point in mounted_points(rd, slice_no):
         rd.umount(point)
     out = rd.sh(f"{DELETE_TOOL} /dev/disk0s1s{slice_no} 2>&1", check=False).decode(errors="replace")

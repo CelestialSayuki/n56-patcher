@@ -63,6 +63,21 @@ class Apfs:
                 time.sleep(1)
         log.die(f"块 {n} 读取失败（{detail}，已重试 {self.READ_TRIES - 1} 次；检查 ramdisk SSH 是否稳定）")
 
+    def read_blocks(self, starts, count=1):
+        """一次 SSH 读回多段块：starts 为起始块号列表，每段 count 块。按 starts 顺序返回每段的字节。
+        每次新开 SSH 要零点几秒，逐块读一次扫描就要几十次连接；拼成一条命令只连一次。
+        读回长度不对就退回逐块读（带重试），绝不带着半段数据继续解析。"""
+        starts = list(starts)
+        if not starts:
+            return []
+        cmd = "; ".join(f"dd if={RDEV} bs={BS} skip={n} count={count} 2>/dev/null" for n in starts)
+        r = self.ssh.sh(cmd, check=False)
+        size = BS * count
+        if len(r) == size * len(starts):
+            return [r[i * size:(i + 1) * size] for i in range(len(starts))]
+        log.warn(f"批量读块长度不符（{len(r)} 字节），改为逐块读")
+        return [b"".join(self.read_block(n + k) for k in range(count)) for n in starts]
+
     def write_block(self, n, data):
         assert len(data) == BS
         self.ssh.sh(f"dd of={RDEV} bs={BS} seek={n} count=1 conv=notrunc 2>/dev/null && sync",
@@ -95,16 +110,17 @@ class Apfs:
         xp_blocks = struct.unpack_from("<I", nx, 0x68)[0] & 0x7FFFFFFF
         xp_base = struct.unpack_from("<Q", nx, 0x70)[0]
         best = nx
+        area = self.read_blocks([xp_base], xp_blocks)[0] if xp_blocks else b""
         for i in range(xp_blocks):
-            b = self.read_block(xp_base + i)
+            b = area[i * BS:(i + 1) * BS]
             if (b[32:36] == b"NXSB" and self.checksum_ok(b)
                     and struct.unpack_from("<Q", b, 16)[0] > struct.unpack_from("<Q", best, 16)[0]):
                 best = b
         return best
 
-    def volumes(self):
-        """[(sN, paddr, superblock)]，按 fs 槽位顺序。"""
-        nx = self._latest_nxsb()
+    def volumes(self, nx=None):
+        """[(sN, paddr, superblock)]，按 fs 槽位顺序。nx 为已读到的最新容器超级块（省一次扫描）。"""
+        nx = nx or self._latest_nxsb()
         omap_oid = struct.unpack_from("<Q", nx, 0xA0)[0]
         max_fs = struct.unpack_from("<I", nx, 0xB4)[0]
         fs_oids = struct.unpack_from(f"<{max_fs}Q", nx, 0xB8)
@@ -123,12 +139,10 @@ class Apfs:
             _, _, paddr = struct.unpack_from("<IIQ", tree, valend - vo)
             if oid not in m or xid > m[oid][0]:
                 m[oid] = (xid, paddr)
+        slots = [(idx, m[oid][1]) for idx, oid in enumerate(fs_oids, 1) if oid]
+        blocks = self.read_blocks([paddr for _, paddr in slots])
         out = []
-        for idx, oid in enumerate(fs_oids, 1):
-            if not oid:
-                continue
-            paddr = m[oid][1]
-            sb = self.read_block(paddr)
+        for (idx, paddr), sb in zip(slots, blocks):
             if sb[32:36] != b"APSB":
                 log.die(f"s{idx}: 块 {paddr} 不是卷超级块")
             out.append((idx, paddr, sb))
@@ -168,12 +182,13 @@ class Apfs:
         return vols
 
     # ---- 建卷 ----
-    def volume_capacity(self):
-        return struct.unpack_from("<I", self._latest_nxsb(), 0xB4)[0]
+    def volume_capacity(self, nx=None):
+        return struct.unpack_from("<I", nx or self._latest_nxsb(), 0xB4)[0]
 
     def append_volume(self, name, *, encrypted=False, index=None):
         """在容器中建卷。index 缺省时用末尾的下一个号；指定时必须是空闲号（允许留空洞）。"""
-        volumes = self.volumes()
+        nx = self._latest_nxsb()
+        volumes = self.volumes(nx)
         present = {v[0] for v in volumes}
         if index is None:
             index = max(present, default=0) + 1
@@ -181,7 +196,7 @@ class Apfs:
             log.die(f"s{index} 已被占用，不能建 {name}")
         elif index < 1:
             log.die(f"分区号非法: s{index}")
-        limit = self.volume_capacity()
+        limit = self.volume_capacity(nx)
         if index > limit:
             log.die(f"APFS 容器没有 s{index} 槽位（上限 s{limit}）")
         protection = " -P" if encrypted else ""
@@ -246,16 +261,22 @@ class Apfs:
 
     # ---- 改 role ----
     def set_roles(self, targets, write=False, allow_duplicates=False):
-        """targets: {卷号: role}；write=False 仅 dry-run。改前需卸载目标卷。"""
+        """targets: {卷号: role}；write=False 仅 dry-run。写入前会卸载容器内所有卷。"""
+        if write:
+            # 容器里只要还有卷挂着（哪怕只读，如加载 SEP 时挂的 s1），写 /dev/rdisk0s1 就报 Resource busy。
+            # 必须先卸载、再读卷超级块：卸载会提交事务，卷超级块写时复制到新的物理块；
+            # 卸载前读到的块号已经作废，改了也不生效（第 98 次安装就是这样：读回是 1，开机还是 0）。
+            mnt = self.ssh.sh("/sbin/mount").decode(errors="replace")
+            for line in mnt.splitlines():
+                if line.startswith("/dev/disk0s1s") and " on " in line:
+                    point = line.split(" on ", 1)[1].split(" (", 1)[0]
+                    self.ssh.sh(f'/sbin/umount "{point}"')
+            mnt = self.ssh.sh("/sbin/mount").decode(errors="replace")
+            if "/dev/disk0s1s" in mnt:
+                log.die("容器内仍有卷挂载，无法写 role：\n" + mnt)
         vols = self.volumes()
         for v in vols:
             log.log(self.describe(*v))
-
-        if write:
-            mnt = self.ssh.sh("/sbin/mount").decode(errors="replace")
-            for idx in targets:
-                if f"/dev/disk0s1s{idx} " in mnt:
-                    log.die(f"s{idx} 已挂载，先卸载")
 
         used = {struct.unpack_from("<H", sb, ROLE_OFF)[0]: idx
                 for idx, _, sb in vols if idx not in targets}
@@ -285,5 +306,12 @@ class Apfs:
                 log.die(f"s{idx}: 读回不一致！用备份恢复: {bak}")
             log.log(f"  已写入并校验（备份: {bak}）")
         if write:
-            for v in self.volumes():
+            # 重新枚举（按最新 checkpoint 找卷超级块）核对 role 真正生效
+            fresh = self.volumes()
+            for v in fresh:
                 log.log(self.describe(*v))
+            for idx, role in targets.items():
+                sb = next((v[2] for v in fresh if v[0] == idx), None)
+                actual = struct.unpack_from("<H", sb, ROLE_OFF)[0] if sb else None
+                if actual != role:
+                    log.die(f"s{idx}: role 写入后重新枚举读到 0x{actual or 0:x}，不是 0x{role:x}（未生效）")

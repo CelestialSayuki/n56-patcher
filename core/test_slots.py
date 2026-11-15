@@ -10,15 +10,23 @@ class PurposeTests(unittest.TestCase):
         state = slots.default_state()
         self.assertEqual(state["slices"], {"1": "12 Sys", "2": "12 Data", "3": "baseband"})
 
-    def test_14_can_be_declared_for_empty_volumes_but_not_installed(self):
+    def test_14_is_installable_and_has_its_own_target(self):
         options = {o["value"]: o for o in slots.purpose_options()}
-        self.assertFalse(options["14 Sys"]["installable"])
+        self.assertTrue(options["14 Sys"]["installable"])
         self.assertTrue(options["13 Sys"]["installable"])
+        self.assertEqual(slots.VERSION_TARGETS, {"13": "n56-ios13", "14": "n56-ios14"})
         state = slots.assign(slots.default_state(), 4, "14 Sys")
         state = slots.assign(state, 5, "14 Data")
-        with self.assertRaises(slots.SlotError) as ctx:
-            slots.plan_install(state, "14", donor_ready=True, free_slots=10)
-        self.assertIn("未提交", str(ctx.exception))
+        self.assertEqual(slots.plan_install(state, "14", donor_ready=True, free_slots=10)["status"], "ready")
+
+    def test_data_protection_is_recorded_per_version(self):
+        state = slots.default_state()
+        self.assertEqual(slots.data_protection_of(state, "14", "encrypted"), "encrypted")
+        state = slots.set_data_protection(state, "14", "none")
+        self.assertEqual(slots.data_protection_of(state, "14"), "none")
+        self.assertIsNone(slots.data_protection_of(state, "13"))
+        with self.assertRaises(slots.SlotError):
+            slots.set_data_protection(state, "14", "bogus")
 
     def test_purpose_must_be_declared_and_unique(self):
         state = slots.default_state()
@@ -97,7 +105,7 @@ class DonorGateTests(unittest.TestCase):
 
 
 class InstallPlanTests(unittest.TestCase):
-    def test_13_and_14_slots_need_four_volumes_and_14_stays_empty(self):
+    def test_13_and_14_slots_need_four_volumes(self):
         state = slots.default_state()
         state = slots.assign(state, 4, "13 Sys")
         state = slots.assign(state, 5, "13 Data")
@@ -106,8 +114,7 @@ class InstallPlanTests(unittest.TestCase):
         self.assertEqual(sorted(state["slices"], key=int), ["1", "2", "3", "4", "5", "6", "7"])
         plan13 = slots.plan_install(state, "13", donor_ready=True, free_slots=0)
         self.assertEqual(plan13["status"], "ready")
-        with self.assertRaises(slots.SlotError):
-            slots.plan_install(state, "14", donor_ready=True, free_slots=0)
+        self.assertEqual(slots.plan_install(state, "14", donor_ready=True, free_slots=0)["status"], "ready")
 
     def test_new_volumes_are_numbered_after_highest_used(self):
         state = slots.default_state()

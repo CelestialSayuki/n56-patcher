@@ -41,10 +41,15 @@ class Flow:
 
     # ============================ ramdisk ============================
     def ramdisk(self):
-        log.log("进入 iOS12.5.8 SSH ramdisk…")
         if self.ctx.dry_run:
+            log.log("进入 iOS12.5.8 SSH ramdisk…")
             log.log("dry-run：跳过设备发送。")
             return
+        # 宗卷设置要先进 ramdisk 读取实际分区；之后的阶段（含端到端）直接沿用正在运行的 ramdisk。
+        if self.rd.ready():
+            log.log("ramdisk 已在运行（SSH 已连通），跳过引导。")
+            return
+        log.log("进入 iOS12.5.8 SSH ramdisk…")
         self.rd.boot()
 
     def _need_ramdisk(self):
@@ -59,6 +64,22 @@ class Flow:
                 bind_identity(self.rd)
             except SlotError as exc:
                 log.die(str(exc))
+            self._refresh_donor()
+
+    def _refresh_donor(self):
+        """快照里有每次刷机都会变的个性化文件（SEP 固件、基带票据）。设备刷过机后旧快照不能用，
+        iOS 12 还在时比对一次，不一致就从 s1 重新生成。每次运行只查一次。"""
+        donor = getattr(self.ctx, "donor_dir", None)
+        if not donor or getattr(self.ctx, "_donor_checked", False):
+            return
+        from . import donors
+        from .slots_cli import SOURCE_BUILD
+        try:
+            donors.refresh_if_stale(self.rd, self.ctx.t["mounts"].get("system12", 1), donor,
+                                    os.path.basename(donor), SOURCE_BUILD)
+        except donors.DonorError as exc:
+            log.die(f"donor 快照更新失败：{exc}")
+        self.ctx._donor_checked = True
 
     def _slot_prepare_volumes(self):
         """槽位模式的卷准备：缺失的卷按序追加，清空 Sys；Data 默认清空（--keep-data 时保留）。
@@ -370,6 +391,10 @@ class Flow:
         """解密要求设备处于 DFU，进 ramdisk 后就无法补做，缺文件时必须在此之前完成。"""
         if self.ctx.dry_run:
             return
+        derived = [os.path.join(self.ctx.derived_root, self.ctx.t["derived"][key])
+                   for key in ("ibss_src", "ibec_dec")]
+        if all(os.path.exists(path) for path in derived) and not self.sel.get("ibec"):
+            return      # 已解密：不需要 DFU（设备可能已在 ramdisk 里，宗卷设置先于安装）
         self.rd.dfu_ensure()
         self.ctx.derived("ibss_src")
         self.ctx.derived("ibec_dec")

@@ -2,6 +2,7 @@ import os
 
 from core import log
 from core.overlay import SourceOverlay
+from patches.shared.impl.rootfs import staged_apps
 from patches.ios13.impl.rootfs.phone_ui import (
     APPS,
     app_icon_resources,
@@ -45,6 +46,11 @@ class PhoneUiApps(SourceOverlay):
         icons = app_icon_resources(n66, j96)
         log.log(f"  覆盖 {len(icons)} 份 iPhone App 图标资源")
         ssh.deploy_relative_paths(n66, icons, "/mnt6")
+
+        # 预装可卸载 App（staged_system_apps）和占位包：整包换成 iPhone 版（代码相同，资源与签名一致）。
+        bundles = staged_apps.bundles(n66, j96)
+        log.log(f"  替换 {len(bundles)} 个预装 App / 占位包为 iPhone 版")
+        staged_apps.deploy(ssh, n66, bundles)
 
         for relative in ("Library/Wallpaper/Live/iPhone",
                          "Library/Wallpaper/Stills/iPhone",

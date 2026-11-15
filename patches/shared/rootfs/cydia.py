@@ -1,5 +1,5 @@
 from core.patch import Patch
-from patches.ios13.impl.rootfs.cydia import install
+from patches.shared.impl.rootfs.cydia import install
 
 
 class RootfsCydia(Patch):

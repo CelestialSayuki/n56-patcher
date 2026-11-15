@@ -14,7 +14,8 @@ from dataclasses import asdict, dataclass
 from .apfs import Apfs, NAME_OFF, ROLE_OFF
 from .slots import BASEBAND_SLICE, DATA_MARKER, VERSION_BY_BUILD
 
-MOUNT = "/mnt9"
+# ramdisk 根只读，只有 /mnt1–/mnt7；/mnt1、/mnt6、/mnt7 由安装流程占用，探测用 /mnt5。
+MOUNT = "/mnt5"
 SYSTEM_VERSION = "System/Library/CoreServices/SystemVersion.plist"
 ORIGINAL_DATA_SLICE = 2
 
@@ -46,13 +47,25 @@ def _read_plist(rd, path):
         return None
 
 
-def _read_marker(rd):
-    text = rd.sh(f"cat {MOUNT}{DATA_MARKER} 2>/dev/null", check=False).decode(errors="replace").strip()
+def _read_marker(rd, mountpoint=MOUNT):
+    text = rd.sh(f"cat {mountpoint}{DATA_MARKER} 2>/dev/null", check=False).decode(errors="replace").strip()
     return text if re.fullmatch(r"[0-9]{1,2}", text) else None
 
 
+def _mounted_at(rd, index):
+    """卷已挂载时返回挂载点。APFS 不能把同一个卷再挂一次（Resource busy）。"""
+    device = f"/dev/disk0s1s{index} on "
+    for line in rd.sh("/sbin/mount", check=False).decode(errors="replace").splitlines():
+        if line.startswith(device):
+            return line[len(device):].split(" (", 1)[0]
+    return None
+
+
 def probe(rd, index, name, role, encrypted, deep=False):
-    """识别一个卷。deep=False 时不尝试挂载加密卷。"""
+    """识别一个卷。deep=False 时不尝试挂载加密卷。
+
+    卷已被安装流程挂着（如 SystemA 在 /mnt1、System14 在 /mnt6）时直接读原挂载点，也不卸载它。
+    """
     info = VolumeIdentity(index=index, name=name, role=role, encrypted=encrypted)
     if index == ORIGINAL_DATA_SLICE:
         info.kind, info.note = "Data", "原机 DataA（约定，不挂载）"
@@ -63,23 +76,27 @@ def probe(rd, index, name, role, encrypted, deep=False):
     if encrypted and not deep:
         info.note = "加密卷，未探测（需要 deep 识别）"
         return info
-    try:
-        if encrypted:
-            rd.require_sep()
-            rd.mount_install_volume(index, MOUNT, ro=True, protected=True)
-        else:
-            rd.mount(index, MOUNT, ro=True)
-    except (SystemExit, RuntimeError) as exc:
-        info.note = f"无法挂载（{'加密' if encrypted else '明文'}）：{exc.__class__.__name__}"
-        return info
+    mountpoint = _mounted_at(rd, index)
+    owned = mountpoint is None
+    if owned:
+        mountpoint = MOUNT
+        try:
+            if encrypted:
+                rd.require_sep()
+                rd.mount_install_volume(index, MOUNT, ro=True, protected=True)
+            else:
+                rd.mount(index, MOUNT, ro=True)
+        except (SystemExit, RuntimeError) as exc:
+            info.note = f"无法挂载（{'加密' if encrypted else '明文'}）：{exc.__class__.__name__}"
+            return info
     try:
         info.probed = True
-        plist = _read_plist(rd, f"{MOUNT}/{SYSTEM_VERSION}")
+        plist = _read_plist(rd, f"{mountpoint}/{SYSTEM_VERSION}")
         if plist is not None:
             info.kind = "System"
             info.build = plist.get("ProductBuildVersion")
             info.version = VERSION_BY_BUILD.get(info.build)
-        marker = _read_marker(rd)
+        marker = _read_marker(rd, mountpoint)
         if marker:
             info.marker = marker
             if info.kind is None:
@@ -87,7 +104,8 @@ def probe(rd, index, name, role, encrypted, deep=False):
         if info.kind is None:
             info.note = "已挂载，但既无系统版本也无标记"
     finally:
-        rd.umount(MOUNT)
+        if owned:
+            rd.umount(MOUNT)
     return info
 
 

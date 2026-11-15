@@ -73,6 +73,7 @@ class Context:
         os.makedirs(self.work, exist_ok=True)
         self._ssh = None   # 由 core.ramdisk 建立会话后注入
         self._source_mounts = {}
+        self._owned_source_mounts = set()
         self._input_hashes = {}
         self._device_system_verified = False
         self.patch_reports = {}
@@ -271,29 +272,46 @@ class Context:
         if kind in self._source_mounts:
             return self._source_mounts[kind]
         dmg = self.rootfs_dmg(kind)
-        mountpoint = self.wk(os.path.join("mounts", kind))
-        os.makedirs(mountpoint, exist_ok=True)
-        subprocess.run(["hdiutil", "attach", "-readonly", "-owners", "on", "-nobrowse",
-                        "-mountpoint", mountpoint, dmg], check=True, capture_output=True)
+        info = subprocess.run(["hdiutil", "info", "-plist"], check=True, capture_output=True)
+        mountpoint = next((entity["mount-point"]
+                           for image in plistlib.loads(info.stdout).get("images", [])
+                           if os.path.realpath(image.get("image-path", "")) == os.path.realpath(dmg)
+                           and not image.get("writeable", True)
+                           for entity in image.get("system-entities", [])
+                           if "mount-point" in entity), None)
+        owned = mountpoint is None
+        if owned:
+            mountpoint = self.wk(os.path.join("mounts", kind))
+            os.makedirs(mountpoint, exist_ok=True)
+            subprocess.run(["hdiutil", "attach", "-readonly", "-owners", "on", "-nobrowse",
+                            "-mountpoint", mountpoint, dmg], check=True, capture_output=True)
+        else:
+            log.log(f"复用 {kind} 只读 rootfs：{mountpoint}")
         mounts = subprocess.run(["/sbin/mount"], check=True, capture_output=True, text=True).stdout
         line = next((line for line in mounts.splitlines() if f" on {mountpoint} " in line), "")
         if not line or "noowners" in line:
-            subprocess.run(["hdiutil", "detach", mountpoint], capture_output=True)
+            if owned:
+                subprocess.run(["hdiutil", "detach", mountpoint], capture_output=True)
             log.die(f"{kind} rootfs 未以 owners 模式挂载")
         version_path = os.path.join(mountpoint, "System/Library/CoreServices/SystemVersion.plist")
         version = plistlib.load(open(version_path, "rb"))
         actual = version.get("ProductBuildVersion")
         expected = self.t.get("source_profiles", {}).get(kind, {}).get("build")
         if expected and actual != expected:
-            subprocess.run(["hdiutil", "detach", mountpoint], capture_output=True)
+            if owned:
+                subprocess.run(["hdiutil", "detach", mountpoint], capture_output=True)
             log.die(f"{kind} rootfs build 为 {actual}，当前 profile 需要 {expected}")
         self._source_mounts[kind] = mountpoint
+        if owned:
+            self._owned_source_mounts.add(mountpoint)
         return mountpoint
 
     def close_source_mounts(self):
         for mountpoint in reversed(list(self._source_mounts.values())):
-            subprocess.run(["hdiutil", "detach", mountpoint], capture_output=True)
+            if mountpoint in self._owned_source_mounts:
+                subprocess.run(["hdiutil", "detach", mountpoint], capture_output=True)
         self._source_mounts.clear()
+        self._owned_source_mounts.clear()
 
     # ---- SSH（ramdisk 会话注入后可用）----
     @property

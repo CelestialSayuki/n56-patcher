@@ -110,7 +110,7 @@ python3 n56patcher.py slots boot 13                   # 启动前判定，过期
 - 设备 ECID：`irecovery -q` 在 DFU 下的输出格式，`ioreg -k unique-chip-id` 的输出格式
 - 快照模式下的 SEP 加载
 - `--keep-data`
-- 同一台设备上非活动系统的启动行为（见 `docs/conclusions.md`）
+- 同一台设备上非活动系统的启动行为（见 `docs/conclusions/13.md`）
 
 ## 尚未解决
 

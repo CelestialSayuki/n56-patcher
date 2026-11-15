@@ -84,6 +84,7 @@ TARGET = {
         "sep",        # SEP 固件（boot 必备）+ fairplayd.H2
         "health",     # 健康 App 框架 repair-v7
         "checkra1n",  # 离线 KPF、用户态工具与 USB SSH
+        "touchid",    # Mesa ↔ iOS 12 SEP 收发桥
     ],
     # 显式追加的 patch id（不靠 feature）
     "patches": [],

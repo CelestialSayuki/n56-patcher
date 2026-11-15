@@ -1,7 +1,10 @@
 """Check that USB debug removal is confined to the iBEC boot-args string."""
+from pathlib import Path
+import sys
 import unittest
 
-from clean_bootargs import clean, verify
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from clean_bootargs import clean, verify  # noqa: E402
 
 
 class CleanBootargsTests(unittest.TestCase):

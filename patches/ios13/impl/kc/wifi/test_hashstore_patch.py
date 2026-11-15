@@ -11,6 +11,8 @@ class HashstoreTests(unittest.TestCase):
         spec = importlib.util.spec_from_file_location('wifi_hashstore_adapter', path)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
+        if not Path(module.BASELINE).exists():
+            self.skipTest(f'需要 iOS 13 构建产物 {module.BASELINE}（先跑一次 n56_ios13 build）')
         return module
 
     def test_adaptation_preserves_every_unrelated_key_and_original_shared_value(self):

@@ -8,12 +8,12 @@
     否则 tar 记录的属主全变 501:20（曾把整个 rootfs 变成 mobile 所有）。
   - 不在设备上放 dmg 再 cp（需 ~9.5G 空间不够）；改为从 Mac 流式 tar。rootfs 无关键
     xattr/flags，只需保属主。
-  - 9GB 级数据：必须用真正的流式管道（tar | ssh tar），不可把流读进内存。
+  - 9GB 级数据：必须用真正的流式管道（tar | ssh tar），不可把流读进内存。现在经共用的
+    Ramdisk.deploy_path 写入：透明压缩文件按原始压缩数据写（core/decmpfs），其余走 tar。
   - 远端 tar 后面绝不接 | head（SIGPIPE 会中途杀 tar）。设备端 tar --numeric-owner。
   - 绝不续传旧树：先清空 /mnt6 内容（保留卷本身），再整体解包。
 """
 import os
-import subprocess
 
 from core import log
 from core.patch import Patch
@@ -43,20 +43,10 @@ class RootfsBaseStream(Patch):
         ssh.sh(f'test "$(/sbin/mount | /usr/bin/grep -c "{target} on /mnt6")" -eq 1 '
                '&& /bin/rm -rf /mnt6/.[!.]* /mnt6/*')
 
-        # 4) 流式 tar 管道（9GB，直连，不经内存）
+        # 4) 流式写入（直连管道，不经内存）。镜像里的透明压缩文件保持压缩（core/decmpfs），
+        #    比整体 tar 解压写入省约 1.5–2 GiB；N56_DECMPFS=0 退回纯 tar。
         log.log("流式写入 rootfs（约 25 分钟）…")
-        src_tar = subprocess.Popen(
-            ["/usr/bin/tar", "-cpf", "-", "-C", mnt, "."],
-            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
-        dst = subprocess.Popen(
-            ssh.ssh_argv() + ["/usr/bin/tar --numeric-owner -xpf - -C /mnt6"],
-            stdin=src_tar.stdout, stderr=subprocess.PIPE)
-        src_tar.stdout.close()
-        _, err = dst.communicate()
-        src_tar.wait()
-        if dst.returncode != 0 or src_tar.returncode != 0:
-            log.die(f"rootfs 流式写入失败 (src={src_tar.returncode} dst={dst.returncode})\n"
-                    f"{(err or b'').decode(errors='replace')[:2000]}")
+        ssh.deploy_path(mnt, "/mnt6")
 
         # 5) 流式拷贝会杀掉 iproxy，重连；核验关键文件
         ssh.ensure()

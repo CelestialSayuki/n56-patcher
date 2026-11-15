@@ -233,13 +233,22 @@ class Relocator:
                 raw = self.source.read(old, size)
                 literal = self.literal(self.piece(pc), raw)
                 self.write(pc, encode_pc(word, self.remap(pc), literal, 19, 5))
+        # One inline data range can hold several switch tables back to back. Each entry is
+        # relative to the base of its own table, which is the address its `adr` loads.
+        loaded = {i.operands[1].imm & MASK for i in self.instructions if i.mnemonic == 'adr'}
         for start, end in self.tables:
+            bases = sorted(base for base in loaded if start <= base < end)
+            if not bases or bases[0] != start:
+                raise ValueError(f'Switch table range {start:#x} does not begin at a table')
             for address in range(start, end, 4):
+                base = max(b for b in bases if b <= address)
                 offset = struct.unpack('<i', self.source.read(address, 4))[0]
-                target = start + offset
+                target = base + offset
                 if target not in self.lookup:
                     raise ValueError(f'Invalid switch target {target:#x}')
-                value = self.remap(target) - self.remap(start)
+                if self.remap(address) - self.remap(base) != address - base:
+                    raise ValueError(f'Switch table {base:#x} is split between code pieces')
+                value = self.remap(target) - self.remap(base)
                 self.put(self.remap(address), struct.pack('<i', value))
         for piece in self.pieces:
             if piece.old + piece.size < self.end:

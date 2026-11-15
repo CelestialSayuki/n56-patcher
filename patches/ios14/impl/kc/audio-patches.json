@@ -1,0 +1,2583 @@
+{
+  "donor": "N56 12.5.8 16H88",
+  "target": "J96 14.8 18H17",
+  "private_field_delta": 8,
+  "instance_size": 624,
+  "eq_identifier": 441,
+  "patches": [
+    {
+      "address": "0xfffffff0086efd50",
+      "old_word": "0x52804d01",
+      "new_word": "0x52804e01",
+      "kind": "CS42L67 instance size 0x268 -> 0x270"
+    },
+    {
+      "address": "0xfffffff0086efd74",
+      "old_word": "0x52804d00",
+      "new_word": "0x52804e00",
+      "kind": "CS42L67 instance size 0x268 -> 0x270"
+    },
+    {
+      "address": "0xfffffff0086efe2c",
+      "old_word": "0xf9012660",
+      "new_word": "0xf9012a60",
+      "kind": "CS42L67 private field 0x248 -> 0x250"
+    },
+    {
+      "address": "0xfffffff0086efe38",
+      "old_word": "0xf941b908",
+      "new_word": "0xf941bd08",
+      "kind": "AppleCS42L67Audio virtual slot 110 -> 111"
+    },
+    {
+      "address": "0xfffffff0086efe44",
+      "old_word": "0xf9412661",
+      "new_word": "0xf9412a61",
+      "kind": "CS42L67 private field 0x248 -> 0x250"
+    },
+    {
+      "address": "0xfffffff0086efe4c",
+      "old_word": "0xf9404d08",
+      "new_word": "0xf9405108",
+      "kind": "IOWorkLoop virtual slot 19 -> 20"
+    },
+    {
+      "address": "0xfffffff0086efe58",
+      "old_word": "0xf9408908",
+      "new_word": "0xf9408d08",
+      "kind": "IOService virtual slot 34 -> 35"
+    },
+    {
+      "address": "0xfffffff0086efe74",
+      "old_word": "0x39073268",
+      "new_word": "0x39075268",
+      "kind": "CS42L67 private field 0x1cc -> 0x1d4"
+    },
+    {
+      "address": "0xfffffff0086efe7c",
+      "old_word": "0xf9408908",
+      "new_word": "0xf9408d08",
+      "kind": "IOService virtual slot 34 -> 35"
+    },
+    {
+      "address": "0xfffffff0086efe98",
+      "old_word": "0x39073668",
+      "new_word": "0x39075668",
+      "kind": "CS42L67 private field 0x1cd -> 0x1d5"
+    },
+    {
+      "address": "0xfffffff0086efea0",
+      "old_word": "0xf9408908",
+      "new_word": "0xf9408d08",
+      "kind": "IOService virtual slot 34 -> 35"
+    },
+    {
+      "address": "0xfffffff0086efebc",
+      "old_word": "0x39072e68",
+      "new_word": "0x39074e68",
+      "kind": "CS42L67 private field 0x1cb -> 0x1d3"
+    },
+    {
+      "address": "0xfffffff0086efec4",
+      "old_word": "0xf9408908",
+      "new_word": "0xf9408d08",
+      "kind": "IOService virtual slot 34 -> 35"
+    },
+    {
+      "address": "0xfffffff0086efee0",
+      "old_word": "0x39072a68",
+      "new_word": "0x39074a68",
+      "kind": "CS42L67 private field 0x1ca -> 0x1d2"
+    },
+    {
+      "address": "0xfffffff0086efee8",
+      "old_word": "0xf9408908",
+      "new_word": "0xf9408d08",
+      "kind": "IOService virtual slot 34 -> 35"
+    },
+    {
+      "address": "0xfffffff0086eff04",
+      "old_word": "0x39073e68",
+      "new_word": "0x39075e68",
+      "kind": "CS42L67 private field 0x1cf -> 0x1d7"
+    },
+    {
+      "address": "0xfffffff0086eff0c",
+      "old_word": "0xf9408908",
+      "new_word": "0xf9408d08",
+      "kind": "IOService virtual slot 34 -> 35"
+    },
+    {
+      "address": "0xfffffff0086eff28",
+      "old_word": "0x39073a68",
+      "new_word": "0x39075a68",
+      "kind": "CS42L67 private field 0x1ce -> 0x1d6"
+    },
+    {
+      "address": "0xfffffff0086eff2c",
+      "old_word": "0xf9012e7f",
+      "new_word": "0xf901327f",
+      "kind": "CS42L67 private field 0x258 -> 0x260"
+    },
+    {
+      "address": "0xfffffff0086eff44",
+      "old_word": "0xf9011a60",
+      "new_word": "0xf9011e60",
+      "kind": "CS42L67 private field 0x230 -> 0x238"
+    },
+    {
+      "address": "0xfffffff0086eff50",
+      "old_word": "0x3908a268",
+      "new_word": "0x3908c268",
+      "kind": "CS42L67 private field 0x228 -> 0x230"
+    },
+    {
+      "address": "0xfffffff0086eff68",
+      "old_word": "0x9107f27b",
+      "new_word": "0x9108127b",
+      "kind": "CS42L67 private field 0x1fc -> 0x204"
+    },
+    {
+      "address": "0xfffffff0086eff98",
+      "old_word": "0xf9408908",
+      "new_word": "0xf9408d08",
+      "kind": "IOService virtual slot 34 -> 35"
+    },
+    {
+      "address": "0xfffffff0086effbc",
+      "old_word": "0xf9404d08",
+      "new_word": "0xf9405108",
+      "kind": "OSData virtual slot 19 -> 20"
+    },
+    {
+      "address": "0xfffffff0086effd0",
+      "old_word": "0xf9406908",
+      "new_word": "0xf9406d08",
+      "kind": "OSData virtual slot 26 -> 27"
+    },
+    {
+      "address": "0xfffffff0086f0008",
+      "old_word": "0xf9408908",
+      "new_word": "0xf9408d08",
+      "kind": "IOService virtual slot 34 -> 35"
+    },
+    {
+      "address": "0xfffffff0086f002c",
+      "old_word": "0xf9404d08",
+      "new_word": "0xf9405108",
+      "kind": "OSData virtual slot 19 -> 20"
+    },
+    {
+      "address": "0xfffffff0086f0040",
+      "old_word": "0xf9406908",
+      "new_word": "0xf9406d08",
+      "kind": "OSData virtual slot 26 -> 27"
+    },
+    {
+      "address": "0xfffffff0086f0080",
+      "old_word": "0x39090260",
+      "new_word": "0x39092260",
+      "kind": "CS42L67 private field 0x240 -> 0x248"
+    },
+    {
+      "address": "0xfffffff0086f0094",
+      "old_word": "0x39090660",
+      "new_word": "0x39092660",
+      "kind": "CS42L67 private field 0x241 -> 0x249"
+    },
+    {
+      "address": "0xfffffff0086f0098",
+      "old_word": "0x3948a268",
+      "new_word": "0x3948c268",
+      "kind": "CS42L67 private field 0x228 -> 0x230"
+    },
+    {
+      "address": "0xfffffff0086f00d4",
+      "old_word": "0xf9011e76",
+      "new_word": "0xf9012276",
+      "kind": "CS42L67 private field 0x238 -> 0x240"
+    },
+    {
+      "address": "0xfffffff0086f00d8",
+      "old_word": "0x39490268",
+      "new_word": "0x39492268",
+      "kind": "CS42L67 private field 0x240 -> 0x248"
+    },
+    {
+      "address": "0xfffffff0086f00f0",
+      "old_word": "0xf9411e76",
+      "new_word": "0xf9412276",
+      "kind": "CS42L67 private field 0x238 -> 0x240"
+    },
+    {
+      "address": "0xfffffff0086f0104",
+      "old_word": "0xf9411a64",
+      "new_word": "0xf9411e64",
+      "kind": "CS42L67 private field 0x230 -> 0x238"
+    },
+    {
+      "address": "0xfffffff0086f010c",
+      "old_word": "0xf944f508",
+      "new_word": "0xf944f908",
+      "kind": "AppleCSCodecLineOutMikeyBus"
+    },
+    {
+      "address": "0xfffffff0086f0124",
+      "old_word": "0xf9411e60",
+      "new_word": "0xf9412260",
+      "kind": "CS42L67 private field 0x238 -> 0x240"
+    },
+    {
+      "address": "0xfffffff0086f012c",
+      "old_word": "0xf941ad08",
+      "new_word": "0xf941b108",
+      "kind": "AppleCSCodecLineOutMikeyBus"
+    },
+    {
+      "address": "0xfffffff0086f013c",
+      "old_word": "0xf9411e60",
+      "new_word": "0xf9412260",
+      "kind": "CS42L67 private field 0x238 -> 0x240"
+    },
+    {
+      "address": "0xfffffff0086f0150",
+      "old_word": "0xf9011e7f",
+      "new_word": "0xf901227f",
+      "kind": "CS42L67 private field 0x238 -> 0x240"
+    },
+    {
+      "address": "0xfffffff0086f0154",
+      "old_word": "0x3908a27f",
+      "new_word": "0x3908c27f",
+      "kind": "CS42L67 private field 0x228 -> 0x230"
+    },
+    {
+      "address": "0xfffffff0086f015c",
+      "old_word": "0xf9408908",
+      "new_word": "0xf9408d08",
+      "kind": "IOService virtual slot 34 -> 35"
+    },
+    {
+      "address": "0xfffffff0086f0180",
+      "old_word": "0xf9406908",
+      "new_word": "0xf9406d08",
+      "kind": "OSData virtual slot 26 -> 27"
+    },
+    {
+      "address": "0xfffffff0086f018c",
+      "old_word": "0xb901ba68",
+      "new_word": "0xb901c268",
+      "kind": "CS42L67 private field 0x1b8 -> 0x1c0"
+    },
+    {
+      "address": "0xfffffff0086f01b4",
+      "old_word": "0xf900e260",
+      "new_word": "0xf900e660",
+      "kind": "CS42L67 private field 0x1c0 -> 0x1c8"
+    },
+    {
+      "address": "0xfffffff0086f01c0",
+      "old_word": "0xf941b908",
+      "new_word": "0xf941bd08",
+      "kind": "AppleCS42L67Audio virtual slot 110 -> 111"
+    },
+    {
+      "address": "0xfffffff0086f01cc",
+      "old_word": "0xf940e261",
+      "new_word": "0xf940e661",
+      "kind": "CS42L67 private field 0x1c0 -> 0x1c8"
+    },
+    {
+      "address": "0xfffffff0086f01d4",
+      "old_word": "0xf9404d08",
+      "new_word": "0xf9405108",
+      "kind": "IOWorkLoop virtual slot 19 -> 20"
+    },
+    {
+      "address": "0xfffffff0086f01dc",
+      "old_word": "0x3907227f",
+      "new_word": "0x3907427f",
+      "kind": "CS42L67 private field 0x1c8 -> 0x1d0"
+    },
+    {
+      "address": "0xfffffff0086f01e4",
+      "old_word": "0xb901ba7f",
+      "new_word": "0xb901c27f",
+      "kind": "CS42L67 private field 0x1b8 -> 0x1c0"
+    },
+    {
+      "address": "0xfffffff0086f023c",
+      "old_word": "0xf9405d08",
+      "new_word": "0xf9406108",
+      "kind": "OSObject virtual slot 23 -> 24"
+    },
+    {
+      "address": "0xfffffff0086f0260",
+      "old_word": "0xf944c901",
+      "new_word": "0xf944cd01",
+      "kind": "AppleCS42L67MikeyBus virtual slot 306 -> 307"
+    },
+    {
+      "address": "0xfffffff0086f029c",
+      "old_word": "0xf9409901",
+      "new_word": "0xf9409d01",
+      "kind": "OSObject virtual slot 38 -> 39"
+    },
+    {
+      "address": "0xfffffff0086f02d0",
+      "old_word": "0xf9411e60",
+      "new_word": "0xf9412260",
+      "kind": "CS42L67 private field 0x238 -> 0x240"
+    },
+    {
+      "address": "0xfffffff0086f02dc",
+      "old_word": "0xf9415508",
+      "new_word": "0xf9415908",
+      "kind": "AppleCSCodecLineOutMikeyBus"
+    },
+    {
+      "address": "0xfffffff0086f02ec",
+      "old_word": "0xf9411e60",
+      "new_word": "0xf9412260",
+      "kind": "CS42L67 private field 0x238 -> 0x240"
+    },
+    {
+      "address": "0xfffffff0086f0300",
+      "old_word": "0xf9011e7f",
+      "new_word": "0xf901227f",
+      "kind": "CS42L67 private field 0x238 -> 0x240"
+    },
+    {
+      "address": "0xfffffff0086f0304",
+      "old_word": "0x3908a27f",
+      "new_word": "0x3908c27f",
+      "kind": "CS42L67 private field 0x228 -> 0x230"
+    },
+    {
+      "address": "0xfffffff0086f0360",
+      "old_word": "0xf9012a74",
+      "new_word": "0xf9012e74",
+      "kind": "CS42L67 private field 0x250 -> 0x258"
+    },
+    {
+      "address": "0xfffffff0086f036c",
+      "old_word": "0xf9405108",
+      "new_word": "0xf9405508",
+      "kind": "OSObject virtual slot 20 -> 21"
+    },
+    {
+      "address": "0xfffffff0086f0380",
+      "old_word": "0xf9412a60",
+      "new_word": "0xf9412e60",
+      "kind": "CS42L67 private field 0x250 -> 0x258"
+    },
+    {
+      "address": "0xfffffff0086f0388",
+      "old_word": "0xf941ad08",
+      "new_word": "0xf941b108",
+      "kind": "AppleCSHTDCodecMikey"
+    },
+    {
+      "address": "0xfffffff0086f0398",
+      "old_word": "0xf9412a60",
+      "new_word": "0xf9412e60",
+      "kind": "CS42L67 private field 0x250 -> 0x258"
+    },
+    {
+      "address": "0xfffffff0086f03a0",
+      "old_word": "0xf9415508",
+      "new_word": "0xf9415908",
+      "kind": "AppleCSHTDCodecMikey"
+    },
+    {
+      "address": "0xfffffff0086f03b0",
+      "old_word": "0xf9412a60",
+      "new_word": "0xf9412e60",
+      "kind": "CS42L67 private field 0x250 -> 0x258"
+    },
+    {
+      "address": "0xfffffff0086f03c4",
+      "old_word": "0xf9412a60",
+      "new_word": "0xf9412e60",
+      "kind": "CS42L67 private field 0x250 -> 0x258"
+    },
+    {
+      "address": "0xfffffff0086f03d4",
+      "old_word": "0xf9012a7f",
+      "new_word": "0xf9012e7f",
+      "kind": "CS42L67 private field 0x250 -> 0x258"
+    },
+    {
+      "address": "0xfffffff0086f0414",
+      "old_word": "0xf9453508",
+      "new_word": "0xf9455108",
+      "kind": "AppleCS42L67Audio virtual slot 333 -> 340"
+    },
+    {
+      "address": "0xfffffff0086f0428",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f0440",
+      "old_word": "0xf9453d08",
+      "new_word": "0xf9455908",
+      "kind": "AppleCS42L67Audio virtual slot 335 -> 342"
+    },
+    {
+      "address": "0xfffffff0086f0464",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f04e0",
+      "old_word": "0xf943fd08",
+      "new_word": "0xf9441108",
+      "kind": "AppleCS42L67Audio virtual slot 255 -> 260"
+    },
+    {
+      "address": "0xfffffff0086f04fc",
+      "old_word": "0xf9441908",
+      "new_word": "0xf9442d08",
+      "kind": "AppleCS42L67Audio virtual slot 262 -> 267"
+    },
+    {
+      "address": "0xfffffff0086f0518",
+      "old_word": "0xf940f108",
+      "new_word": "0xf940f508",
+      "kind": "AppleCS42L67Audio virtual slot 60 -> 61"
+    },
+    {
+      "address": "0xfffffff0086f0540",
+      "old_word": "0xf942d908",
+      "new_word": "0xf942ed08",
+      "kind": "AppleCS42L67Audio virtual slot 182 -> 187"
+    },
+    {
+      "address": "0xfffffff0086f0558",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f0578",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f0590",
+      "old_word": "0xf9453508",
+      "new_word": "0xf9455108",
+      "kind": "AppleCS42L67Audio virtual slot 333 -> 340"
+    },
+    {
+      "address": "0xfffffff0086f05a0",
+      "old_word": "0x39072660",
+      "new_word": "0x39074660",
+      "kind": "CS42L67 private field 0x1c9 -> 0x1d1"
+    },
+    {
+      "address": "0xfffffff0086f05a8",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f05c0",
+      "old_word": "0xf9454108",
+      "new_word": "0xf9455d08",
+      "kind": "AppleCS42L67Audio virtual slot 336 -> 343"
+    },
+    {
+      "address": "0xfffffff0086f05dc",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f05f4",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f060c",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f0624",
+      "old_word": "0xf9454108",
+      "new_word": "0xf9455d08",
+      "kind": "AppleCS42L67Audio virtual slot 336 -> 343"
+    },
+    {
+      "address": "0xfffffff0086f0640",
+      "old_word": "0xf9454108",
+      "new_word": "0xf9455d08",
+      "kind": "AppleCS42L67Audio virtual slot 336 -> 343"
+    },
+    {
+      "address": "0xfffffff0086f0658",
+      "old_word": "0xf9412a60",
+      "new_word": "0xf9412e60",
+      "kind": "CS42L67 private field 0x250 -> 0x258"
+    },
+    {
+      "address": "0xfffffff0086f0668",
+      "old_word": "0xf9454108",
+      "new_word": "0xf9455d08",
+      "kind": "AppleCS42L67Audio virtual slot 336 -> 343"
+    },
+    {
+      "address": "0xfffffff0086f0684",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f069c",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f06b4",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f06cc",
+      "old_word": "0xf9454108",
+      "new_word": "0xf9455d08",
+      "kind": "AppleCS42L67Audio virtual slot 336 -> 343"
+    },
+    {
+      "address": "0xfffffff0086f06e8",
+      "old_word": "0xf9437508",
+      "new_word": "0xf9438908",
+      "kind": "AppleCS42L67Audio virtual slot 221 -> 226"
+    },
+    {
+      "address": "0xfffffff0086f06fc",
+      "old_word": "0xf9430508",
+      "new_word": "0xf9431908",
+      "kind": "AppleCS42L67Audio virtual slot 193 -> 198"
+    },
+    {
+      "address": "0xfffffff0086f0708",
+      "old_word": "0x528036a1",
+      "new_word": "0x52803721",
+      "kind": "EQ 437 -> 441: get buffer"
+    },
+    {
+      "address": "0xfffffff0086f0720",
+      "old_word": "0xf940f108",
+      "new_word": "0xf940f508",
+      "kind": "AppleCS42L67Audio virtual slot 60 -> 61"
+    },
+    {
+      "address": "0xfffffff0086f0744",
+      "old_word": "0xf9447108",
+      "new_word": "0xf9448d08",
+      "kind": "AppleCS42L67Audio virtual slot 284 -> 291"
+    },
+    {
+      "address": "0xfffffff0086f0748",
+      "old_word": "0x528036a1",
+      "new_word": "0x52803721",
+      "kind": "EQ 437 -> 441: apply initial coefficients"
+    },
+    {
+      "address": "0xfffffff0086f0760",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f077c",
+      "old_word": "0xf9412a60",
+      "new_word": "0xf9412e60",
+      "kind": "CS42L67 private field 0x250 -> 0x258"
+    },
+    {
+      "address": "0xfffffff0086f0824",
+      "old_word": "0x3948a268",
+      "new_word": "0x3948c268",
+      "kind": "CS42L67 private field 0x228 -> 0x230"
+    },
+    {
+      "address": "0xfffffff0086f082c",
+      "old_word": "0xf9411e60",
+      "new_word": "0xf9412260",
+      "kind": "CS42L67 private field 0x238 -> 0x240"
+    },
+    {
+      "address": "0xfffffff0086f083c",
+      "old_word": "0xf9411e60",
+      "new_word": "0xf9412260",
+      "kind": "CS42L67 private field 0x238 -> 0x240"
+    },
+    {
+      "address": "0xfffffff0086f0864",
+      "old_word": "0xf9437d08",
+      "new_word": "0xf9439108",
+      "kind": "AppleCS42L67Audio virtual slot 223 -> 228"
+    },
+    {
+      "address": "0xfffffff0086f087c",
+      "old_word": "0xf9437d08",
+      "new_word": "0xf9439108",
+      "kind": "AppleCS42L67Audio virtual slot 223 -> 228"
+    },
+    {
+      "address": "0xfffffff0086f0894",
+      "old_word": "0xf9436508",
+      "new_word": "0xf9437908",
+      "kind": "AppleCS42L67Audio virtual slot 217 -> 222"
+    },
+    {
+      "address": "0xfffffff0086f08bc",
+      "old_word": "0xf9436508",
+      "new_word": "0xf9437908",
+      "kind": "AppleCS42L67Audio virtual slot 217 -> 222"
+    },
+    {
+      "address": "0xfffffff0086f08d8",
+      "old_word": "0xf9436508",
+      "new_word": "0xf9437908",
+      "kind": "AppleCS42L67Audio virtual slot 217 -> 222"
+    },
+    {
+      "address": "0xfffffff0086f08f4",
+      "old_word": "0xf9436508",
+      "new_word": "0xf9437908",
+      "kind": "AppleCS42L67Audio virtual slot 217 -> 222"
+    },
+    {
+      "address": "0xfffffff0086f0910",
+      "old_word": "0xf9436508",
+      "new_word": "0xf9437908",
+      "kind": "AppleCS42L67Audio virtual slot 217 -> 222"
+    },
+    {
+      "address": "0xfffffff0086f0928",
+      "old_word": "0xb941ba68",
+      "new_word": "0xb941c268",
+      "kind": "CS42L67 private field 0x1b8 -> 0x1c0"
+    },
+    {
+      "address": "0xfffffff0086f0948",
+      "old_word": "0x3907227f",
+      "new_word": "0x3907427f",
+      "kind": "CS42L67 private field 0x1c8 -> 0x1d0"
+    },
+    {
+      "address": "0xfffffff0086f094c",
+      "old_word": "0xf940e260",
+      "new_word": "0xf940e660",
+      "kind": "CS42L67 private field 0x1c0 -> 0x1c8"
+    },
+    {
+      "address": "0xfffffff0086f0954",
+      "old_word": "0xf9409908",
+      "new_word": "0xf9409d08",
+      "kind": "IOTimerEventSource virtual slot 38 -> 39"
+    },
+    {
+      "address": "0xfffffff0086f0974",
+      "old_word": "0xf9453508",
+      "new_word": "0xf9455108",
+      "kind": "AppleCS42L67Audio virtual slot 333 -> 340"
+    },
+    {
+      "address": "0xfffffff0086f0984",
+      "old_word": "0x39472268",
+      "new_word": "0x39474268",
+      "kind": "CS42L67 private field 0x1c8 -> 0x1d0"
+    },
+    {
+      "address": "0xfffffff0086f09b4",
+      "old_word": "0x3907227f",
+      "new_word": "0x3907427f",
+      "kind": "CS42L67 private field 0x1c8 -> 0x1d0"
+    },
+    {
+      "address": "0xfffffff0086f09b8",
+      "old_word": "0xf940e260",
+      "new_word": "0xf940e660",
+      "kind": "CS42L67 private field 0x1c0 -> 0x1c8"
+    },
+    {
+      "address": "0xfffffff0086f09c0",
+      "old_word": "0xf9409908",
+      "new_word": "0xf9409d08",
+      "kind": "IOTimerEventSource virtual slot 38 -> 39"
+    },
+    {
+      "address": "0xfffffff0086f0a34",
+      "old_word": "0x91074268",
+      "new_word": "0x91076268",
+      "kind": "CS42L67 private field 0x1d0 -> 0x1d8"
+    },
+    {
+      "address": "0xfffffff0086f0b9c",
+      "old_word": "0xf942ed08",
+      "new_word": "0xf942f108",
+      "kind": "AppleARMIISAudioDevice virtual slot 187 -> 188"
+    },
+    {
+      "address": "0xfffffff0086f0bd4",
+      "old_word": "0xf9411e60",
+      "new_word": "0xf9412260",
+      "kind": "CS42L67 private field 0x238 -> 0x240"
+    },
+    {
+      "address": "0xfffffff0086f0c40",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f0c54",
+      "old_word": "0xf9454108",
+      "new_word": "0xf9455d08",
+      "kind": "AppleCS42L67Audio virtual slot 336 -> 343"
+    },
+    {
+      "address": "0xfffffff0086f0cd4",
+      "old_word": "0xf945314a",
+      "new_word": "0xf9454d4a",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f0eb0",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f0f9c",
+      "old_word": "0xf9453129",
+      "new_word": "0xf9454d29",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f12b8",
+      "old_word": "0xf9436908",
+      "new_word": "0xf9437d08",
+      "kind": "AppleCS42L67Audio virtual slot 218 -> 223"
+    },
+    {
+      "address": "0xfffffff0086f1370",
+      "old_word": "0xf9436908",
+      "new_word": "0xf9437d08",
+      "kind": "AppleCS42L67Audio virtual slot 218 -> 223"
+    },
+    {
+      "address": "0xfffffff0086f14e0",
+      "old_word": "0xf945314a",
+      "new_word": "0xf9454d4a",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f1504",
+      "old_word": "0xf9453129",
+      "new_word": "0xf9454d29",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f1560",
+      "old_word": "0xf9453908",
+      "new_word": "0xf9455508",
+      "kind": "AppleCS42L67Audio virtual slot 334 -> 341"
+    },
+    {
+      "address": "0xfffffff0086f1598",
+      "old_word": "0x91074268",
+      "new_word": "0x91076268",
+      "kind": "CS42L67 private field 0x1d0 -> 0x1d8"
+    },
+    {
+      "address": "0xfffffff0086f17ec",
+      "old_word": "0xf9436908",
+      "new_word": "0xf9437d08",
+      "kind": "AppleCS42L67Audio virtual slot 218 -> 223"
+    },
+    {
+      "address": "0xfffffff0086f1920",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f1938",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f1950",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f1968",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f1980",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f19bc",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f19e0",
+      "old_word": "0xf9436508",
+      "new_word": "0xf9437908",
+      "kind": "AppleCS42L67Audio virtual slot 217 -> 222"
+    },
+    {
+      "address": "0xfffffff0086f1a00",
+      "old_word": "0xf9436908",
+      "new_word": "0xf9437d08",
+      "kind": "AppleCS42L67Audio virtual slot 218 -> 223"
+    },
+    {
+      "address": "0xfffffff0086f1a38",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f1a50",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f1a68",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f1a94",
+      "old_word": "0x91074268",
+      "new_word": "0x91076268",
+      "kind": "CS42L67 private field 0x1d0 -> 0x1d8"
+    },
+    {
+      "address": "0xfffffff0086f1af8",
+      "old_word": "0xf940f108",
+      "new_word": "0xf940f508",
+      "kind": "AppleCS42L67Audio virtual slot 60 -> 61"
+    },
+    {
+      "address": "0xfffffff0086f1b38",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f1b50",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f1b78",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f1b90",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f1bb0",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f1bd0",
+      "old_word": "0x91074269",
+      "new_word": "0x91076269",
+      "kind": "CS42L67 private field 0x1d0 -> 0x1d8"
+    },
+    {
+      "address": "0xfffffff0086f1c08",
+      "old_word": "0x91074269",
+      "new_word": "0x91076269",
+      "kind": "CS42L67 private field 0x1d0 -> 0x1d8"
+    },
+    {
+      "address": "0xfffffff0086f1c34",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f1c54",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f1cb4",
+      "old_word": "0x39472e68",
+      "new_word": "0x39474e68",
+      "kind": "CS42L67 private field 0x1cb -> 0x1d3"
+    },
+    {
+      "address": "0xfffffff0086f1ce4",
+      "old_word": "0x3948a268",
+      "new_word": "0x3948c268",
+      "kind": "CS42L67 private field 0x228 -> 0x230"
+    },
+    {
+      "address": "0xfffffff0086f1cec",
+      "old_word": "0xf9411e60",
+      "new_word": "0xf9412260",
+      "kind": "CS42L67 private field 0x238 -> 0x240"
+    },
+    {
+      "address": "0xfffffff0086f1d58",
+      "old_word": "0xf9454108",
+      "new_word": "0xf9455d08",
+      "kind": "AppleCS42L67Audio virtual slot 336 -> 343"
+    },
+    {
+      "address": "0xfffffff0086f1d90",
+      "old_word": "0xf9454129",
+      "new_word": "0xf9455d29",
+      "kind": "AppleCS42L67Audio virtual slot 336 -> 343"
+    },
+    {
+      "address": "0xfffffff0086f1dc0",
+      "old_word": "0xf9454108",
+      "new_word": "0xf9455d08",
+      "kind": "AppleCS42L67Audio virtual slot 336 -> 343"
+    },
+    {
+      "address": "0xfffffff0086f1de8",
+      "old_word": "0xf9454108",
+      "new_word": "0xf9455d08",
+      "kind": "AppleCS42L67Audio virtual slot 336 -> 343"
+    },
+    {
+      "address": "0xfffffff0086f1e0c",
+      "old_word": "0xf9436508",
+      "new_word": "0xf9437908",
+      "kind": "AppleCS42L67Audio virtual slot 217 -> 222"
+    },
+    {
+      "address": "0xfffffff0086f1e30",
+      "old_word": "0xf9436508",
+      "new_word": "0xf9437908",
+      "kind": "AppleCS42L67Audio virtual slot 217 -> 222"
+    },
+    {
+      "address": "0xfffffff0086f1e6c",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f1e84",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f1ea0",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f1eb8",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f1ed8",
+      "old_word": "0xf9436508",
+      "new_word": "0xf9437908",
+      "kind": "AppleCS42L67Audio virtual slot 217 -> 222"
+    },
+    {
+      "address": "0xfffffff0086f1efc",
+      "old_word": "0xf9453129",
+      "new_word": "0xf9454d29",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f1f28",
+      "old_word": "0xf945314a",
+      "new_word": "0xf9454d4a",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f1f4c",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f1f68",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f1f80",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f1fbc",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f1fe4",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f1ffc",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f2014",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f2034",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f204c",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f2068",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f2080",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f2090",
+      "old_word": "0x3948a268",
+      "new_word": "0x3948c268",
+      "kind": "CS42L67 private field 0x228 -> 0x230"
+    },
+    {
+      "address": "0xfffffff0086f2098",
+      "old_word": "0xf9411e60",
+      "new_word": "0xf9412260",
+      "kind": "CS42L67 private field 0x238 -> 0x240"
+    },
+    {
+      "address": "0xfffffff0086f20bc",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f20d8",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f20e8",
+      "old_word": "0xf9411e60",
+      "new_word": "0xf9412260",
+      "kind": "CS42L67 private field 0x238 -> 0x240"
+    },
+    {
+      "address": "0xfffffff0086f20f4",
+      "old_word": "0xf9411e60",
+      "new_word": "0xf9412260",
+      "kind": "CS42L67 private field 0x238 -> 0x240"
+    },
+    {
+      "address": "0xfffffff0086f20fc",
+      "old_word": "0xf9430908",
+      "new_word": "0xf9430d08",
+      "kind": "AppleCSCodecLineOutMikeyBus"
+    },
+    {
+      "address": "0xfffffff0086f2114",
+      "old_word": "0xf9411e60",
+      "new_word": "0xf9412260",
+      "kind": "CS42L67 private field 0x238 -> 0x240"
+    },
+    {
+      "address": "0xfffffff0086f2120",
+      "old_word": "0xf9411e60",
+      "new_word": "0xf9412260",
+      "kind": "CS42L67 private field 0x238 -> 0x240"
+    },
+    {
+      "address": "0xfffffff0086f2128",
+      "old_word": "0xf9430d08",
+      "new_word": "0xf9431108",
+      "kind": "AppleCSCodecLineOutMikeyBus"
+    },
+    {
+      "address": "0xfffffff0086f2134",
+      "old_word": "0xf9436508",
+      "new_word": "0xf9437908",
+      "kind": "AppleCS42L67Audio virtual slot 217 -> 222"
+    },
+    {
+      "address": "0xfffffff0086f216c",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f2198",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f21d4",
+      "old_word": "0x79c3f9cd",
+      "new_word": "0x79c409cd",
+      "kind": "CS42L67 private field 0x1fc -> 0x204"
+    },
+    {
+      "address": "0xfffffff0086f21f8",
+      "old_word": "0x79c3fdce",
+      "new_word": "0x79c40dce",
+      "kind": "CS42L67 private field 0x1fe -> 0x206"
+    },
+    {
+      "address": "0xfffffff0086f221c",
+      "old_word": "0x79c3fdce",
+      "new_word": "0x79c40dce",
+      "kind": "CS42L67 private field 0x1fe -> 0x206"
+    },
+    {
+      "address": "0xfffffff0086f2230",
+      "old_word": "0x79c3fdce",
+      "new_word": "0x79c40dce",
+      "kind": "CS42L67 private field 0x1fe -> 0x206"
+    },
+    {
+      "address": "0xfffffff0086f225c",
+      "old_word": "0xf9453508",
+      "new_word": "0xf9455108",
+      "kind": "AppleCS42L67Audio virtual slot 333 -> 340"
+    },
+    {
+      "address": "0xfffffff0086f2274",
+      "old_word": "0xf9453508",
+      "new_word": "0xf9455108",
+      "kind": "AppleCS42L67Audio virtual slot 333 -> 340"
+    },
+    {
+      "address": "0xfffffff0086f2298",
+      "old_word": "0x91096262",
+      "new_word": "0x91098262",
+      "kind": "CS42L67 private field 0x258 -> 0x260"
+    },
+    {
+      "address": "0xfffffff0086f22dc",
+      "old_word": "0xf9412e60",
+      "new_word": "0xf9413260",
+      "kind": "CS42L67 private field 0x258 -> 0x260"
+    },
+    {
+      "address": "0xfffffff0086f22e8",
+      "old_word": "0xf9454108",
+      "new_word": "0xf9455d08",
+      "kind": "AppleCS42L67Audio virtual slot 336 -> 343"
+    },
+    {
+      "address": "0xfffffff0086f2304",
+      "old_word": "0xf9454108",
+      "new_word": "0xf9455d08",
+      "kind": "AppleCS42L67Audio virtual slot 336 -> 343"
+    },
+    {
+      "address": "0xfffffff0086f2320",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f233c",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f2358",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f2374",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f2390",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f23ac",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f23c8",
+      "old_word": "0xf9436508",
+      "new_word": "0xf9437908",
+      "kind": "AppleCS42L67Audio virtual slot 217 -> 222"
+    },
+    {
+      "address": "0xfffffff0086f2418",
+      "old_word": "0xf9436508",
+      "new_word": "0xf9437908",
+      "kind": "AppleCS42L67Audio virtual slot 217 -> 222"
+    },
+    {
+      "address": "0xfffffff0086f2448",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f2460",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f2484",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f249c",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f24c4",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f24dc",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f2500",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f2518",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f2530",
+      "old_word": "0xf9453508",
+      "new_word": "0xf9455108",
+      "kind": "AppleCS42L67Audio virtual slot 333 -> 340"
+    },
+    {
+      "address": "0xfffffff0086f2584",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f259c",
+      "old_word": "0xf9436508",
+      "new_word": "0xf9437908",
+      "kind": "AppleCS42L67Audio virtual slot 217 -> 222"
+    },
+    {
+      "address": "0xfffffff0086f25c4",
+      "old_word": "0xf9453129",
+      "new_word": "0xf9454d29",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f25ec",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f2608",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f2628",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f2658",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f2670",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f2688",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f26a0",
+      "old_word": "0xf9454108",
+      "new_word": "0xf9455d08",
+      "kind": "AppleCS42L67Audio virtual slot 336 -> 343"
+    },
+    {
+      "address": "0xfffffff0086f26c0",
+      "old_word": "0xf9412a60",
+      "new_word": "0xf9412e60",
+      "kind": "CS42L67 private field 0x250 -> 0x258"
+    },
+    {
+      "address": "0xfffffff0086f26e4",
+      "old_word": "0xf9454108",
+      "new_word": "0xf9455d08",
+      "kind": "AppleCS42L67Audio virtual slot 336 -> 343"
+    },
+    {
+      "address": "0xfffffff0086f270c",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f2794",
+      "old_word": "0xf9454129",
+      "new_word": "0xf9455d29",
+      "kind": "AppleCS42L67Audio virtual slot 336 -> 343"
+    },
+    {
+      "address": "0xfffffff0086f27bc",
+      "old_word": "0xf9454108",
+      "new_word": "0xf9455d08",
+      "kind": "AppleCS42L67Audio virtual slot 336 -> 343"
+    },
+    {
+      "address": "0xfffffff0086f27d0",
+      "old_word": "0xf9412a60",
+      "new_word": "0xf9412e60",
+      "kind": "CS42L67 private field 0x250 -> 0x258"
+    },
+    {
+      "address": "0xfffffff0086f27d8",
+      "old_word": "0xf9444d08",
+      "new_word": "0xf9445d08",
+      "kind": "AppleCSHTDCodecMikey"
+    },
+    {
+      "address": "0xfffffff0086f27ec",
+      "old_word": "0xf9436508",
+      "new_word": "0xf9437908",
+      "kind": "AppleCS42L67Audio virtual slot 217 -> 222"
+    },
+    {
+      "address": "0xfffffff0086f280c",
+      "old_word": "0xf9454108",
+      "new_word": "0xf9455d08",
+      "kind": "AppleCS42L67Audio virtual slot 336 -> 343"
+    },
+    {
+      "address": "0xfffffff0086f2994",
+      "old_word": "0xf9412c00",
+      "new_word": "0xf9413000",
+      "kind": "CS42L67 private field 0x258 -> 0x260"
+    },
+    {
+      "address": "0xfffffff0086f299c",
+      "old_word": "0x39472268",
+      "new_word": "0x39474268",
+      "kind": "CS42L67 private field 0x1c8 -> 0x1d0"
+    },
+    {
+      "address": "0xfffffff0086f29a4",
+      "old_word": "0xf940e260",
+      "new_word": "0xf940e660",
+      "kind": "CS42L67 private field 0x1c0 -> 0x1c8"
+    },
+    {
+      "address": "0xfffffff0086f29ac",
+      "old_word": "0xf9409908",
+      "new_word": "0xf9409d08",
+      "kind": "IOTimerEventSource virtual slot 38 -> 39"
+    },
+    {
+      "address": "0xfffffff0086f29b4",
+      "old_word": "0x3907227f",
+      "new_word": "0x3907427f",
+      "kind": "CS42L67 private field 0x1c8 -> 0x1d0"
+    },
+    {
+      "address": "0xfffffff0086f29c4",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f29dc",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f29f4",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f2a0c",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f2a24",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f2a3c",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f2a54",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f2a6c",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f2a84",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f2a9c",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f2ab0",
+      "old_word": "0xf9412a60",
+      "new_word": "0xf9412e60",
+      "kind": "CS42L67 private field 0x250 -> 0x258"
+    },
+    {
+      "address": "0xfffffff0086f2abc",
+      "old_word": "0xf9439508",
+      "new_word": "0xf943a508",
+      "kind": "AppleCSHTDCodecMikey"
+    },
+    {
+      "address": "0xfffffff0086f2adc",
+      "old_word": "0xf9412a60",
+      "new_word": "0xf9412e60",
+      "kind": "CS42L67 private field 0x250 -> 0x258"
+    },
+    {
+      "address": "0xfffffff0086f2ae8",
+      "old_word": "0xf9454108",
+      "new_word": "0xf9455d08",
+      "kind": "AppleCS42L67Audio virtual slot 336 -> 343"
+    },
+    {
+      "address": "0xfffffff0086f2b08",
+      "old_word": "0xf9453508",
+      "new_word": "0xf9455108",
+      "kind": "AppleCS42L67Audio virtual slot 333 -> 340"
+    },
+    {
+      "address": "0xfffffff0086f2b24",
+      "old_word": "0xf9442d08",
+      "new_word": "0xf9444108",
+      "kind": "AppleCS42L67Audio virtual slot 267 -> 272"
+    },
+    {
+      "address": "0xfffffff0086f2b44",
+      "old_word": "0xf940f108",
+      "new_word": "0xf940f508",
+      "kind": "AppleCS42L67Audio virtual slot 60 -> 61"
+    },
+    {
+      "address": "0xfffffff0086f2b58",
+      "old_word": "0xf940f108",
+      "new_word": "0xf940f508",
+      "kind": "AppleCS42L67Audio virtual slot 60 -> 61"
+    },
+    {
+      "address": "0xfffffff0086f2b90",
+      "old_word": "0xf940f108",
+      "new_word": "0xf940f508",
+      "kind": "AppleCS42L67Audio virtual slot 60 -> 61"
+    },
+    {
+      "address": "0xfffffff0086f2bb4",
+      "old_word": "0xf9454108",
+      "new_word": "0xf9455d08",
+      "kind": "AppleCS42L67Audio virtual slot 336 -> 343"
+    },
+    {
+      "address": "0xfffffff0086f2bd0",
+      "old_word": "0xf9442d08",
+      "new_word": "0xf9444108",
+      "kind": "AppleCS42L67Audio virtual slot 267 -> 272"
+    },
+    {
+      "address": "0xfffffff0086f2be4",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f2bfc",
+      "old_word": "0xf9441908",
+      "new_word": "0xf9442d08",
+      "kind": "AppleCS42L67Audio virtual slot 262 -> 267"
+    },
+    {
+      "address": "0xfffffff0086f2c34",
+      "old_word": "0xf9453508",
+      "new_word": "0xf9455108",
+      "kind": "AppleCS42L67Audio virtual slot 333 -> 340"
+    },
+    {
+      "address": "0xfffffff0086f2c44",
+      "old_word": "0xf9453103",
+      "new_word": "0xf9454d03",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f2c78",
+      "old_word": "0xf9453508",
+      "new_word": "0xf9455108",
+      "kind": "AppleCS42L67Audio virtual slot 333 -> 340"
+    },
+    {
+      "address": "0xfffffff0086f2c90",
+      "old_word": "0xf9453103",
+      "new_word": "0xf9454d03",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f2cc0",
+      "old_word": "0xf9454508",
+      "new_word": "0xf9456108",
+      "kind": "AppleCS42L67Audio virtual slot 337 -> 344"
+    },
+    {
+      "address": "0xfffffff0086f2ce0",
+      "old_word": "0xf9454908",
+      "new_word": "0xf9456508",
+      "kind": "AppleCS42L67Audio virtual slot 338 -> 345"
+    },
+    {
+      "address": "0xfffffff0086f2d10",
+      "old_word": "0xb941b808",
+      "new_word": "0xb941c008",
+      "kind": "CS42L67 private field 0x1b8 -> 0x1c0"
+    },
+    {
+      "address": "0xfffffff0086f2d1c",
+      "old_word": "0x39472008",
+      "new_word": "0x39474008",
+      "kind": "CS42L67 private field 0x1c8 -> 0x1d0"
+    },
+    {
+      "address": "0xfffffff0086f2d24",
+      "old_word": "0xf9412a60",
+      "new_word": "0xf9412e60",
+      "kind": "CS42L67 private field 0x250 -> 0x258"
+    },
+    {
+      "address": "0xfffffff0086f2d2c",
+      "old_word": "0xf9434108",
+      "new_word": "0xf9434d08",
+      "kind": "AppleCSHTDCodecMikey"
+    },
+    {
+      "address": "0xfffffff0086f2d40",
+      "old_word": "0xf940e260",
+      "new_word": "0xf940e660",
+      "kind": "CS42L67 private field 0x1c0 -> 0x1c8"
+    },
+    {
+      "address": "0xfffffff0086f2d44",
+      "old_word": "0xb941ba61",
+      "new_word": "0xb941c261",
+      "kind": "CS42L67 private field 0x1b8 -> 0x1c0"
+    },
+    {
+      "address": "0xfffffff0086f2d4c",
+      "old_word": "0xf9407508",
+      "new_word": "0xf9407908",
+      "kind": "IOTimerEventSource virtual slot 29 -> 30"
+    },
+    {
+      "address": "0xfffffff0086f2d58",
+      "old_word": "0x39072268",
+      "new_word": "0x39074268",
+      "kind": "CS42L67 private field 0x1c8 -> 0x1d0"
+    },
+    {
+      "address": "0xfffffff0086f2d8c",
+      "old_word": "0xf9454508",
+      "new_word": "0xf9456108",
+      "kind": "AppleCS42L67Audio virtual slot 337 -> 344"
+    },
+    {
+      "address": "0xfffffff0086f2d98",
+      "old_word": "0xf9453508",
+      "new_word": "0xf9455108",
+      "kind": "AppleCS42L67Audio virtual slot 333 -> 340"
+    },
+    {
+      "address": "0xfffffff0086f2db0",
+      "old_word": "0xf9412a60",
+      "new_word": "0xf9412e60",
+      "kind": "CS42L67 private field 0x250 -> 0x258"
+    },
+    {
+      "address": "0xfffffff0086f2dc4",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f2dec",
+      "old_word": "0xf9454908",
+      "new_word": "0xf9456508",
+      "kind": "AppleCS42L67Audio virtual slot 338 -> 345"
+    },
+    {
+      "address": "0xfffffff0086f2e30",
+      "old_word": "0xf942f908",
+      "new_word": "0xf9430d08",
+      "kind": "AppleCS42L67Audio virtual slot 190 -> 195"
+    },
+    {
+      "address": "0xfffffff0086f2e34",
+      "old_word": "0x528036a2",
+      "new_word": "0x52803722",
+      "kind": "EQ 437 -> 441: create control"
+    },
+    {
+      "address": "0xfffffff0086f2e68",
+      "old_word": "0xf942f908",
+      "new_word": "0xf9430d08",
+      "kind": "AppleCS42L67Audio virtual slot 190 -> 195"
+    },
+    {
+      "address": "0xfffffff0086f2ea0",
+      "old_word": "0xf942f907",
+      "new_word": "0xf9430d07",
+      "kind": "AppleCS42L67Audio virtual slot 190 -> 195"
+    },
+    {
+      "address": "0xfffffff0086f2f08",
+      "old_word": "0xf9453d08",
+      "new_word": "0xf9455908",
+      "kind": "AppleCS42L67Audio virtual slot 335 -> 342"
+    },
+    {
+      "address": "0xfffffff0086f2fe8",
+      "old_word": "0xf9407108",
+      "new_word": "0xf9407508",
+      "kind": "OSObject virtual slot 28 -> 29"
+    },
+    {
+      "address": "0xfffffff0086f3080",
+      "old_word": "0x7106d43f",
+      "new_word": "0x7106e43f",
+      "kind": "EQ 437 -> 441: buffer size"
+    },
+    {
+      "address": "0xfffffff0086f3098",
+      "old_word": "0x7106d43f",
+      "new_word": "0x7106e43f",
+      "kind": "EQ 437 -> 441: coefficient parameters"
+    },
+    {
+      "address": "0xfffffff0086f30f0",
+      "old_word": "0xf9436d08",
+      "new_word": "0xf9438108",
+      "kind": "AppleCS42L67Audio virtual slot 219 -> 224"
+    },
+    {
+      "address": "0xfffffff0086f320c",
+      "old_word": "0xf9454108",
+      "new_word": "0xf9455d08",
+      "kind": "AppleCS42L67Audio virtual slot 336 -> 343"
+    },
+    {
+      "address": "0xfffffff0086f3260",
+      "old_word": "0x39472908",
+      "new_word": "0x39474908",
+      "kind": "CS42L67 private field 0x1ca -> 0x1d2"
+    },
+    {
+      "address": "0xfffffff0086f32b8",
+      "old_word": "0x39473508",
+      "new_word": "0x39475508",
+      "kind": "CS42L67 private field 0x1cd -> 0x1d5"
+    },
+    {
+      "address": "0xfffffff0086f32c8",
+      "old_word": "0x39472d09",
+      "new_word": "0x39474d09",
+      "kind": "CS42L67 private field 0x1cb -> 0x1d3"
+    },
+    {
+      "address": "0xfffffff0086f32dc",
+      "old_word": "0x39473108",
+      "new_word": "0x39475108",
+      "kind": "CS42L67 private field 0x1cc -> 0x1d4"
+    },
+    {
+      "address": "0xfffffff0086f32f8",
+      "old_word": "0xf9411908",
+      "new_word": "0xf9411d08",
+      "kind": "CS42L67 private field 0x230 -> 0x238"
+    },
+    {
+      "address": "0xfffffff0086f3540",
+      "old_word": "0x39472808",
+      "new_word": "0x39474808",
+      "kind": "CS42L67 private field 0x1ca -> 0x1d2"
+    },
+    {
+      "address": "0xfffffff0086f3548",
+      "old_word": "0x39472c08",
+      "new_word": "0x39474c08",
+      "kind": "CS42L67 private field 0x1cb -> 0x1d3"
+    },
+    {
+      "address": "0xfffffff0086f3558",
+      "old_word": "0x39472c08",
+      "new_word": "0x39474c08",
+      "kind": "CS42L67 private field 0x1cb -> 0x1d3"
+    },
+    {
+      "address": "0xfffffff0086f35cc",
+      "old_word": "0xf9411808",
+      "new_word": "0xf9411c08",
+      "kind": "CS42L67 private field 0x230 -> 0x238"
+    },
+    {
+      "address": "0xfffffff0086f3688",
+      "old_word": "0x39473008",
+      "new_word": "0x39475008",
+      "kind": "CS42L67 private field 0x1cc -> 0x1d4"
+    },
+    {
+      "address": "0xfffffff0086f36cc",
+      "old_word": "0x39472c08",
+      "new_word": "0x39474c08",
+      "kind": "CS42L67 private field 0x1cb -> 0x1d3"
+    },
+    {
+      "address": "0xfffffff0086f3720",
+      "old_word": "0xf9442501",
+      "new_word": "0xf9443901",
+      "kind": "AppleCS42L67Audio virtual slot 265 -> 270"
+    },
+    {
+      "address": "0xfffffff0086f3780",
+      "old_word": "0x39473809",
+      "new_word": "0x39475809",
+      "kind": "CS42L67 private field 0x1ce -> 0x1d6"
+    },
+    {
+      "address": "0xfffffff0086f37a0",
+      "old_word": "0x39473c09",
+      "new_word": "0x39475c09",
+      "kind": "CS42L67 private field 0x1cf -> 0x1d7"
+    },
+    {
+      "address": "0xfffffff0086f37c0",
+      "old_word": "0x3948a009",
+      "new_word": "0x3948c009",
+      "kind": "CS42L67 private field 0x228 -> 0x230"
+    },
+    {
+      "address": "0xfffffff0086f37f8",
+      "old_word": "0x9107400a",
+      "new_word": "0x9107600a",
+      "kind": "CS42L67 private field 0x1d0 -> 0x1d8"
+    },
+    {
+      "address": "0xfffffff0086f3984",
+      "old_word": "0x3948a008",
+      "new_word": "0x3948c008",
+      "kind": "CS42L67 private field 0x228 -> 0x230"
+    },
+    {
+      "address": "0xfffffff0086f39dc",
+      "old_word": "0xf9443d08",
+      "new_word": "0xf9445108",
+      "kind": "AppleCS42L67Audio virtual slot 271 -> 276"
+    },
+    {
+      "address": "0xfffffff0086f3a18",
+      "old_word": "0xf9443d08",
+      "new_word": "0xf9445108",
+      "kind": "AppleCS42L67Audio virtual slot 271 -> 276"
+    },
+    {
+      "address": "0xfffffff0086f3a58",
+      "old_word": "0xf9444108",
+      "new_word": "0xf9445508",
+      "kind": "AppleCS42L67Audio virtual slot 272 -> 277"
+    },
+    {
+      "address": "0xfffffff0086f3aac",
+      "old_word": "0xf9443d08",
+      "new_word": "0xf9445108",
+      "kind": "AppleCS42L67Audio virtual slot 271 -> 276"
+    },
+    {
+      "address": "0xfffffff0086f3b1c",
+      "old_word": "0xf9442903",
+      "new_word": "0xf9443d03",
+      "kind": "AppleCS42L67Audio virtual slot 266 -> 271"
+    },
+    {
+      "address": "0xfffffff0086f3bfc",
+      "old_word": "0xf9436508",
+      "new_word": "0xf9437908",
+      "kind": "AppleCS42L67Audio virtual slot 217 -> 222"
+    },
+    {
+      "address": "0xfffffff0086f3c1c",
+      "old_word": "0xf9454104",
+      "new_word": "0xf9455d04",
+      "kind": "AppleCS42L67Audio virtual slot 336 -> 343"
+    },
+    {
+      "address": "0xfffffff0086f3cbc",
+      "old_word": "0xf9453508",
+      "new_word": "0xf9455108",
+      "kind": "AppleCS42L67Audio virtual slot 333 -> 340"
+    },
+    {
+      "address": "0xfffffff0086f3cd4",
+      "old_word": "0xf9436508",
+      "new_word": "0xf9437908",
+      "kind": "AppleCS42L67Audio virtual slot 217 -> 222"
+    },
+    {
+      "address": "0xfffffff0086f3cf0",
+      "old_word": "0xf9436508",
+      "new_word": "0xf9437908",
+      "kind": "AppleCS42L67Audio virtual slot 217 -> 222"
+    },
+    {
+      "address": "0xfffffff0086f3d04",
+      "old_word": "0x39472e68",
+      "new_word": "0x39474e68",
+      "kind": "CS42L67 private field 0x1cb -> 0x1d3"
+    },
+    {
+      "address": "0xfffffff0086f3d6c",
+      "old_word": "0xf9453129",
+      "new_word": "0xf9454d29",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f3d94",
+      "old_word": "0xf9453103",
+      "new_word": "0xf9454d03",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f3dd0",
+      "old_word": "0x39472c08",
+      "new_word": "0x39474c08",
+      "kind": "CS42L67 private field 0x1cb -> 0x1d3"
+    },
+    {
+      "address": "0xfffffff0086f3de4",
+      "old_word": "0xf9453508",
+      "new_word": "0xf9455108",
+      "kind": "AppleCS42L67Audio virtual slot 333 -> 340"
+    },
+    {
+      "address": "0xfffffff0086f3dfc",
+      "old_word": "0xf9436508",
+      "new_word": "0xf9437908",
+      "kind": "AppleCS42L67Audio virtual slot 217 -> 222"
+    },
+    {
+      "address": "0xfffffff0086f3e18",
+      "old_word": "0xf9436508",
+      "new_word": "0xf9437908",
+      "kind": "AppleCS42L67Audio virtual slot 217 -> 222"
+    },
+    {
+      "address": "0xfffffff0086f3e44",
+      "old_word": "0xf9453103",
+      "new_word": "0xf9454d03",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f3e90",
+      "old_word": "0xf9453508",
+      "new_word": "0xf9455108",
+      "kind": "AppleCS42L67Audio virtual slot 333 -> 340"
+    },
+    {
+      "address": "0xfffffff0086f3ea8",
+      "old_word": "0xf9436508",
+      "new_word": "0xf9437908",
+      "kind": "AppleCS42L67Audio virtual slot 217 -> 222"
+    },
+    {
+      "address": "0xfffffff0086f3ec4",
+      "old_word": "0xf9436508",
+      "new_word": "0xf9437908",
+      "kind": "AppleCS42L67Audio virtual slot 217 -> 222"
+    },
+    {
+      "address": "0xfffffff0086f3eec",
+      "old_word": "0xf9453129",
+      "new_word": "0xf9454d29",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f3f28",
+      "old_word": "0xf9453508",
+      "new_word": "0xf9455108",
+      "kind": "AppleCS42L67Audio virtual slot 333 -> 340"
+    },
+    {
+      "address": "0xfffffff0086f3f40",
+      "old_word": "0xf9436508",
+      "new_word": "0xf9437908",
+      "kind": "AppleCS42L67Audio virtual slot 217 -> 222"
+    },
+    {
+      "address": "0xfffffff0086f3f5c",
+      "old_word": "0xf9436508",
+      "new_word": "0xf9437908",
+      "kind": "AppleCS42L67Audio virtual slot 217 -> 222"
+    },
+    {
+      "address": "0xfffffff0086f3f84",
+      "old_word": "0xf9453129",
+      "new_word": "0xf9454d29",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f3fdc",
+      "old_word": "0xf9436508",
+      "new_word": "0xf9437908",
+      "kind": "AppleCS42L67Audio virtual slot 217 -> 222"
+    },
+    {
+      "address": "0xfffffff0086f3ff8",
+      "old_word": "0xf9453d08",
+      "new_word": "0xf9455908",
+      "kind": "AppleCS42L67Audio virtual slot 335 -> 342"
+    },
+    {
+      "address": "0xfffffff0086f402c",
+      "old_word": "0xf9436508",
+      "new_word": "0xf9437908",
+      "kind": "AppleCS42L67Audio virtual slot 217 -> 222"
+    },
+    {
+      "address": "0xfffffff0086f407c",
+      "old_word": "0xf9453908",
+      "new_word": "0xf9455508",
+      "kind": "AppleCS42L67Audio virtual slot 334 -> 341"
+    },
+    {
+      "address": "0xfffffff0086f409c",
+      "old_word": "0xf9454108",
+      "new_word": "0xf9455d08",
+      "kind": "AppleCS42L67Audio virtual slot 336 -> 343"
+    },
+    {
+      "address": "0xfffffff0086f4108",
+      "old_word": "0xf9454108",
+      "new_word": "0xf9455d08",
+      "kind": "AppleCS42L67Audio virtual slot 336 -> 343"
+    },
+    {
+      "address": "0xfffffff0086f412c",
+      "old_word": "0xf9437108",
+      "new_word": "0xf9438508",
+      "kind": "AppleCS42L67Audio virtual slot 220 -> 225"
+    },
+    {
+      "address": "0xfffffff0086f4194",
+      "old_word": "0xf9436508",
+      "new_word": "0xf9437908",
+      "kind": "AppleCS42L67Audio virtual slot 217 -> 222"
+    },
+    {
+      "address": "0xfffffff0086f41ac",
+      "old_word": "0xf9436508",
+      "new_word": "0xf9437908",
+      "kind": "AppleCS42L67Audio virtual slot 217 -> 222"
+    },
+    {
+      "address": "0xfffffff0086f4208",
+      "old_word": "0xf9453103",
+      "new_word": "0xf9454d03",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f4258",
+      "old_word": "0xf9436508",
+      "new_word": "0xf9437908",
+      "kind": "AppleCS42L67Audio virtual slot 217 -> 222"
+    },
+    {
+      "address": "0xfffffff0086f4290",
+      "old_word": "0xf9454124",
+      "new_word": "0xf9455d24",
+      "kind": "AppleCS42L67Audio virtual slot 336 -> 343"
+    },
+    {
+      "address": "0xfffffff0086f4358",
+      "old_word": "0xf9453d08",
+      "new_word": "0xf9455908",
+      "kind": "AppleCS42L67Audio virtual slot 335 -> 342"
+    },
+    {
+      "address": "0xfffffff0086f4388",
+      "old_word": "0xf9453d05",
+      "new_word": "0xf9455905",
+      "kind": "AppleCS42L67Audio virtual slot 335 -> 342"
+    },
+    {
+      "address": "0xfffffff0086f43e8",
+      "old_word": "0xf9436508",
+      "new_word": "0xf9437908",
+      "kind": "AppleCS42L67Audio virtual slot 217 -> 222"
+    },
+    {
+      "address": "0xfffffff0086f44ac",
+      "old_word": "0xf940d660",
+      "new_word": "0xf940da60",
+      "kind": "SPI provider field"
+    },
+    {
+      "address": "0xfffffff0086f44b4",
+      "old_word": "0xf942b908",
+      "new_word": "0xf942bd08",
+      "kind": "IOSPIController virtual slot 174 -> 175"
+    },
+    {
+      "address": "0xfffffff0086f4528",
+      "old_word": "0xf940d660",
+      "new_word": "0xf940da60",
+      "kind": "SPI provider field"
+    },
+    {
+      "address": "0xfffffff0086f4530",
+      "old_word": "0xf942b908",
+      "new_word": "0xf942bd08",
+      "kind": "IOSPIController virtual slot 174 -> 175"
+    },
+    {
+      "address": "0xfffffff0086f4590",
+      "old_word": "0x7106d43f",
+      "new_word": "0x7106e43f",
+      "kind": "EQ 437 -> 441: write coefficients"
+    },
+    {
+      "address": "0xfffffff0086f45a8",
+      "old_word": "0xf9453508",
+      "new_word": "0xf9455108",
+      "kind": "AppleCS42L67Audio virtual slot 333 -> 340"
+    },
+    {
+      "address": "0xfffffff0086f45ec",
+      "old_word": "0xf9453508",
+      "new_word": "0xf9455108",
+      "kind": "AppleCS42L67Audio virtual slot 333 -> 340"
+    },
+    {
+      "address": "0xfffffff0086f4610",
+      "old_word": "0xf9453508",
+      "new_word": "0xf9455108",
+      "kind": "AppleCS42L67Audio virtual slot 333 -> 340"
+    },
+    {
+      "address": "0xfffffff0086f4628",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f464c",
+      "old_word": "0xf9453508",
+      "new_word": "0xf9455108",
+      "kind": "AppleCS42L67Audio virtual slot 333 -> 340"
+    },
+    {
+      "address": "0xfffffff0086f4668",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f467c",
+      "old_word": "0xf9453508",
+      "new_word": "0xf9455108",
+      "kind": "AppleCS42L67Audio virtual slot 333 -> 340"
+    },
+    {
+      "address": "0xfffffff0086f4694",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f46ac",
+      "old_word": "0xf9453508",
+      "new_word": "0xf9455108",
+      "kind": "AppleCS42L67Audio virtual slot 333 -> 340"
+    },
+    {
+      "address": "0xfffffff0086f46c4",
+      "old_word": "0xf9453508",
+      "new_word": "0xf9455108",
+      "kind": "AppleCS42L67Audio virtual slot 333 -> 340"
+    },
+    {
+      "address": "0xfffffff0086f46dc",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f46f4",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f4718",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f4730",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f4844",
+      "old_word": "0xf9453129",
+      "new_word": "0xf9454d29",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f4864",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f4890",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f48a8",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f48c0",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f48d8",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f48f0",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f492c",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f4964",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f4978",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "AppleCS42L67Audio virtual slot 332 -> 339"
+    },
+    {
+      "address": "0xfffffff0086f49c4",
+      "old_word": "0xf9453508",
+      "new_word": "0xf9455108",
+      "kind": "AppleCS42L67Audio virtual slot 333 -> 340"
+    },
+    {
+      "address": "0xfffffff0086f4b5c",
+      "old_word": "0xf940d680",
+      "new_word": "0xf940da80",
+      "kind": "SPI provider field"
+    },
+    {
+      "address": "0xfffffff0086f4b64",
+      "old_word": "0xf942b908",
+      "new_word": "0xf942bd08",
+      "kind": "IOSPIController virtual slot 174 -> 175"
+    },
+    {
+      "address": "0xfffffff0086f4b90",
+      "old_word": "0xf940f108",
+      "new_word": "0xf940f508",
+      "kind": "AppleCS42L67Audio virtual slot 60 -> 61"
+    },
+    {
+      "address": "0xfffffff0086f4ba4",
+      "old_word": "0xf9423508",
+      "new_word": "0xf9423908",
+      "kind": "AppleCS42L67Audio virtual slot 141 -> 142"
+    },
+    {
+      "address": "0xfffffff0086f4bb8",
+      "old_word": "0xf940f108",
+      "new_word": "0xf940f508",
+      "kind": "AppleCS42L67Audio virtual slot 60 -> 61"
+    },
+    {
+      "address": "0xfffffff0086f4bd0",
+      "old_word": "0xf9423508",
+      "new_word": "0xf9423908",
+      "kind": "AppleCS42L67Audio virtual slot 141 -> 142"
+    },
+    {
+      "address": "0xfffffff0086f4ca4",
+      "old_word": "0xf940d680",
+      "new_word": "0xf940da80",
+      "kind": "SPI provider field"
+    },
+    {
+      "address": "0xfffffff0086f4cb0",
+      "old_word": "0xf942b908",
+      "new_word": "0xf942bd08",
+      "kind": "IOSPIController virtual slot 174 -> 175"
+    },
+    {
+      "address": "0xfffffff0086f4ce4",
+      "old_word": "0xf940d680",
+      "new_word": "0xf940da80",
+      "kind": "SPI provider field"
+    },
+    {
+      "address": "0xfffffff0086f4cf0",
+      "old_word": "0xf942b908",
+      "new_word": "0xf942bd08",
+      "kind": "IOSPIController virtual slot 174 -> 175"
+    },
+    {
+      "address": "0xfffffff0086f4d44",
+      "old_word": "0xf940d680",
+      "new_word": "0xf940da80",
+      "kind": "SPI provider field"
+    },
+    {
+      "address": "0xfffffff0086f4d4c",
+      "old_word": "0xf942b908",
+      "new_word": "0xf942bd08",
+      "kind": "IOSPIController virtual slot 174 -> 175"
+    },
+    {
+      "address": "0xfffffff0086f4e38",
+      "old_word": "0xf942a502",
+      "new_word": "0xf942a902",
+      "kind": "AppleCSHTDCodecMikey"
+    },
+    {
+      "address": "0xfffffff0086f4e74",
+      "old_word": "0xf9434d08",
+      "new_word": "0xf9435908",
+      "kind": "AppleCSHTDCodecMikey"
+    },
+    {
+      "address": "0xfffffff0086f4ea0",
+      "old_word": "0xf9405501",
+      "new_word": "0xf9405901",
+      "kind": "Audio register interface virtual slot 21 -> 22"
+    },
+    {
+      "address": "0xfffffff0086f4ea8",
+      "old_word": "0xf9405901",
+      "new_word": "0xf9405d01",
+      "kind": "Audio register interface virtual slot 22 -> 23"
+    },
+    {
+      "address": "0xfffffff0086f4ebc",
+      "old_word": "0xf9453522",
+      "new_word": "0xf9455122",
+      "kind": "Mikey call to main audio"
+    },
+    {
+      "address": "0xfffffff0086f4ed4",
+      "old_word": "0xf9453123",
+      "new_word": "0xf9454d23",
+      "kind": "Mikey call to main audio"
+    },
+    {
+      "address": "0xfffffff0086f4eec",
+      "old_word": "0xf9454124",
+      "new_word": "0xf9455d24",
+      "kind": "Mikey call to main audio"
+    },
+    {
+      "address": "0xfffffff0086f4f04",
+      "old_word": "0xf9453522",
+      "new_word": "0xf9455122",
+      "kind": "Mikey call to main audio"
+    },
+    {
+      "address": "0xfffffff0086f4f1c",
+      "old_word": "0xf9453123",
+      "new_word": "0xf9454d23",
+      "kind": "Mikey call to main audio"
+    },
+    {
+      "address": "0xfffffff0086f4f34",
+      "old_word": "0xf9454124",
+      "new_word": "0xf9455d24",
+      "kind": "Mikey call to main audio"
+    },
+    {
+      "address": "0xfffffff0086f4f64",
+      "old_word": "0xf9454108",
+      "new_word": "0xf9455d08",
+      "kind": "Mikey call to main audio"
+    },
+    {
+      "address": "0xfffffff0086f4f84",
+      "old_word": "0xf9453108",
+      "new_word": "0xf9454d08",
+      "kind": "Mikey call to main audio"
+    },
+    {
+      "address": "0xfffffff0086f4fb4",
+      "old_word": "0xf9453508",
+      "new_word": "0xf9455108",
+      "kind": "Mikey call to main audio"
+    },
+    {
+      "address": "0xfffffff0086f4fdc",
+      "old_word": "0xf9453508",
+      "new_word": "0xf9455108",
+      "kind": "Mikey call to main audio"
+    },
+    {
+      "address": "0xfffffff0086f502c",
+      "old_word": "0xf9409908",
+      "new_word": "0xf9409d08",
+      "kind": "IOTimerEventSource virtual slot 38 -> 39"
+    },
+    {
+      "address": "0xfffffff0086f5044",
+      "old_word": "0xf943b503",
+      "new_word": "0xf943c503",
+      "kind": "AppleCSHTDCodecMikey"
+    },
+    {
+      "address": "0xfffffff0086f5118",
+      "old_word": "0xf942b902",
+      "new_word": "0xf942bd02",
+      "kind": "AppleCSCodecLineOutMikeyBus"
+    },
+    {
+      "address": "0xfffffff0086f515c",
+      "old_word": "0xf9443d08",
+      "new_word": "0xf9445108",
+      "kind": "Mikey call to main audio"
+    },
+    {
+      "address": "0xfffffff0086f51a8",
+      "old_word": "0xf9453103",
+      "new_word": "0xf9454d03",
+      "kind": "Mikey call to main audio"
+    },
+    {
+      "address": "0xfffffff0086f5278",
+      "old_word": "0xf9430d08",
+      "new_word": "0xf9432108",
+      "kind": "Mikey call to main audio"
+    },
+    {
+      "address": "0xfffffff0086f52a0",
+      "old_word": "0xf9407108",
+      "new_word": "0xf9407508",
+      "kind": "OSArray virtual slot 28 -> 29"
+    },
+    {
+      "address": "0xfffffff0086f53bc",
+      "old_word": "0xf9434908",
+      "new_word": "0xf9434d08",
+      "kind": "AppleCSCodecLineOutMikeyBus"
+    },
+    {
+      "address": "0xfffffff0086f548c",
+      "old_word": "0xf942b902",
+      "new_word": "0xf942bd02",
+      "kind": "OSObject virtual slot 174 -> 175"
+    },
+    {
+      "address": "0xfffffff0086f5510",
+      "old_word": "0x52804d03",
+      "new_word": "0x52804e03",
+      "kind": "CS42L67 instance size 0x268 -> 0x270"
+    },
+    {
+      "address": "0xfffffff0086f4e94",
+      "old_word": "0xf9412500",
+      "new_word": "0xf9412900",
+      "kind": "Mikey owner CS42L67 control field 0x248 -> 0x250"
+    },
+    {
+      "address": "0xfffffff0086f501c",
+      "old_word": "0x39472109",
+      "new_word": "0x39474109",
+      "kind": "Mikey owner CS42L67 field 0x1c8 -> 0x1d0"
+    },
+    {
+      "address": "0xfffffff0086f5024",
+      "old_word": "0xf940e100",
+      "new_word": "0xf940e500",
+      "kind": "Mikey owner CS42L67 field 0x1c0 -> 0x1c8"
+    },
+    {
+      "address": "0xfffffff0086f5038",
+      "old_word": "0x3907211f",
+      "new_word": "0x3907411f",
+      "kind": "Mikey owner CS42L67 field 0x1c8 -> 0x1d0"
+    },
+    {
+      "address": "0xfffffff0086f024c",
+      "old_word": "0xf9412a60",
+      "new_word": "0xf9412e60",
+      "kind": "CS42L67 interrupt callback private field 0x250 -> 0x258"
+    },
+    {
+      "address": "0xfffffff0086f0254",
+      "old_word": "0xf9411e60",
+      "new_word": "0xf9412260",
+      "kind": "CS42L67 interrupt callback private field 0x238 -> 0x240"
+    }
+  ]
+}

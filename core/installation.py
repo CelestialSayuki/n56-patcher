@@ -85,7 +85,8 @@ class IndependentInstallation:
         system = selected["system"]
         if system:
             info = next(v for v in infos if v.slice == system[0])
-            if info.kind != "System" or info.encrypted:
+            # 刚由 volumes 建好、还没写系统的卷读不到版本文件，识别为 Unknown，按卷名认。
+            if info.kind not in ("System", "Unknown") or info.encrypted:
                 log.die(f"{info.name} 需要是未加密的系统卷")
             if info.build and info.build != self.ctx.t["build"]:
                 log.die(f"{info.name} 为 iOS {info.version} ({info.build})，目标为 {self.ctx.t['os_version']}")

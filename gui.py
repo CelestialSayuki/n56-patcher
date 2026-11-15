@@ -6,8 +6,10 @@
 日志实时回显。每个阶段以 subprocess 跑 n56patcher.py，输出流式送到页面。
 
 运行：python3 gui.py            # 默认 http://127.0.0.1:8756
-      sudo python3 gui.py       # 需要跑 rootfs/install/all（写盘）时用 sudo 起
       python3 gui.py --port 9000
+需要 root 的阶段（写 rootfs、安装、端到端、宗卷写操作）：本界面不是 root 时，页面会弹窗要管理员
+密码，只用来经 sudo 启动那一个阶段，不保存。也可以直接 sudo python3 gui.py 启动，就不再弹窗。
+宗卷设置是主页面里的弹窗（旧地址 /volumes 会跳转过来）。
 仅监听本地回环，不对外。
 """
 import argparse
@@ -26,7 +28,7 @@ sys.path.insert(0, REPO)
 from core.context import load_target, TARGETS_DIR
 from core import patch as patchmod
 
-SUDO_STAGES = {"rootfs", "install", "all"}
+SUDO_STAGES = {"rootfs", "patch-rootfs", "build", "boot", "install", "all"}
 STAGES = ["ramdisk", "extract-im4m", "volumes", "rootfs",
           "patch-rootfs", "build", "boot", "all", "status", "list"]
 
@@ -37,12 +39,17 @@ def list_targets():
     return out or ["n56-ios13"]
 
 
+# discover() 会清空并重填全局注册表；服务是多线程的，切换目标时两个请求并发会把两个版本的补丁混在一起
+DISCOVER_LOCK = threading.Lock()
+
+
 def target_features(name):
     try:
         t = load_target(name)
     except SystemExit:
         return [], []
-    classes = patchmod.discover(version=t.get("version", "ios13"))
+    with DISCOVER_LOCK:
+        classes = patchmod.discover(version=t.get("version", "ios13"))
     allf = sorted({c.feature for c in classes})
     return sorted(t.get("features", [])), allf
 
@@ -66,25 +73,38 @@ class Runner:
         with self.lock:
             return self.lines[off:], len(self.lines)
 
-    def start(self, args):
+    def start(self, args, password=None, on_exit=None):
+        """password：本界面不是 root 时，用 sudo -S 以管理员身份跑这一个阶段。密码只写进 sudo 的
+        stdin 一次，不记录、不保留。sudo 的真实用户仍是本进程用户，stop() 照常能终止它。
+        on_exit(returncode)：阶段结束后回调（如宗卷识别成功后解锁宗卷设置）。"""
         if self.running():
             self.put("[!] 有阶段正在运行。\n")
             return False
         self.started = time.time()
-        self.put("\n$ " + " ".join(args) + "\n")
-        threading.Thread(target=self._spawn, args=(args,), daemon=True).start()
+        self.put("\n$ " + ("sudo " if password else "") + " ".join(args) + "\n")
+        threading.Thread(target=self._spawn, args=(args, password, on_exit), daemon=True).start()
         return True
 
-    def _spawn(self, args):
+    def _spawn(self, args, password=None, on_exit=None):
+        command = ["sudo", "-S", "-p", "", "--", *args] if password else args
         try:
-            self.proc = subprocess.Popen(args, cwd=REPO, stdout=subprocess.PIPE,
-                                         stderr=subprocess.STDOUT, bufsize=1, text=True)
+            self.proc = subprocess.Popen(command, cwd=REPO, stdout=subprocess.PIPE,
+                                         stderr=subprocess.STDOUT, bufsize=1, text=True,
+                                         stdin=subprocess.PIPE if password else subprocess.DEVNULL)
+            if password:
+                self.proc.stdin.write(password + "\n")
+                self.proc.stdin.close()
         except Exception as e:
             self.put(f"[ERROR] 启动失败：{e}\n")
             return
         for line in self.proc.stdout:
             self.put(line)
         self.proc.wait()
+        if on_exit:
+            try:
+                on_exit(self.proc.returncode)
+            except Exception as e:
+                self.put(f"[!] 阶段收尾回调失败：{e}\n")
         self.put(f"[*] 阶段结束，退出码 {self.proc.returncode}\n")
 
     def stop(self):
@@ -94,6 +114,44 @@ class Runner:
 
 
 RUNNER = Runner()
+
+
+def need_root():
+    return os.geteuid() != 0
+
+
+def password_ok(password):
+    """先验证管理员密码（-k：不沿用缓存的授权），错了就不启动任何东西。"""
+    if not password:
+        return False
+    try:
+        r = subprocess.run(["sudo", "-S", "-k", "-v", "-p", ""], input=password + "\n",
+                           capture_output=True, text=True, timeout=20)
+    except subprocess.TimeoutExpired:
+        return False
+    return r.returncode == 0
+
+
+# 宗卷会话：只在本次服务运行期间有效（重启后要重新识别，不沿用旧的默认值）。
+#   identified：本次已从设备读取过实际分区（slots identify 成功退出）
+#   volumes：{目标: {"version", "system", "data", "dp"}}，确认后才允许写盘阶段
+VOL_SESSION = {"identified": False, "volumes": {}}
+# 写盘阶段：必须先完成宗卷设置（会带上 --slot 与 --data-protection）
+VOLUME_STAGES = {"volumes", "rootfs", "patch-rootfs", "install", "all"}
+
+
+def start_privileged(args, body, what, on_exit=None):
+    """需要 root 的阶段：已是 root 直接跑；否则要密码（need-sudo）、校验（bad-password）后经 sudo 跑。"""
+    if not need_root():
+        return {"ok": RUNNER.start(args, on_exit=on_exit)}
+    password = body.get("password")
+    if not password:
+        return {"ok": False, "reason": "need-sudo"}
+    if not password_ok(password):
+        RUNNER.put(f"[!] {what}：管理员密码不正确。\n")
+        return {"ok": False, "reason": "bad-password"}
+    ok = RUNNER.start(args, password=password, on_exit=on_exit)
+    return {"ok": ok, "reason": "" if ok else "busy"}
 
 # raw 字符串：内嵌 JS 的 \n 与正则不能被 Python 提前转义。
 PAGE = r"""<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
@@ -130,10 +188,10 @@ code{font-family:var(--mono);font-size:.93em}
 .sel{position:relative;display:block;min-width:0}
 .sel::after{content:"";position:absolute;right:10px;top:50%;width:6px;height:6px;margin-top:-5px;
  border:solid var(--mut);border-width:0 1.5px 1.5px 0;transform:rotate(45deg);pointer-events:none}
-select,input[type=text]{width:100%;height:32px;padding:0 10px;background:var(--ink);
+select,input[type=text],input[type=password]{width:100%;height:32px;padding:0 10px;background:var(--ink);
  border:1px solid var(--line2);border-radius:2px;transition:border-color .12s}
 select{appearance:none;-webkit-appearance:none;padding-right:28px;cursor:pointer;font-family:var(--mono);font-size:12.5px}
-select:hover,input[type=text]:hover{border-color:var(--mut)}
+select:hover,input[type=text]:hover,input[type=password]:hover{border-color:var(--mut)}
 input[type=text]{font-family:var(--mono);font-size:12.5px}
 input[type=text]::placeholder{color:#857d6d;font-family:var(--sans)}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:32px;padding:0 12px;white-space:nowrap;
@@ -340,6 +398,44 @@ input:focus-visible+.sw{outline:2px solid var(--amber);outline-offset:2px}
 .dlg dd{font-family:var(--mono);overflow-wrap:anywhere}
 .dlg menu{display:flex;justify-content:flex-end;gap:8px}
 
+/* 宗卷设置弹窗 */
+.modal{width:min(1000px,calc(100vw - 32px));max-width:none;max-height:min(88dvh,920px);padding:0;color:var(--fg);
+ background:var(--plate);border:1px solid var(--line2);border-radius:3px}
+.modal[open]{display:flex;flex-direction:column;animation:pop .14s ease-out}
+@keyframes pop{from{transform:translateY(8px);opacity:0}}
+.modal::backdrop{background:rgba(8,7,5,.7)}
+.modal .dw{flex:1;min-height:0}
+.dwh small{display:block;margin-top:2px;color:var(--mut);font-size:12px}
+.mono{font-family:var(--mono)}
+.tablewrap{overflow-x:auto;margin-top:4px}
+.vt{width:100%;border-collapse:collapse;font-size:12.5px}
+.vt th{padding:6px 8px;border-bottom:1px solid var(--line2);text-align:left;white-space:nowrap;
+ font:600 11px/1.3 var(--mono);letter-spacing:.1em;color:var(--mut);text-transform:uppercase}
+.vt td{padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+.vt .sel{min-width:150px;max-width:240px}
+.vt select{height:26px}
+.vacts{display:flex;flex-wrap:wrap;align-items:center;gap:4px}
+.v-ok{color:var(--ok)}.v-warn{color:var(--amber)}.v-mut{color:var(--mut)}
+.vkeep{display:inline-flex;align-items:center;gap:5px;height:26px;padding:0 4px;color:var(--mut);font-size:11.5px;cursor:pointer}
+.vkeep input{accent-color:var(--amber)}
+.vrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:10px}
+.vrow input[type=text]{width:72px}
+.vrow .sel{width:220px}
+.vrow code{font-size:12.5px}
+.tag.okt{border:1px solid rgba(155,211,106,.6);color:var(--ok)}
+#plan{margin-top:10px;padding:10px 12px;max-height:240px;overflow:auto;background:var(--ink);border:1px solid var(--line);
+ border-radius:2px;font:12px/1.55 var(--mono);white-space:pre-wrap}
+#pairs{white-space:pre-line}
+.vfoot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:10px 16px;border-top:1px solid var(--line)}
+#vmsg{min-width:0;color:var(--amber);font-size:12.5px}
+.dlg .field{margin:0 0 12px}
+.dlg .pwerr{margin:-4px 0 12px;color:var(--red);font-size:12.5px}
+
+.vform{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:4px}
+.vform .field{margin:0}
+#vgate .hint{margin-top:4px}
+@media(max-width:719px){.vform{grid-template-columns:minmax(0,1fr)}}
+
 /* 响应式 */
 @media(max-width:899px){.n-id{display:none}}
 @media(min-width:720px){
@@ -365,7 +461,7 @@ input:focus-visible+.sw{outline:2px solid var(--amber);outline-offset:2px}
  .plate{width:100%;margin:0}
  .tgt{flex:1 1 100%}.tgt .sel{flex:1;width:auto}
  .readout{flex:1;max-width:none}
- select,input[type=text]{height:40px;font-size:16px}
+ select,input[type=text],input[type=password]{height:40px;font-size:16px}
  .btn{height:40px}.btn.sm{height:32px}
  .drysw{min-height:32px}
  .chip span{height:34px}
@@ -393,13 +489,14 @@ input:focus-visible+.sw{outline:2px solid var(--amber);outline-offset:2px}
  <symbol id="i-stop" viewBox="0 0 16 16"><rect x="3.5" y="3.5" width="9" height="9" rx="1"/></symbol>
  <symbol id="i-eye" viewBox="0 0 16 16"><path d="M1.5 8S4 3.5 8 3.5 14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8z"/><circle cx="8" cy="8" r="1.8"/></symbol>
  <symbol id="i-down" viewBox="0 0 16 16"><path d="M8 3v9M4 8.5L8 12.5l4-4"/></symbol>
+ <symbol id="i-lock" viewBox="0 0 16 16"><rect x="3" y="7" width="10" height="7" rx="1"/><path d="M5.5 7V5a2.5 2.5 0 015 0v2"/></symbol>
+ <symbol id="i-vol" viewBox="0 0 16 16"><ellipse cx="8" cy="4" rx="5.5" ry="2"/><path d="M2.5 4v8c0 1.1 2.5 2 5.5 2s5.5-.9 5.5-2V4M2.5 8c0 1.1 2.5 2 5.5 2s5.5-.9 5.5-2"/></symbol>
  <symbol id="i-gear" viewBox="0 0 16 16"><path d="M2 4.5h7M12.5 4.5H14M2 11.5h1.5M7 11.5h7"/><circle cx="10.8" cy="4.5" r="1.7"/><circle cx="5.2" cy="11.5" r="1.7"/></symbol>
 </svg>
 
 <header class="top">
  <div class="plate"><span class="model">N56</span><div><h1>n56-patcher</h1><span data-i18n="sub"></span></div></div>
  <label class="tgt"><span class="lab" data-i18n="target"></span><span class="sel"><select id="target" autocomplete="off"></select></span></label>
-<a class="tgt lab" href="/volumes" data-i18n="slotsNav" style="align-self:center;text-decoration:none"></a>
  <label class="tgt"><span class="lab" data-i18n="lang"></span><span class="sel lang"><select id="lang" autocomplete="off"></select></span></label>
  <div class="readout" id="pill" data-s="idle"><i></i><b id="pilltext" role="status"></b><time id="pilltime">--:--</time></div>
  <button type="button" class="btn stop" id="stop" disabled><span class="ic"><svg viewBox="0 0 16 16" aria-hidden="true"><use href="#i-stop"></use></svg></span><span id="stoptext"></span></button>
@@ -443,6 +540,10 @@ input:focus-visible+.sw{outline:2px solid var(--amber);outline-offset:2px}
 <dialog class="drawer" id="drawer" aria-labelledby="h-opts"><div class="dw">
  <div class="dwh"><h2 id="h-opts" data-i18n="options"></h2><button type="button" class="btn sm" id="closeopts" data-i18n="close"></button></div>
  <div class="dwb">
+  <section class="dws" aria-labelledby="h-volsec">
+   <div class="ph"><h2 id="h-volsec" data-i18n="vol.section"></h2><span class="end"><button type="button" class="btn sm" id="openvol"><span class="ic"><svg viewBox="0 0 16 16" aria-hidden="true"><use href="#i-vol"></use></svg></span><span data-i18n="volNav"></span></button></span></div>
+   <p class="hint" id="volsum"></p>
+  </section>
   <section class="dws" aria-labelledby="h-feat">
    <div class="ph"><h2 id="h-feat">Feature</h2><small id="featcount2"></small>
     <span class="end"><button type="button" class="btn sm" id="featdef" data-i18n="restore"></button><button type="button" class="btn sm" id="featall" data-i18n="selectAll"></button></span></div>
@@ -457,10 +558,8 @@ input:focus-visible+.sw{outline:2px solid var(--amber);outline-offset:2px}
   </section>
   <section class="dws" aria-labelledby="h-input">
    <div class="ph"><h2 id="h-input" data-i18n="input"></h2></div>
-   <label class="field"><span data-i18n="dp"></span><span class="sel"><select id="dp" autocomplete="off">
-    <option value="" data-i18n="dpDefaultEnc"></option><option value="encrypted">encrypted</option><option value="none">none</option></select></span></label>
-   <label class="field"><span>N66 13.7 IPSW</span><input type="text" id="n66ipsw" data-i18n-attr="placeholder:ipswPh" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
-   <label class="field"><span>J96 13.7 IPSW</span><input type="text" id="j96ipsw" data-i18n-attr="placeholder:ipswPh" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+   <label class="field"><span>N66 IPSW</span><input type="text" id="n66ipsw" data-i18n-attr="placeholder:ipswPh" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+   <label class="field"><span>J96 IPSW</span><input type="text" id="j96ipsw" data-i18n-attr="placeholder:ipswPh" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
    <label class="field"><span data-i18n="bootargs"></span><input type="text" id="bootargs" data-i18n-attr="placeholder:bootargsPh" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
   </section>
  </div>
@@ -473,133 +572,172 @@ input:focus-visible+.sw{outline:2px solid var(--amber);outline-offset:2px}
  <menu><button class="btn" value="cancel" autofocus data-i18n="cancel"></button><button class="btn danger go" value="go" data-i18n="confirm"></button></menu>
 </form></dialog>
 
+<dialog class="confirm" id="pwdlg" data-sev="edit" aria-labelledby="pwtitle"><form method="dialog" class="dlg">
+ <h3><span class="ic"><svg viewBox="0 0 16 16" aria-hidden="true"><use href="#i-lock"></use></svg></span><span id="pwtitle" data-i18n="pw.title"></span></h3>
+ <p id="pwnote"></p>
+ <label class="field"><span data-i18n="pw.label"></span><input type="password" id="pwinput" autocomplete="current-password"></label>
+ <p class="pwerr" id="pwerr" data-i18n="pw.bad" role="alert" hidden></p>
+ <menu><button class="btn" value="cancel" data-i18n="cancel"></button><button class="btn go" value="go" data-i18n="pw.go"></button></menu>
+</form></dialog>
+
+<dialog class="modal" id="vol" aria-labelledby="h-vol"><div class="dw">
+ <div class="dwh"><div><h2 id="h-vol" data-v="title"></h2><small data-v="sub"></small></div><button type="button" class="btn sm" id="closevol" data-i18n="close"></button></div>
+ <div class="dwb">
+  <section class="dws" id="vgate"><div class="ph"><h2 data-v="gateTitle"></h2><span class="end"><button type="button" class="btn sm" id="btnIdentify" data-v="identify"></button></span></div>
+   <p class="hint" id="vgatenote"></p><p class="hint" id="vunsupported" data-v="unsupported" hidden></p></section>
+  <section class="dws" id="vplanbox" hidden><div class="ph"><h2 id="vplantitle"></h2><span class="end" id="vconfirmed"></span></div>
+   <div class="vform">
+    <label class="field"><span data-v="sysLabel"></span><span class="sel"><select id="vsys" autocomplete="off"></select></span></label>
+    <label class="field"><span data-v="dataLabel"></span><span class="sel"><select id="vdata" autocomplete="off"></select></span></label>
+    <label class="field"><span data-v="dpLabel"></span><span class="sel"><select id="vdp" autocomplete="off"></select></span></label>
+   </div>
+   <p class="hint" id="vplannote"></p>
+   <div class="vrow"><button type="button" class="btn primary" id="btnConfirmVol" data-v="confirmVol"></button></div></section>
+  <div id="vdetails" hidden>
+   <section class="dws"><div class="ph"><h2 data-v="tDevice"></h2></div>
+    <div class="vrow"><code id="deviceText"></code><span class="tag" id="donorBadge"></span><button type="button" class="btn sm" id="btnRebind" data-v="rebind"></button></div>
+    <p class="hint" data-v="deviceHint"></p></section>
+   <section class="dws"><div class="ph"><h2 data-v="tSlices"></h2></div>
+    <div class="tablewrap"><table class="vt"><thead><tr><th data-v="cSlice"></th><th data-v="cPurpose"></th><th data-v="cContent"></th><th data-v="cPerm"></th><th data-v="cAction"></th></tr></thead><tbody id="slices"></tbody></table></div>
+    <div class="vrow"><input type="text" id="newSlice" placeholder="s4" autocomplete="off" autocapitalize="off" spellcheck="false"><span class="sel"><select id="newPurpose" autocomplete="off"></select></span><button type="button" class="btn sm" id="btnAssign" data-v="assign"></button></div>
+    <p class="hint" data-v="tHint"></p></section>
+   <section class="dws"><div class="ph"><h2 data-v="tVersions"></h2></div>
+    <div class="tablewrap"><table class="vt"><thead><tr><th data-v="vVersion"></th><th data-v="vStatus"></th><th data-v="vSlices"></th><th data-v="vAction"></th></tr></thead><tbody id="versions"></tbody></table></div>
+    <pre id="plan" hidden></pre><p class="hint mono" id="pairs"></p></section>
+   <section class="dws"><div class="ph"><h2 data-v="tDonor"></h2><span class="end"><button type="button" class="btn sm" id="btnVerify" data-v="verify"></button><button type="button" class="btn sm" id="btnSnapshot" data-v="snapshot"></button></span></div>
+    <p class="hint" data-v="donorDeviceHint"></p></section>
+  </div>
+ </div>
+ <div class="vfoot"><span id="vmsg" role="status"></span><button type="button" class="btn sm" id="vol2console" data-v="toConsole"></button></div>
+</div></dialog>
+
 <script>
 const STAGES=%STAGES%;
 const I18N={
  "zh-CN":{
-  slotsNav:"宗卷设置 ›",
-  sub:"iPhone 6 Plus · 第二系统 iOS 13.7",lang:"语言",target:"目标",stop:"停止",stopping:"停止中…",
+  volNav:"宗卷设置","vol.section":"宗卷","vol.none":"未设置：执行写盘阶段时会先进入 ramdisk 读取设备分区，再弹出宗卷设置。","notice.volAuto":"正在进入 ramdisk 读取设备分区，读完会弹出宗卷设置，确认后继续{stage}。","notice.volFail":"读取设备分区失败，见控制台。","notice.volCancel":"已取消：{stage} 需要先确认宗卷设置。","dlg.clean":"端到端只适用于干净的设备：刚刷回 iOS 12.5.8，之前没装过第二系统，也没手动改过分区。设备上已经装过东西的，请改用分步执行，并先在宗卷设置里核对分区。","vol.summary":"iOS {v}：System s{sys} · Data s{data} · Data {dp}","btn.needVol":"先完成宗卷设置","spec.vol":"宗卷","notice.needVol":"{stage} 需要先完成宗卷设置。","pw.title":"需要输入密码","pw.note":"「{what}」需要管理员权限。本界面不是用 sudo 启动的，请输入这台 Mac 的登录密码。密码只用来启动这一次，不会保存。","pw.label":"密码","pw.go":"确定","pw.bad":"密码不对，请重试。","notice.pwCancel":"已取消：{stage} 需要管理员密码。",
+  sub:"iPhone 6 Plus · 第二系统（iOS 13.7 / 14.8）",lang:"语言",target:"目标",stop:"停止",stopping:"停止中…",
   chain:"启动链",chainHint:"节点状态只记录本次服务运行期间的结果，不代表设备实际状态",stepAria:"当前步骤",closeNotice:"关闭提示",
   combos:"一键组合",console:"控制台",copy:"复制",copied:"已复制",copyFail:"复制失败",clear:"清屏",clearTitle:"只清空显示，不影响后端缓冲",jump:"回到底部",logEmpty:"尚无输出。选中阶段并点击执行后，日志会显示在这里。",
   openOpts:"打开选项",options:"选项",close:"关闭",restore:"恢复默认",selectAll:"全选",featNone:"未选 feature：仅构建基础层。",featHint:"功能选择用于构建、自动构建启动和安装阶段，真实依赖自动补齐。",
-  risk:"放宽检查",manualDesc:"执行标记为 manual 的 patch",noid:"不校验设备身份",noidDesc:"boot 时跳过身份检查",input:"输入与覆盖",dp:"Data 加密",dpDefaultEnc:"清单默认（encrypted）",ipswPh:"已导入 DMG 时可留空",bootargs:"boot-args 覆盖",bootargsPh:"留空用清单默认",
+  risk:"放宽检查",manualDesc:"执行标记为 manual 的 patch",noid:"不校验设备身份",noidDesc:"boot 时跳过身份检查",input:"输入与覆盖",dp:"Data 加密",dpDefaultEnc:"清单默认",ipswPh:"已导入 DMG 时可留空",bootargs:"boot-args 覆盖",bootargsPh:"留空用清单默认",
   cancel:"取消",confirm:"确认执行",modified:"改",
   "tag.sudo":"写盘 · sudo","tag.edit":"写设备","tag.must":"刷机后必做","tag.opt":"可选",
   "result.run":"运行中","result.ok":"成功","result.dry":"演练通过（未实际执行）","result.fail":"失败","result.stop":"已停止","result.none":"本次未运行",
-  "spec.effect":"影响","spec.need":"前置","spec.perm":"权限","spec.result":"结果",permText:"用 sudo python3 gui.py 启动本界面（dry-run 不需要）",
+  "spec.effect":"影响","spec.need":"前置","spec.perm":"权限","spec.result":"结果",permText:"需要管理员权限：未用 sudo 启动本界面时，执行前会弹窗输入密码（dry-run 不需要）",
   "btn.running":"运行中 · {stage}","btn.offline":"本地服务断开","btn.loading":"加载 feature…","btn.dry":"演练 {name}","btn.run":"执行 {name}",
   "pill.idle":"空闲","pill.off":"与本地服务断开，重连中…","pill.dryRun":"演练中 · {stage}","pill.run":"运行中 · {stage}","pill.starting":"正在启动…","pill.stage":"阶段","pill.dryOk":"演练通过","pill.ok":"完成","pill.stop":"已停止","pill.fail":"失败","pill.end":"{status} · {stage} · 退出码 {code}",
   "log.gap":"… 更早的 {n} 行已从显示中移除","log.lines":"{n} 行",
   "feat.base":"仅基础层","feat.changed":"已改","feat.loading":"加载中…","feat.loadFail":"feature 加载失败。","feat.none":"该目标没有可选 feature。",flagNoid:"跳过身份校验",
   "dlg.stage":"阶段","dlg.target":"目标","dlg.manifest":"清单默认","dlg.on":"开","dlg.titleEdit":"确认写设备：{name}","dlg.titleWipe":"确认写盘：{name}",
-  "dlg.noteEdit":"此阶段会改动设备（新建/修改卷或向 SystemB 写入文件、改卷 role）。确认设备{ready}。","dlg.noteWipe":"此阶段会写入设备存储（rootfs 全量流写会先清空目标卷）。确认设备{ready}，运行期间不要断开连接。",
+  "dlg.noteEdit":"此阶段会改动设备（新建/修改卷或向第二系统卷写入文件、改卷 role）。确认设备{ready}。","dlg.noteWipe":"此阶段会写入设备存储（rootfs 全量流写会先清空目标卷）。确认设备{ready}，运行期间不要断开连接。",
   "ready.ramdisk":"已进 ramdisk","ready.dfu":"处于 DFU",
   "notice.sudo":"当前未以 root 启动，{stage} 未执行（写盘需 root；dry-run 不受此限）。请退出后用 sudo python3 gui.py 重新启动本界面。","notice.req":"请求失败：{msg}","notice.stop":"停止请求失败：{msg}",
   s:{
    ramdisk:{short:"进 ramdisk",note:"DFU → gaster → SSH ramdisk 就绪",effect:"引导 SSH ramdisk，不写设备存储",need:"设备处于 DFU"},
    "extract-im4m":{short:"重提 IM4M",label:"重提 IM4M（刷机后）",note:"读 NOR 重提本机 IM4M。刷机后必须执行，否则组件可能无法通过校验。",effect:"只读设备，写入本地 state/IM4M.bin",need:"ramdisk 已就绪"},
-   volumes:{short:"建分区 s4/s5",note:"在容器内新建 s4 SystemB / s5 DataB（role 0）。",effect:"写设备：新建卷",need:"ramdisk 已就绪"},
-   rootfs:{short:"写 rootfs",note:"清空目标卷后把 iOS13 rootfs 流式写入 s4，约 25 分钟。",effect:"写设备：清空目标卷后全量写入",need:"ramdisk 已就绪"},
-   "patch-rootfs":{short:"施加 patch",label:"施加 rootfs patch",note:"向 SystemB 写入 overlay，完成收尾并改卷 role。",effect:"写设备：写入文件、改卷 role",need:"ramdisk 已就绪"},
+   volumes:{short:"建系统卷",note:"在容器内新建第二系统的 System / Data 卷（role 0），卷号接在现有最大卷号之后。",effect:"写设备：新建卷",need:"ramdisk 已就绪"},
+   rootfs:{short:"写 rootfs",note:"清空目标 System 卷后把所选版本的 rootfs 流式写入，约 20–30 分钟。",effect:"写设备：清空目标卷后全量写入",need:"ramdisk 已就绪"},
+   "patch-rootfs":{short:"施加 patch",label:"施加 rootfs patch",note:"向第二系统卷写入 overlay（含越狱与 Cydia），完成收尾并改卷 role。",effect:"写设备：写入文件、改卷 role",need:"ramdisk 已就绪"},
    build:{short:"构建启动镜像",note:"iBSS / iBEC / DT / TC / KC → img4",effect:"只写本地 build 目录",need:"首次构建需设备处于 DFU（解密 iBSS、iBEC）"},
-   boot:{short:"启动 iOS13",note:"经 DFU 发送启动链，缺组件时先 build。",effect:"向设备发送启动链，不写设备存储",need:"设备处于 DFU"},
-   all:{short:"端到端",note:"缺 iBSS/iBEC 时先解密，再 ramdisk + extract-im4m + volumes + rootfs + patch-rootfs + build + boot",effect:"写设备：清空目标卷后全量写入",need:"设备处于 DFU（流程内自动进 ramdisk）"},
+   boot:{short:"启动第二系统",note:"经 DFU 发送启动链，缺组件时先 build。",effect:"向设备发送启动链，不写设备存储",need:"设备处于 DFU"},
+   all:{short:"端到端",note:"缺 iBSS/iBEC 时先解密，再 ramdisk + extract-im4m + volumes + rootfs + patch-rootfs + build + boot",effect:"写设备：清空目标卷后全量写入",need:"干净的设备（刚刷回 12.5.8、没装过第二系统、没手动改过分区），处于 DFU"},
    status:{short:"查看卷 role",note:"各卷 apfs_role · 需 ramdisk"},
    list:{short:"列出选挂",note:"当前选挂的 patch"}
   }
  },
  "en":{
-  slotsNav:"Volumes ›",
-  sub:"iPhone 6 Plus · Second system iOS 13.7",lang:"Language",target:"Target",stop:"Stop",stopping:"Stopping…",
+  volNav:"Volumes","vol.section":"Volumes","vol.none":"Not set: disk-writing stages first enter ramdisk to read the device partitions, then open Volume settings.","notice.volAuto":"Entering ramdisk to read the device partitions. Volume settings will open when done; confirm them to continue with {stage}.","notice.volFail":"Reading the device partitions failed. See the console.","notice.volCancel":"Cancelled: {stage} needs confirmed volume settings.","dlg.clean":"End to end is only for a clean device: freshly restored to iOS 12.5.8, with no second system installed before and no manual partition changes. If the device already has anything installed, run the stages one by one and check the partitions in Volume settings first.","vol.summary":"iOS {v}: System s{sys} · Data s{data} · Data {dp}","btn.needVol":"Set up volumes first","spec.vol":"Volumes","notice.needVol":"{stage} needs volume settings first.","pw.title":"Password required","pw.note":"\"{what}\" needs administrator rights. This UI was not started with sudo, so enter the login password for this Mac. It is used only to start this run and is not stored.","pw.label":"Password","pw.go":"OK","pw.bad":"Incorrect password. Try again.","notice.pwCancel":"Cancelled: {stage} needs the administrator password.",
+  sub:"iPhone 6 Plus · Second system (iOS 13.7 / 14.8)",lang:"Language",target:"Target",stop:"Stop",stopping:"Stopping…",
   chain:"Boot chain",chainHint:"Node status only reflects results from this server session, not the actual device state",stepAria:"Current step",closeNotice:"Dismiss notice",
   combos:"Combos",console:"Console",copy:"Copy",copied:"Copied",copyFail:"Copy failed",clear:"Clear",clearTitle:"Clears the display only, not the server buffer",jump:"Back to bottom",logEmpty:"No output yet. Select a stage and run it to see logs here.",
   openOpts:"Open options",options:"Options",close:"Close",restore:"Restore defaults",selectAll:"Select all",featNone:"No features selected: only the base layer is built.",featHint:"Feature selection applies to the build, auto-build boot and install stages. Real dependencies are added automatically.",
-  risk:"Relaxed checks",manualDesc:"Run patches marked as manual",noid:"Skip device identity check",noidDesc:"Skips the identity check during boot",input:"Inputs and overrides",dp:"Data encryption",dpDefaultEnc:"Manifest default (encrypted)",ipswPh:"Optional if the DMG is already imported",bootargs:"boot-args override",bootargsPh:"Leave empty for the manifest default",
+  risk:"Relaxed checks",manualDesc:"Run patches marked as manual",noid:"Skip device identity check",noidDesc:"Skips the identity check during boot",input:"Inputs and overrides",dp:"Data encryption",dpDefaultEnc:"Manifest default",ipswPh:"Optional if the DMG is already imported",bootargs:"boot-args override",bootargsPh:"Leave empty for the manifest default",
   cancel:"Cancel",confirm:"Run",modified:"edited",
   "tag.sudo":"Writes · sudo","tag.edit":"Writes device","tag.must":"Required after restore","tag.opt":"Optional",
   "result.run":"Running","result.ok":"Succeeded","result.dry":"Dry run passed (nothing executed)","result.fail":"Failed","result.stop":"Stopped","result.none":"Not run this session",
-  "spec.effect":"Effect","spec.need":"Requires","spec.perm":"Permission","spec.result":"Result",permText:"Start this UI with sudo python3 gui.py (not needed for dry-run)",
+  "spec.effect":"Effect","spec.need":"Requires","spec.perm":"Permission","spec.result":"Result",permText:"Needs administrator rights: if this UI was not started with sudo, you will be asked for your password before it runs (not needed for dry-run)",
   "btn.running":"Running · {stage}","btn.offline":"Local server disconnected","btn.loading":"Loading features…","btn.dry":"Dry run: {name}","btn.run":"Run: {name}",
   "pill.idle":"Idle","pill.off":"Disconnected from local server, reconnecting…","pill.dryRun":"Dry run · {stage}","pill.run":"Running · {stage}","pill.starting":"Starting…","pill.stage":"Stage","pill.dryOk":"Dry run passed","pill.ok":"Done","pill.stop":"Stopped","pill.fail":"Failed","pill.end":"{status} · {stage} · exit code {code}",
   "log.gap":"… {n} earlier lines removed from the display","log.lines":"{n} lines",
   "feat.base":"Base layer only","feat.changed":"edited","feat.loading":"Loading…","feat.loadFail":"Failed to load features.","feat.none":"This target has no optional features.",flagNoid:"Identity check skipped",
   "dlg.stage":"Stage","dlg.target":"Target","dlg.manifest":"Manifest default","dlg.on":"On","dlg.titleEdit":"Confirm device write: {name}","dlg.titleWipe":"Confirm disk write: {name}",
-  "dlg.noteEdit":"This stage changes the device: it creates or modifies volumes, or writes files to SystemB and changes volume roles. Make sure the device {ready}.","dlg.noteWipe":"This stage writes to device storage, and the full rootfs stream wipes the target volume first. Make sure the device {ready}, and stay connected while it runs.",
+  "dlg.noteEdit":"This stage changes the device: it creates or modifies volumes, or writes files to the second-system volumes and changes volume roles. Make sure the device {ready}.","dlg.noteWipe":"This stage writes to device storage, and the full rootfs stream wipes the target volume first. Make sure the device {ready}, and stay connected while it runs.",
   "ready.ramdisk":"is in ramdisk","ready.dfu":"is in DFU",
   "notice.sudo":"This server is not running as root, so {stage} did not run. Disk writes need root; dry-run does not. Quit and restart this UI with sudo python3 gui.py.","notice.req":"Request failed: {msg}","notice.stop":"Stop request failed: {msg}",
   s:{
    ramdisk:{short:"Enter ramdisk",note:"DFU → gaster → SSH ramdisk ready",effect:"Boots the SSH ramdisk without writing device storage",need:"Device in DFU"},
    "extract-im4m":{short:"Re-extract IM4M",label:"Re-extract IM4M (after restore)",note:"Reads NOR to re-extract this device's IM4M. Required after a restore, or components may fail validation.",effect:"Reads the device and writes local state/IM4M.bin",need:"Ramdisk ready"},
-   volumes:{short:"Create s4/s5",label:"Create volumes s4/s5",note:"Creates s4 SystemB and s5 DataB (role 0) in the container.",effect:"Writes device: creates volumes",need:"Ramdisk ready"},
-   rootfs:{short:"Write rootfs",note:"Wipes the target volume, then streams the iOS 13 rootfs to s4. Takes about 25 minutes.",effect:"Writes device: wipes the target volume, then writes everything",need:"Ramdisk ready"},
-   "patch-rootfs":{short:"Apply patches",label:"Apply rootfs patches",note:"Writes overlays to SystemB, finishes setup and changes volume roles.",effect:"Writes device: writes files and changes volume roles",need:"Ramdisk ready"},
+   volumes:{short:"Create volumes",label:"Create System/Data volumes",note:"Creates the second system's System and Data volumes (role 0) after the highest existing volume number.",effect:"Writes device: creates volumes",need:"Ramdisk ready"},
+   rootfs:{short:"Write rootfs",note:"Wipes the target System volume, then streams the selected version's rootfs. Takes about 20–30 minutes.",effect:"Writes device: wipes the target volume, then writes everything",need:"Ramdisk ready"},
+   "patch-rootfs":{short:"Apply patches",label:"Apply rootfs patches",note:"Writes overlays (including the jailbreak and Cydia) to the second-system volumes, finishes setup and changes volume roles.",effect:"Writes device: writes files and changes volume roles",need:"Ramdisk ready"},
    build:{short:"Build images",label:"Build boot images",note:"iBSS / iBEC / DT / TC / KC → img4",effect:"Writes the local build directory only",need:"First build needs the device in DFU (to decrypt iBSS and iBEC)"},
-   boot:{short:"Boot iOS 13",note:"Sends the boot chain through DFU, building first if components are missing.",effect:"Sends the boot chain without writing device storage",need:"Device in DFU"},
-   all:{short:"End to end",note:"Decrypts iBSS/iBEC if missing, then ramdisk + extract-im4m + volumes + rootfs + patch-rootfs + build + boot",effect:"Writes device: wipes the target volume, then writes everything",need:"Device in DFU (enters ramdisk automatically)"},
+   boot:{short:"Boot second system",note:"Sends the boot chain through DFU, building first if components are missing.",effect:"Sends the boot chain without writing device storage",need:"Device in DFU"},
+   all:{short:"End to end",note:"Decrypts iBSS/iBEC if missing, then ramdisk + extract-im4m + volumes + rootfs + patch-rootfs + build + boot",effect:"Writes device: wipes the target volume, then writes everything",need:"A clean device (freshly restored to 12.5.8, no second system, no manual partition changes) in DFU"},
    status:{short:"Volume roles",note:"apfs_role of each volume · needs ramdisk"},
    list:{short:"List selection",note:"Currently selected patches"}
   }
  },
  "zh-TW":{
-  slotsNav:"宗卷設定 ›",
-  sub:"iPhone 6 Plus · 第二系統 iOS 13.7",lang:"語言",target:"目標",stop:"停止",stopping:"停止中…",
+  volNav:"宗卷設定","vol.section":"宗卷","vol.none":"未設定：執行寫入磁碟的階段時會先進入 ramdisk 讀取裝置分區，再彈出宗卷設定。","notice.volAuto":"正在進入 ramdisk 讀取裝置分區，讀完會彈出宗卷設定，確認後繼續{stage}。","notice.volFail":"讀取裝置分區失敗，見主控台。","notice.volCancel":"已取消：{stage} 需要先確認宗卷設定。","dlg.clean":"端到端只適用於乾淨的裝置：剛刷回 iOS 12.5.8，之前沒裝過第二系統，也沒手動改過分區。裝置上已經裝過東西的，請改用分步執行，並先在宗卷設定裡核對分區。","vol.summary":"iOS {v}：System s{sys} · Data s{data} · Data {dp}","btn.needVol":"先完成宗卷設定","spec.vol":"宗卷","notice.needVol":"{stage} 需要先完成宗卷設定。","pw.title":"需要輸入密碼","pw.note":"「{what}」需要管理員權限。本介面不是用 sudo 啟動的，請輸入這台 Mac 的登入密碼。密碼只用來啟動這一次，不會儲存。","pw.label":"密碼","pw.go":"確定","pw.bad":"密碼不正確，請重試。","notice.pwCancel":"已取消：{stage} 需要管理員密碼。",
+  sub:"iPhone 6 Plus · 第二系統（iOS 13.7 / 14.8）",lang:"語言",target:"目標",stop:"停止",stopping:"停止中…",
   chain:"啟動鏈",chainHint:"節點狀態只記錄本次服務執行期間的結果，不代表裝置實際狀態",stepAria:"目前步驟",closeNotice:"關閉提示",
   combos:"一鍵組合",console:"主控台",copy:"複製",copied:"已複製",copyFail:"複製失敗",clear:"清除",clearTitle:"只清除顯示，不影響後端緩衝",jump:"回到底部",logEmpty:"尚無輸出。選取階段並點擊執行後，日誌會顯示在這裡。",
   openOpts:"開啟選項",options:"選項",close:"關閉",restore:"恢復預設",selectAll:"全選",featNone:"未選 feature：僅建置基礎層。",featHint:"功能選擇用於建置、自動建置啟動和安裝階段，實際相依項目自動補齊。",
-  risk:"放寬檢查",manualDesc:"執行標記為 manual 的 patch",noid:"不驗證裝置身分",noidDesc:"boot 時略過身分檢查",input:"輸入與覆蓋",dp:"Data 加密",dpDefaultEnc:"清單預設（encrypted）",ipswPh:"已匯入 DMG 時可留空",bootargs:"boot-args 覆蓋",bootargsPh:"留空使用清單預設",
+  risk:"放寬檢查",manualDesc:"執行標記為 manual 的 patch",noid:"不驗證裝置身分",noidDesc:"boot 時略過身分檢查",input:"輸入與覆蓋",dp:"Data 加密",dpDefaultEnc:"清單預設",ipswPh:"已匯入 DMG 時可留空",bootargs:"boot-args 覆蓋",bootargsPh:"留空使用清單預設",
   cancel:"取消",confirm:"確認執行",modified:"改",
   "tag.sudo":"寫入磁碟 · sudo","tag.edit":"寫入裝置","tag.must":"刷機後必做","tag.opt":"選用",
   "result.run":"執行中","result.ok":"成功","result.dry":"演練通過（未實際執行）","result.fail":"失敗","result.stop":"已停止","result.none":"本次未執行",
-  "spec.effect":"影響","spec.need":"前置","spec.perm":"權限","spec.result":"結果",permText:"用 sudo python3 gui.py 啟動本介面（dry-run 不需要）",
+  "spec.effect":"影響","spec.need":"前置","spec.perm":"權限","spec.result":"結果",permText:"需要管理員權限：未用 sudo 啟動本介面時，執行前會彈窗輸入密碼（dry-run 不需要）",
   "btn.running":"執行中 · {stage}","btn.offline":"本機服務已中斷","btn.loading":"載入 feature…","btn.dry":"演練 {name}","btn.run":"執行 {name}",
   "pill.idle":"閒置","pill.off":"與本機服務中斷，重新連線中…","pill.dryRun":"演練中 · {stage}","pill.run":"執行中 · {stage}","pill.starting":"正在啟動…","pill.stage":"階段","pill.dryOk":"演練通過","pill.ok":"完成","pill.stop":"已停止","pill.fail":"失敗","pill.end":"{status} · {stage} · 結束代碼 {code}",
   "log.gap":"… 更早的 {n} 行已從顯示中移除","log.lines":"{n} 行",
   "feat.base":"僅基礎層","feat.changed":"已改","feat.loading":"載入中…","feat.loadFail":"feature 載入失敗。","feat.none":"此目標沒有可選 feature。",flagNoid:"略過身分驗證",
   "dlg.stage":"階段","dlg.target":"目標","dlg.manifest":"清單預設","dlg.on":"開","dlg.titleEdit":"確認寫入裝置：{name}","dlg.titleWipe":"確認寫入磁碟：{name}",
-  "dlg.noteEdit":"此階段會變更裝置（新建/修改磁碟區或向 SystemB 寫入檔案、變更磁碟區 role）。請確認裝置{ready}。","dlg.noteWipe":"此階段會寫入裝置儲存空間（rootfs 全量串流寫入會先清空目標磁碟區）。請確認裝置{ready}，執行期間不要中斷連線。",
+  "dlg.noteEdit":"此階段會變更裝置（新建/修改磁碟區或向第二系統磁碟區寫入檔案、變更磁碟區 role）。請確認裝置{ready}。","dlg.noteWipe":"此階段會寫入裝置儲存空間（rootfs 全量串流寫入會先清空目標磁碟區）。請確認裝置{ready}，執行期間不要中斷連線。",
   "ready.ramdisk":"已進入 ramdisk","ready.dfu":"處於 DFU",
   "notice.sudo":"目前未以 root 啟動，{stage} 未執行（寫入磁碟需要 root；dry-run 不受此限）。請結束後用 sudo python3 gui.py 重新啟動本介面。","notice.req":"請求失敗：{msg}","notice.stop":"停止請求失敗：{msg}",
   s:{
    ramdisk:{short:"進入 ramdisk",note:"DFU → gaster → SSH ramdisk 就緒",effect:"引導 SSH ramdisk，不寫入裝置儲存空間",need:"裝置處於 DFU"},
    "extract-im4m":{short:"重新提取 IM4M",label:"重新提取 IM4M（刷機後）",note:"讀取 NOR 重新提取本機 IM4M。刷機後必須執行，否則元件可能無法通過驗證。",effect:"唯讀裝置，寫入本機 state/IM4M.bin",need:"ramdisk 已就緒"},
-   volumes:{short:"建立 s4/s5",label:"建立磁碟區 s4/s5",note:"在容器內新建 s4 SystemB / s5 DataB（role 0）。",effect:"寫入裝置：新建磁碟區",need:"ramdisk 已就緒"},
-   rootfs:{short:"寫入 rootfs",note:"清空目標磁碟區後把 iOS13 rootfs 串流寫入 s4，約 25 分鐘。",effect:"寫入裝置：清空目標磁碟區後全量寫入",need:"ramdisk 已就緒"},
-   "patch-rootfs":{short:"套用 patch",label:"套用 rootfs patch",note:"向 SystemB 寫入 overlay，完成收尾並變更磁碟區 role。",effect:"寫入裝置：寫入檔案、變更磁碟區 role",need:"ramdisk 已就緒"},
+   volumes:{short:"建立系統磁碟區",label:"建立 System/Data 磁碟區",note:"在容器內新建第二系統的 System / Data 磁碟區（role 0），編號接在現有最大編號之後。",effect:"寫入裝置：新建磁碟區",need:"ramdisk 已就緒"},
+   rootfs:{short:"寫入 rootfs",note:"清空目標 System 磁碟區後把所選版本的 rootfs 串流寫入，約 20–30 分鐘。",effect:"寫入裝置：清空目標磁碟區後全量寫入",need:"ramdisk 已就緒"},
+   "patch-rootfs":{short:"套用 patch",label:"套用 rootfs patch",note:"向第二系統磁碟區寫入 overlay（含越獄與 Cydia），完成收尾並變更磁碟區 role。",effect:"寫入裝置：寫入檔案、變更磁碟區 role",need:"ramdisk 已就緒"},
    build:{short:"建置啟動映像",note:"iBSS / iBEC / DT / TC / KC → img4",effect:"只寫入本機 build 目錄",need:"首次建置需裝置處於 DFU（解密 iBSS、iBEC）"},
-   boot:{short:"啟動 iOS13",note:"經 DFU 傳送啟動鏈，缺元件時先 build。",effect:"向裝置傳送啟動鏈，不寫入裝置儲存空間",need:"裝置處於 DFU"},
-   all:{short:"端到端",note:"缺 iBSS/iBEC 時先解密，再 ramdisk + extract-im4m + volumes + rootfs + patch-rootfs + build + boot",effect:"寫入裝置：清空目標磁碟區後全量寫入",need:"裝置處於 DFU（流程內自動進入 ramdisk）"},
+   boot:{short:"啟動第二系統",note:"經 DFU 傳送啟動鏈，缺元件時先 build。",effect:"向裝置傳送啟動鏈，不寫入裝置儲存空間",need:"裝置處於 DFU"},
+   all:{short:"端到端",note:"缺 iBSS/iBEC 時先解密，再 ramdisk + extract-im4m + volumes + rootfs + patch-rootfs + build + boot",effect:"寫入裝置：清空目標磁碟區後全量寫入",need:"乾淨的裝置（剛刷回 12.5.8、沒裝過第二系統、沒手動改過分區），處於 DFU"},
    status:{short:"查看磁碟區 role",note:"各磁碟區 apfs_role · 需要 ramdisk"},
    list:{short:"列出選取項目",note:"目前選取的 patch"}
   }
  },
  "ja":{
-  slotsNav:"ボリューム ›",
-  sub:"iPhone 6 Plus · セカンドシステム iOS 13.7",lang:"言語",target:"ターゲット",stop:"停止",stopping:"停止中…",
+  volNav:"ボリューム設定","vol.section":"ボリューム","vol.none":"未設定：書き込みステージの実行時に、まず ramdisk に入ってパーティションを読み取り、ボリューム設定を開きます。","notice.volAuto":"ramdisk に入ってデバイスのパーティションを読み取っています。終わるとボリューム設定が開きます。確定すると{stage}を続行します。","notice.volFail":"パーティションの読み取りに失敗しました。コンソールを確認してください。","notice.volCancel":"キャンセルしました：{stage} にはボリューム設定の確定が必要です。","dlg.clean":"エンドツーエンドはクリーンなデバイス専用です：iOS 12.5.8 を復元したばかりで、セカンドシステムを入れたことがなく、パーティションを手動で変更していないこと。すでに何か入っている場合は、ステージを一つずつ実行し、先にボリューム設定でパーティションを確認してください。","vol.summary":"iOS {v}：System s{sys} · Data s{data} · Data {dp}","btn.needVol":"先にボリューム設定","spec.vol":"ボリューム","notice.needVol":"{stage} の前にボリューム設定が必要です。","pw.title":"パスワードが必要です","pw.note":"「{what}」には管理者権限が必要です。この画面は sudo で起動されていないため、この Mac のログインパスワードを入力してください。パスワードは今回の起動にだけ使い、保存しません。","pw.label":"パスワード","pw.go":"OK","pw.bad":"パスワードが違います。もう一度入力してください。","notice.pwCancel":"キャンセルしました：{stage} には管理者パスワードが必要です。",
+  sub:"iPhone 6 Plus · セカンドシステム（iOS 13.7 / 14.8）",lang:"言語",target:"ターゲット",stop:"停止",stopping:"停止中…",
   chain:"ブートチェーン",chainHint:"ノードの状態はこのサーバー実行中の結果のみで、デバイスの実際の状態ではありません",stepAria:"現在のステップ",closeNotice:"通知を閉じる",
   combos:"ワンクリック",console:"コンソール",copy:"コピー",copied:"コピーしました",copyFail:"コピー失敗",clear:"クリア",clearTitle:"表示のみクリアし、サーバーのバッファには影響しません",jump:"一番下へ",logEmpty:"出力はまだありません。ステージを選択して実行すると、ここにログが表示されます。",
   openOpts:"オプションを開く",options:"オプション",close:"閉じる",restore:"デフォルトに戻す",selectAll:"すべて選択",featNone:"feature 未選択：ベースレイヤーのみビルドします。",featHint:"機能の選択はビルド、自動ビルド起動、インストールの各ステージに適用され、依存関係は自動で補完されます。",
-  risk:"チェックの緩和",manualDesc:"manual と指定された patch を実行",noid:"デバイス ID を検証しない",noidDesc:"boot 時に ID チェックをスキップ",input:"入力と上書き",dp:"Data 暗号化",dpDefaultEnc:"マニフェスト既定（encrypted）",ipswPh:"DMG をインポート済みなら空欄可",bootargs:"boot-args の上書き",bootargsPh:"空欄でマニフェスト既定を使用",
+  risk:"チェックの緩和",manualDesc:"manual と指定された patch を実行",noid:"デバイス ID を検証しない",noidDesc:"boot 時に ID チェックをスキップ",input:"入力と上書き",dp:"Data 暗号化",dpDefaultEnc:"マニフェスト既定",ipswPh:"DMG をインポート済みなら空欄可",bootargs:"boot-args の上書き",bootargsPh:"空欄でマニフェスト既定を使用",
   cancel:"キャンセル",confirm:"実行する",modified:"変更",
   "tag.sudo":"書き込み · sudo","tag.edit":"デバイス書き込み","tag.must":"復元後に必須","tag.opt":"任意",
   "result.run":"実行中","result.ok":"成功","result.dry":"ドライラン成功（実行なし）","result.fail":"失敗","result.stop":"停止しました","result.none":"今回は未実行",
-  "spec.effect":"影響","spec.need":"前提","spec.perm":"権限","spec.result":"結果",permText:"sudo python3 gui.py でこの画面を起動（dry-run では不要）",
+  "spec.effect":"影響","spec.need":"前提","spec.perm":"権限","spec.result":"結果",permText:"管理者権限が必要：この画面を sudo で起動していない場合は、実行前にパスワードの入力を求めます（dry-run では不要）",
   "btn.running":"実行中 · {stage}","btn.offline":"ローカルサーバーから切断","btn.loading":"feature を読み込み中…","btn.dry":"ドライラン：{name}","btn.run":"実行：{name}",
   "pill.idle":"待機中","pill.off":"ローカルサーバーから切断、再接続中…","pill.dryRun":"ドライラン中 · {stage}","pill.run":"実行中 · {stage}","pill.starting":"起動中…","pill.stage":"ステージ","pill.dryOk":"ドライラン成功","pill.ok":"完了","pill.stop":"停止しました","pill.fail":"失敗","pill.end":"{status} · {stage} · 終了コード {code}",
   "log.gap":"… 以前の {n} 行を表示から削除しました","log.lines":"{n} 行",
   "feat.base":"ベースレイヤーのみ","feat.changed":"変更あり","feat.loading":"読み込み中…","feat.loadFail":"feature の読み込みに失敗しました。","feat.none":"このターゲットに選択可能な feature はありません。",flagNoid:"ID 検証をスキップ",
   "dlg.stage":"ステージ","dlg.target":"ターゲット","dlg.manifest":"マニフェスト既定","dlg.on":"オン","dlg.titleEdit":"デバイス書き込みの確認：{name}","dlg.titleWipe":"ディスク書き込みの確認：{name}",
-  "dlg.noteEdit":"このステージはデバイスを変更します（ボリュームの作成・変更、SystemB へのファイル書き込み、ボリューム role の変更）。デバイスが{ready}ことを確認してください。","dlg.noteWipe":"このステージはデバイスのストレージに書き込みます（rootfs の全量書き込みでは先にターゲットボリュームを消去します）。デバイスが{ready}ことを確認し、実行中は接続を切らないでください。",
+  "dlg.noteEdit":"このステージはデバイスを変更します（ボリュームの作成・変更、セカンドシステムのボリュームへのファイル書き込み、ボリューム role の変更）。デバイスが{ready}ことを確認してください。","dlg.noteWipe":"このステージはデバイスのストレージに書き込みます（rootfs の全量書き込みでは先にターゲットボリュームを消去します）。デバイスが{ready}ことを確認し、実行中は接続を切らないでください。",
   "ready.ramdisk":"ramdisk に入っている","ready.dfu":"DFU 状態である",
   "notice.sudo":"root で起動していないため、{stage} は実行されませんでした（書き込みには root が必要です。dry-run は対象外です）。終了して sudo python3 gui.py で再起動してください。","notice.req":"リクエスト失敗：{msg}","notice.stop":"停止リクエスト失敗：{msg}",
   s:{
    ramdisk:{short:"ramdisk に入る",note:"DFU → gaster → SSH ramdisk 準備完了",effect:"SSH ramdisk を起動。デバイスのストレージには書き込みません",need:"デバイスが DFU 状態"},
    "extract-im4m":{short:"IM4M を再抽出",label:"IM4M を再抽出（復元後）",note:"NOR を読み取り、このデバイスの IM4M を再抽出します。復元後は必須で、実行しないとコンポーネントが検証を通らない場合があります。",effect:"デバイスは読み取りのみ。ローカルの state/IM4M.bin に書き込みます",need:"ramdisk 準備完了"},
-   volumes:{short:"s4/s5 を作成",label:"ボリューム s4/s5 を作成",note:"コンテナ内に s4 SystemB / s5 DataB（role 0）を作成します。",effect:"デバイス書き込み：ボリュームを作成",need:"ramdisk 準備完了"},
-   rootfs:{short:"rootfs を書き込み",note:"ターゲットボリュームを消去し、iOS 13 の rootfs を s4 にストリーム書き込みします。約 25 分かかります。",effect:"デバイス書き込み：ターゲットボリュームを消去して全量書き込み",need:"ramdisk 準備完了"},
-   "patch-rootfs":{short:"patch を適用",label:"rootfs patch を適用",note:"SystemB に overlay を書き込み、仕上げを行ってボリューム role を変更します。",effect:"デバイス書き込み：ファイル書き込み、ボリューム role の変更",need:"ramdisk 準備完了"},
+   volumes:{short:"ボリュームを作成",label:"System/Data ボリュームを作成",note:"コンテナ内にセカンドシステムの System / Data ボリューム（role 0）を、既存の最大番号の後ろに作成します。",effect:"デバイス書き込み：ボリュームを作成",need:"ramdisk 準備完了"},
+   rootfs:{short:"rootfs を書き込み",note:"ターゲットの System ボリュームを消去し、選択したバージョンの rootfs をストリーム書き込みします。約 20〜30 分かかります。",effect:"デバイス書き込み：ターゲットボリュームを消去して全量書き込み",need:"ramdisk 準備完了"},
+   "patch-rootfs":{short:"patch を適用",label:"rootfs patch を適用",note:"セカンドシステムのボリュームに overlay（脱獄と Cydia を含む）を書き込み、仕上げを行ってボリューム role を変更します。",effect:"デバイス書き込み：ファイル書き込み、ボリューム role の変更",need:"ramdisk 準備完了"},
    build:{short:"イメージをビルド",label:"ブートイメージをビルド",note:"iBSS / iBEC / DT / TC / KC → img4",effect:"ローカルの build ディレクトリのみ書き込み",need:"初回ビルドではデバイスを DFU にする必要があります（iBSS、iBEC の復号）"},
-   boot:{short:"iOS 13 を起動",note:"DFU 経由でブートチェーンを送信します。コンポーネントが不足していれば先に build します。",effect:"ブートチェーンを送信。デバイスのストレージには書き込みません",need:"デバイスが DFU 状態"},
-   all:{short:"エンドツーエンド",note:"iBSS/iBEC がなければ先に復号し、ramdisk + extract-im4m + volumes + rootfs + patch-rootfs + build + boot を実行",effect:"デバイス書き込み：ターゲットボリュームを消去して全量書き込み",need:"デバイスが DFU 状態（フロー内で自動的に ramdisk に入ります）"},
+   boot:{short:"セカンドシステムを起動",note:"DFU 経由でブートチェーンを送信します。コンポーネントが不足していれば先に build します。",effect:"ブートチェーンを送信。デバイスのストレージには書き込みません",need:"デバイスが DFU 状態"},
+   all:{short:"エンドツーエンド",note:"iBSS/iBEC がなければ先に復号し、ramdisk + extract-im4m + volumes + rootfs + patch-rootfs + build + boot を実行",effect:"デバイス書き込み：ターゲットボリュームを消去して全量書き込み",need:"クリーンなデバイス（12.5.8 を復元したばかり、セカンドシステムなし、パーティション未変更）が DFU 状態"},
    status:{short:"ボリューム role",note:"各ボリュームの apfs_role · ramdisk が必要"},
    list:{short:"選択を一覧表示",note:"現在選択中の patch"}
   }
@@ -646,6 +784,9 @@ const META={
  status:{group:'query'},
  list:{group:'query'}
 };
+const VOL_GATED=new Set(['volumes','rootfs','patch-rootfs','install','all']);
+let volCfg=null;
+let pendingRun=null;   // 等宗卷设置确认后继续执行的阶段 {stage, body}
 const FEATURE_STAGES=new Set(['build','boot','patch-rootfs','install','all','list']);
 const RESULT_TEXT={run:'v-run',ok:'v-ok',dry:'v-ok',fail:'v-fail',stop:''};
 const MAX_LINES=5000;
@@ -725,6 +866,12 @@ function finish(code){
  state.active=null;state.stopping=false;clearTimeout(stopTimer);
  // 成功后选中下一步（只选中，不运行）；用户已切到别的阶段时不打扰
  if(kind==='ok'&&stage===selected){const n=nextFlow(stage);if(n)selected=n}
+ vload();
+ // 自动读分区的那次识别结束：成功就弹出宗卷设置，失败就放弃这次执行
+ if(pendingRun&&stage==='slots'&&!replaying){
+  if(code===0)openVol();
+  else{pendingRun=null;notice('notice.volFail')}
+ }
 }
 function isBusy(){return state.pending||!!state.active||!state.online||!$('target').value}
 function fmtTime(ms){
@@ -744,7 +891,7 @@ function setPad(pad,res){
 }
 function renderStep(){
  const m=META[selected]||{},res=state.results[selected];
- const key=lang+'|'+selected+'|'+res;
+ const key=lang+'|'+selected+'|'+res+'|'+volText();
  if(key!==stepKey){
   stepKey=key;
   const idx=FLOW.indexOf(selected);
@@ -755,6 +902,7 @@ function renderStep(){
   $('stnote').textContent=st(selected,'note');
   const specs=[[t('spec.effect'),st(selected,'effect'),m.tone==='danger'?'v-warn':''],[t('spec.need'),st(selected,'need'),'']];
   if(m.sudo)specs.push([t('spec.perm'),t('permText'),'']);
+  if(VOL_GATED.has(selected))specs.push([t('spec.vol'),volText(),'']);
   specs.push([t('spec.result'),t('result.'+(res in RESULT_TEXT?res:'none')),RESULT_TEXT[res]||'']);
   $('stspec').replaceChildren(...specs.flatMap(([k,v,c])=>[h('dt',null,k),h('dd',{class:c},v)]));
  }
@@ -934,7 +1082,7 @@ function renderFlags(){
  const flags=[];
  if($('manual').checked)flags.push(['allow-manual','risk']);
  if($('noid').checked)flags.push([t('flagNoid'),'risk']);
- if($('dp').value)flags.push(['data='+$('dp').value,$('dp').value==='none'?'risk':'info']);
+ if(volCfg)flags.push(['s'+volCfg.system+'/s'+volCfg.data+' · '+volCfg.dp,volCfg.dp==='none'?'risk':'info']);
  if($('bootargs').value.trim())flags.push(['boot-args','info']);
  if($('n66ipsw').value.trim())flags.push(['N66 IPSW','info']);
  if($('j96ipsw').value.trim())flags.push(['J96 IPSW','info']);
@@ -966,9 +1114,10 @@ async function loadTargets(){
  targetsLoaded=true;
  render();
  loadFeats();
+ vload();
 }
 function setAllFeats(fn){for(const c of featInputs())c.checked=fn(c.dataset.f);refreshFeats()}
-$('target').addEventListener('change',loadFeats);
+$('target').addEventListener('change',()=>{loadFeats();vload()});
 $('featall').addEventListener('click',()=>setAllFeats(()=>true));
 $('featdef').addEventListener('click',()=>setAllFeats(f=>featDefault.includes(f)));
 $('dry').addEventListener('change',render);
@@ -1009,20 +1158,22 @@ function mkStages(){
 function payload(stage){
  return {stage,target:$('target').value,features:selectedFeats(),
   dry:$('dry').checked,manual:$('manual').checked,noid:$('noid').checked,
-  bootargs:$('bootargs').value,dp:$('dp').value,
+  bootargs:$('bootargs').value,dp:'',
   n66ipsw:$('n66ipsw').value,j96ipsw:$('j96ipsw').value};
 }
 function confirmRun(body,meta){
  const edit=meta.sev==='edit',dlg=$('dlg'),items=[[t('dlg.stage'),body.stage],[t('dlg.target'),body.target]];
  dlg.dataset.sev=edit?'edit':'wipe';
  if(FEATURE_STAGES.has(body.stage))items.push(['features',body.features.join(', ')||t('feat.base')]);
- items.push([t('dp'),body.dp||t('dlg.manifest')],['boot-args',body.bootargs.trim()||t('dlg.manifest')]);
+ if(VOL_GATED.has(body.stage))items.push([t('spec.vol'),volText()]);
+ items.push(['boot-args',body.bootargs.trim()||t('dlg.manifest')]);
  if(body.n66ipsw.trim())items.push(['N66 IPSW',body.n66ipsw.trim()]);
  if(body.j96ipsw.trim())items.push(['J96 IPSW',body.j96ipsw.trim()]);
  if(body.manual)items.push(['allow-manual',t('dlg.on')]);
  $('dlgtitle').textContent=t(edit?'dlg.titleEdit':'dlg.titleWipe',{name:label(body.stage)});
- $('dlgnote').textContent=t(edit?'dlg.noteEdit':'dlg.noteWipe',{ready:t(meta.ready)});
+ $('dlgnote').textContent=(body.stage==='all'?t('dlg.clean')+' ':'')+t(edit?'dlg.noteEdit':'dlg.noteWipe',{ready:t(meta.ready)});
  $('dlgrows').replaceChildren(...items.flatMap(([k,v])=>[h('dt',null,k),h('dd',null,v)]));
+ $('dlgrows').hidden=false;
  dlg.returnValue='';
  dlg.showModal();
  return new Promise(res=>dlg.addEventListener('close',()=>res(dlg.returnValue==='go'),{once:true}));
@@ -1039,12 +1190,29 @@ async function run(stage){
  if(isBusy()||(FEATURE_STAGES.has(stage)&&!featsReady))return;
  const body=payload(stage),meta=META[stage]||{};
  if(meta.confirm&&!body.dry&&!(await confirmRun(body,meta)))return;
+ // 还没有宗卷设置：先进 ramdisk 读分区，读完自动弹出宗卷设置，确认后再继续这个阶段
+ if(VOL_GATED.has(stage)&&!body.dry&&!volCfg){await readPartitionsThen(stage,body);return}
+ await launch(stage,body);
+}
+async function readPartitionsThen(stage,body){
+ pendingRun={stage,body};
+ notice('notice.volAuto',{stage:label(stage)});
+ state.pending=true;render();
+ try{
+  const r=await j('/api/slots/run',post({action:'identify',target:body.target}));
+  if(!r.ok){pendingRun=null;notice('notice.volFail')}
+ }catch(e){pendingRun=null;notice('notice.req',{msg:e.message})}
+ await pull();await pull();
+ state.pending=false;render();
+}
+async function launch(stage,body){
  notice();
  state.pending=true;render();
  if(matchMedia('(max-width:999px)').matches)$('logpanel').scrollIntoView();
  try{
-  const r=await j('/api/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-  if(r.reason==='need-sudo')notice('notice.sudo',{stage});
+  const r=await postRoot('/api/run',body,label(stage));
+  if(r.reason==='cancelled')notice('notice.pwCancel',{stage:label(stage)});
+  else if(r.reason==='need-volumes'){volCfg=null;await readPartitionsThen(stage,body);return}
  }catch(e){
   notice('notice.req',{msg:e.message});
  }
@@ -1062,6 +1230,321 @@ $('stop').addEventListener('click',async()=>{
  pull();
 });
 
+const VT={
+"zh-CN":{title:"宗卷设置",gateTitle:"读取设备分区",gate:"宗卷设置以设备上的实际分区为准，识别完成前不给任何默认值。设备进入 ramdisk 后点「识别分区（设备）」（设备在 DFU 时会先自动进入 ramdisk）。",gateDone:"已识别设备分区。分区有变动（格式化、删除、刷机）后请重新识别。",unsupported:"当前目标不支持宗卷安装。",planTitle:"本次安装 · iOS {v}（{target}）",sysLabel:"System 分区",dataLabel:"Data 分区",dpLabel:"Data 加密",newVol:"新建",overwrite12:"覆盖 iOS 12，需要 donor 快照",confirmVol:"确认宗卷设置",confirmAndRun:"确认并继续：{stage}",confirmedTag:"已确认",volSaved:"宗卷设置已确认，现在可以安装。",noteNew:"{list} 会在安装时新建。",noteExisting:"所选分区上的现有内容会在安装时清空。",noteNone:"Data 不加密：iCloud 备份等依赖内容保护的功能不可用。",sameSlice:"System 与 Data 不能是同一个分区。",sub:"分区先声明用途再建立；s3 基带永不格式化；s1、s2 只能格式化后另作他用",back:"← 返回主界面",
+ tDevice:"设备",rebind:"改绑",deviceUnbound:"未绑定（连接设备后自动绑定）",rebindConfirm:"改绑会把宗卷记录切换到当前连接的设备，原快照保留。确认？",keepData:"保留 Data 原数据",keepExp:"实验性",keepHint:"实验性：不清空 Data 卷，依赖 iOS 13 对原有 keybag 的兼容，未在设备上验证。",confirmKeep:"安装 iOS {v}（保留 Data 原数据，实验性）？Sys 仍会被清空。",donorOk:"donor 快照可用",donorNo:"donor 快照不可用",
+ deviceHint:"设备 ID 是 DFU 阶段读取的 ECID，自动绑定，不再手动填写。快照按它分目录保存在 state/donors/。",
+ tSlices:"分区与用途",cSlice:"分区",cPurpose:"用途",cContent:"实际内容",cPerm:"权限",cAction:"操作",
+ format:"格式化",clear:"清除用途",delete:"删除",assign:"设定",confirmDelete:"确认删除 {s}？号码将释放，不再复用。",confirmPair:"{s} 属于已装版本：将同时删除该版本的 Sys 与 Data，号码释放且不再复用。继续？",
+ tHint:"用途是你的声明；实际内容是分区上物理存在的东西。覆盖原机 12 System 前必须先完成 donor 快照。",
+ tVersions:"版本",vVersion:"版本",vStatus:"状态",vSlices:"分区",vAction:"操作",
+ plan:"计划",install:"安装",boot:"启动此系统",rebuild:"重建启动包",
+ statusNone:"未装",statusOk:"已装",statusStale:"启动包过期",statusBlocked:"不可安装",
+ tIdent:"分区识别",identify:"识别分区（设备）",identHint:"需要设备进入 SSH ramdisk（sudo）。System 看 SystemVersion，Data 看安装时写入的标记。",tDonor:"donor 快照",verify:"校验快照",snapshot:"从设备生成快照",donorDeviceHint:"快照需要设备进入 SSH ramdisk（需要 sudo）。",
+ tLog:"输出",stop:"停止",running:"已开始，输出见下方控制台。",busy:"有阶段正在运行，等它结束后再试。",cancelled:"已取消：需要管理员密码。",toConsole:"查看控制台",
+ wrongSlice:"分区号格式应为 s4 这样",none:"（清除）",noDevice:"先设置设备ID",
+ confirmFormat:"确认清空 {s} 的全部内容？此操作不可撤销。",confirmInstall:"确认安装 iOS {v}？将清空对应分区。",
+ confirmBoot:"启动会重新发送启动链，设备需进入 DFU。继续？",adopt:"认领",confirmAdopt:"认领 iOS {v}：会检查 Sys 版本，并在 Data 卷写入版本标记。继续？",planBlocked:"阻塞：",ready:"可执行",installed:"已记录为已装",notCommitted:"未提交，仅可建空分区"},
+"en":{title:"Volume settings",gateTitle:"Read device partitions",gate:"Volume settings follow the partitions actually on the device; no defaults are offered until they are identified. With the device in ramdisk, click Identify (device). A device in DFU enters ramdisk first.",gateDone:"Device partitions identified. Identify again after formatting, deleting or restoring.",unsupported:"This target does not support slot installs.",planTitle:"This install · iOS {v} ({target})",sysLabel:"System partition",dataLabel:"Data partition",dpLabel:"Data encryption",newVol:"new",overwrite12:"overwrites iOS 12; needs a donor snapshot",confirmVol:"Confirm volume settings",confirmAndRun:"Confirm and continue: {stage}",confirmedTag:"Confirmed",volSaved:"Volume settings confirmed. You can install now.",noteNew:"{list} will be created during install.",noteExisting:"Existing content on the chosen partitions is erased during install.",noteNone:"Data unencrypted: features that need content protection, such as iCloud backup, will not work.",sameSlice:"System and Data must be different partitions.",sub:"Declare each partition's purpose first; s3 baseband is never formatted; s1 and s2 can only be formatted and repurposed",back:"← Back",
+ tDevice:"Device",rebind:"Rebind",deviceUnbound:"not bound (bound automatically when the device connects)",rebindConfirm:"Rebinding switches the volume record to the connected device. The existing snapshot is kept. Continue?",keepData:"Keep Data contents",keepExp:"experimental",keepHint:"Experimental: Data is not erased. Depends on iOS 13 accepting the original keybag; not verified on a device.",confirmKeep:"Install iOS {v} keeping Data contents (experimental)? Sys is still erased.",donorOk:"donor snapshot ready",donorNo:"donor snapshot not ready",
+ deviceHint:"The device ID is the ECID read in DFU and bound automatically. Snapshots are stored per ID under state/donors/.",
+ tSlices:"Partitions and purposes",cSlice:"Slice",cPurpose:"Purpose",cContent:"Actual content",cPerm:"Permissions",cAction:"Actions",
+ format:"Format",clear:"Clear purpose",delete:"Delete",assign:"Set",confirmDelete:"Delete {s}? Its number is released and never reused.",confirmPair:"{s} belongs to an installed version: both its Sys and Data will be deleted; numbers are released and never reused. Continue?",
+ tHint:"Purpose is your declaration; content is what is physically on the partition. Overwriting the original 12 System needs a donor snapshot first.",
+ tVersions:"Versions",vVersion:"Version",vStatus:"Status",vSlices:"Slices",vAction:"Actions",
+ plan:"Plan",install:"Install",boot:"Boot this system",rebuild:"Rebuild boot pack",
+ statusNone:"not installed",statusOk:"installed",statusStale:"boot pack stale",statusBlocked:"not installable",
+ tIdent:"Identify partitions",identify:"Identify (device)",identHint:"Needs the device in SSH ramdisk (sudo). System is read from SystemVersion; Data from the marker written at install.",tDonor:"donor snapshot",verify:"Verify snapshot",snapshot:"Snapshot from device",donorDeviceHint:"Snapshotting needs the device in SSH ramdisk (sudo).",
+ tLog:"Output",stop:"Stop",running:"Started. Output is in the console below.",busy:"A stage is running. Try again when it finishes.",cancelled:"Cancelled: the administrator password is required.",toConsole:"Show console",
+ wrongSlice:"Slice must look like s4",none:"(clear)",noDevice:"Set device ID first",
+ confirmFormat:"Erase all content of {s}? This cannot be undone.",confirmInstall:"Install iOS {v}? The matching partitions will be erased.",
+ confirmBoot:"Boot re-sends the boot chain; the device must be in DFU. Continue?",adopt:"Adopt",confirmAdopt:"Adopt iOS {v}: checks the Sys version and writes a version marker on Data. Continue?",planBlocked:"Blocked: ",ready:"ready",installed:"recorded as installed",notCommitted:"not committed; empty volume only"},
+"zh-TW":{title:"宗卷設定",gateTitle:"讀取裝置分區",gate:"宗卷設定以裝置上的實際分區為準，識別完成前不提供任何預設值。裝置進入 ramdisk 後點「識別分區（裝置）」（裝置在 DFU 時會先自動進入 ramdisk）。",gateDone:"已識別裝置分區。分區有變動（格式化、刪除、刷機）後請重新識別。",unsupported:"目前目標不支援宗卷安裝。",planTitle:"本次安裝 · iOS {v}（{target}）",sysLabel:"System 分區",dataLabel:"Data 分區",dpLabel:"Data 加密",newVol:"新建",overwrite12:"覆寫 iOS 12，需要 donor 快照",confirmVol:"確認宗卷設定",confirmAndRun:"確認並繼續：{stage}",confirmedTag:"已確認",volSaved:"宗卷設定已確認，現在可以安裝。",noteNew:"{list} 會在安裝時新建。",noteExisting:"所選分區上的現有內容會在安裝時清空。",noteNone:"Data 不加密：iCloud 備份等依賴內容保護的功能無法使用。",sameSlice:"System 與 Data 不能是同一個分區。",sub:"分區先宣告用途再建立；s3 基頻永不格式化；s1、s2 只能格式化後另作他用",back:"← 返回主介面",
+ tDevice:"裝置",rebind:"改綁",deviceUnbound:"未綁定（連接裝置後自動綁定）",rebindConfirm:"改綁會把宗卷記錄切換到目前連接的裝置，原快照保留。確認？",keepData:"保留 Data 原資料",keepExp:"實驗性",keepHint:"實驗性：不清空 Data 卷，依賴 iOS 13 對原有 keybag 的相容性，未在裝置上驗證。",confirmKeep:"安裝 iOS {v}（保留 Data 原資料，實驗性）？Sys 仍會被清空。",donorOk:"donor 快照可用",donorNo:"donor 快照不可用",
+ deviceHint:"裝置 ID 是 DFU 階段讀取的 ECID，自動綁定。快照依它分目錄存放在 state/donors/。",
+ tSlices:"分區與用途",cSlice:"分區",cPurpose:"用途",cContent:"實際內容",cPerm:"權限",cAction:"操作",
+ format:"格式化",clear:"清除用途",delete:"刪除",assign:"設定",confirmDelete:"確認刪除 {s}？號碼將釋放，不再復用。",confirmPair:"{s} 屬於已裝版本：將同時刪除該版本的 Sys 與 Data，號碼釋放且不再復用。繼續？",
+ tHint:"用途是你的宣告；實際內容是分區上實際存在的東西。覆寫原機 12 System 前必須先完成 donor 快照。",
+ tVersions:"版本",vVersion:"版本",vStatus:"狀態",vSlices:"分區",vAction:"操作",
+ plan:"計畫",install:"安裝",boot:"啟動此系統",rebuild:"重建啟動包",
+ statusNone:"未裝",statusOk:"已裝",statusStale:"啟動包過期",statusBlocked:"不可安裝",
+ tIdent:"分區識別",identify:"識別分區（裝置）",identHint:"需要裝置進入 SSH ramdisk（sudo）。System 看 SystemVersion，Data 看安裝時寫入的標記。",tDonor:"donor 快照",verify:"校驗快照",snapshot:"從裝置生成快照",donorDeviceHint:"快照需要裝置進入 SSH ramdisk（需要 sudo）。",
+ tLog:"輸出",stop:"停止",running:"已開始，輸出見下方主控台。",busy:"有階段正在執行，等它結束後再試。",cancelled:"已取消：需要管理員密碼。",toConsole:"查看主控台",
+ wrongSlice:"分區號格式應為 s4",none:"（清除）",noDevice:"先設定裝置ID",
+ confirmFormat:"確認清空 {s} 的全部內容？此操作無法復原。",confirmInstall:"確認安裝 iOS {v}？對應分區將被清空。",
+ confirmBoot:"啟動會重新發送啟動鏈，裝置需進入 DFU。繼續？",adopt:"認領",confirmAdopt:"認領 iOS {v}：會檢查 Sys 版本，並在 Data 卷寫入版本標記。繼續？",planBlocked:"阻塞：",ready:"可執行",installed:"已記錄為已裝",notCommitted:"未提交，僅可建空分區"},
+"ja":{title:"ボリューム設定",gateTitle:"デバイスのパーティションを読み取る",gate:"ボリューム設定はデバイス上の実際のパーティションに基づきます。識別するまで既定値は表示しません。デバイスを ramdisk にしてから「識別（デバイス）」を押してください（DFU のデバイスは先に ramdisk に入ります）。",gateDone:"デバイスのパーティションを識別済みです。フォーマット・削除・復元の後はもう一度識別してください。",unsupported:"このターゲットはボリュームインストールに対応していません。",planTitle:"今回のインストール · iOS {v}（{target}）",sysLabel:"System パーティション",dataLabel:"Data パーティション",dpLabel:"Data の暗号化",newVol:"新規",overwrite12:"iOS 12 を上書き。donor スナップショットが必要",confirmVol:"ボリューム設定を確定",confirmAndRun:"確定して続行：{stage}",confirmedTag:"確定済み",volSaved:"ボリューム設定を確定しました。インストールできます。",noteNew:"{list} はインストール時に作成されます。",noteExisting:"選んだパーティションの既存の内容はインストール時に消去されます。",noteNone:"Data を暗号化しません：iCloud バックアップなど、コンテンツ保護が必要な機能は使えません。",sameSlice:"System と Data は別のパーティションにしてください。",sub:"パーティションは用途を宣言してから作成します。s3 ベースバンドは決してフォーマットしません。s1・s2 はフォーマットして別用途にのみ使えます",back:"← 戻る",
+ tDevice:"デバイス",rebind:"付け替え",deviceUnbound:"未バインド（接続時に自動でバインド）",rebindConfirm:"付け替えると宗卷記録が接続中のデバイスに切り替わります。既存のスナップショットは残ります。続けますか？",keepData:"Data の内容を保持",keepExp:"実験的",keepHint:"実験的：Data を消去しません。元の keybag を iOS 13 が受け入れることに依存し、デバイスでは未検証です。",confirmKeep:"Data の内容を保持して iOS {v} をインストール（実験的）？Sys は引き続き消去されます。",donorOk:"donor スナップショット利用可",donorNo:"donor スナップショット未準備",
+ deviceHint:"デバイスIDは DFU で読み取った ECID を自動でバインドします。スナップショットは state/donors/ に保存されます。",
+ tSlices:"パーティションと用途",cSlice:"パーティション",cPurpose:"用途",cContent:"実際の内容",cPerm:"権限",cAction:"操作",
+ format:"フォーマット",clear:"用途をクリア",delete:"削除",assign:"設定",confirmDelete:"{s} を削除しますか？番号は解放され、再利用されません。",confirmPair:"{s} はインストール済みバージョンに属します。その Sys と Data を両方削除します。番号は解放され再利用されません。続けますか？",
+ tHint:"用途はあなたの宣言、実際の内容はパーティション上の実体です。元の 12 System を上書きするには先に donor スナップショットが必要です。",
+ tVersions:"バージョン",vVersion:"バージョン",vStatus:"状態",vSlices:"パーティション",vAction:"操作",
+ plan:"計画",install:"インストール",boot:"このシステムを起動",rebuild:"ブートパックを再構築",
+ statusNone:"未インストール",statusOk:"インストール済み",statusStale:"ブートパック失効",statusBlocked:"インストール不可",
+ tIdent:"パーティション識別",identify:"識別（デバイス）",identHint:"デバイスを SSH ramdisk にする必要があります（sudo）。System は SystemVersion、Data はインストール時のマーカーで判定します。",tDonor:"donor スナップショット",verify:"スナップショットを検証",snapshot:"デバイスから作成",donorDeviceHint:"作成にはデバイスを SSH ramdisk にする必要があります（sudo）。",
+ tLog:"出力",stop:"停止",running:"開始しました。出力は下のコンソールに表示されます。",busy:"ステージが実行中です。終わってからもう一度試してください。",cancelled:"キャンセルしました：管理者パスワードが必要です。",toConsole:"コンソールを表示",
+ wrongSlice:"パーティション番号は s4 の形式で",none:"（クリア）",noDevice:"先にデバイスIDを設定",
+ confirmFormat:"{s} の内容をすべて消去しますか？元に戻せません。",confirmInstall:"iOS {v} をインストールしますか？対応するパーティションは消去されます。",
+ confirmBoot:"起動はブートチェーンを再送します。デバイスは DFU である必要があります。続けますか？",adopt:"引き取り",confirmAdopt:"iOS {v} を引き取ります：System のバージョンを確認し、Data にマーカーを書き込みます。続けますか？",planBlocked:"ブロック：",ready:"実行可能",installed:"インストール済みとして記録",notCommitted:"未提出。空のボリュームのみ"}
+};
+/* ---------- 管理员密码（未以 sudo 启动时） ---------- */
+function askPassword(what,bad){
+ const d=$('pwdlg');
+ $('pwnote').textContent=t('pw.note',{what});
+ $('pwerr').hidden=!bad;
+ $('pwinput').value='';
+ d.returnValue='';
+ d.showModal();
+ $('pwinput').focus();
+ return new Promise(res=>d.addEventListener('close',()=>{
+  const pw=d.returnValue==='go'?$('pwinput').value:null;
+  $('pwinput').value='';
+  res(pw);
+ },{once:true}));
+}
+$('pwinput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('pwdlg').close('go')}});
+function post(body){return {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}}
+// 需要 root 的请求：后端回 need-sudo / bad-password 时弹窗要密码，再带上密码重发。
+async function postRoot(url,body,what){
+ let r=await j(url,post(body));
+ while(r.reason==='need-sudo'||r.reason==='bad-password'){
+  const pw=await askPassword(what,r.reason==='bad-password');
+  if(pw===null)return {ok:false,reason:'cancelled'};
+  r=await j(url,post({...body,password:pw}));
+ }
+ return r;
+}
+// 通用确认（复用 #dlg）；行列表留空时隐藏
+function ask(title,note,sev){
+ const dlg=$('dlg');
+ dlg.dataset.sev=sev||'wipe';
+ $('dlgtitle').textContent=title;
+ $('dlgnote').textContent=note||'';
+ $('dlgrows').replaceChildren();
+ $('dlgrows').hidden=true;
+ dlg.returnValue='';
+ dlg.showModal();
+ return new Promise(res=>dlg.addEventListener('close',()=>res(dlg.returnValue==='go'),{once:true}));
+}
+
+/* ---------- 宗卷设置（弹窗） ---------- */
+function vt(k,vars){
+ const s=(VT[lang]||{})[k]??VT['zh-CN'][k]??k;
+ return vars?s.replace(/\{(\w+)\}/g,(m,x)=>x in vars?vars[x]:m):s;
+}
+const vol=$('vol');
+let VS=null;
+function applyVol(){for(const e of vol.querySelectorAll('[data-v]'))e.textContent=vt(e.dataset.v)}
+function vbtn(text,onclick,disabled,title){
+ const b=h('button',{type:'button',class:'btn sm'},text);
+ b.disabled=!!disabled;
+ if(title)b.title=title;
+ b.addEventListener('click',onclick);
+ return b;
+}
+function purposeLabel(p){return p.value+(p.installable?'':' ('+vt('notCommitted')+')')}
+function vmsg(text){$('vmsg').textContent=text||''}
+async function vload(){
+ try{VS=await j('/api/slots?target='+encodeURIComponent($('target').value));volCfg=VS.session.config;renderVolSummary();vrender();render()}
+ catch(e){vmsg(t('notice.req',{msg:e.message}))}
+}
+function vrender(){
+ if(!VS)return;
+ const sess=VS.session;
+ $('vgatenote').textContent=vt(sess.identified?'gateDone':'gate');
+ $('vunsupported').hidden=sess.supported;
+ $('vdetails').hidden=!sess.identified;
+ $('vplanbox').hidden=!(sess.identified&&sess.proposal);
+ if(!sess.identified)return;
+ $('deviceText').textContent=VS.device_id||vt('deviceUnbound');
+ const db=$('donorBadge');
+ db.textContent=vt(VS.donor_ready?'donorOk':'donorNo');
+ db.className='tag '+(VS.donor_ready?'okt':'edit');
+ // 分区与用途
+ const rowsS=[];
+ for(const k of Object.keys(VS.slices).sort((a,b)=>a-b)){
+  const purpose=VS.slices[k],content=VS.content[k],rule=VS.protection[k]||{format:false,delete:false,why:''};
+  const sel=h('select',{'aria-label':vt('cPurpose')+' s'+k,autocomplete:'off'},h('option',{value:''},vt('none')),
+   ...VS.purposes.map(p=>h('option',{value:p.value},purposeLabel(p))));
+  sel.value=purpose||'';
+  sel.disabled=k==='3';
+  sel.addEventListener('change',()=>vassign('s'+k,sel.value||null));
+  const idn=(VS.identified||{})[k];
+  let text=content||'—';
+  if(idn&&!idn.skipped&&idn.kind)text+='  ·  '+idn.kind+(idn.build?' '+idn.build:'')+(idn.marker?' [marker '+idn.marker+']':'');
+  const blockedFormat=!rule.format||(content==='12 Sys'&&!VS.donor_ready);
+  rowsS.push(h('tr',null,
+   h('td',{class:'mono'},'s'+k),
+   h('td',null,h('span',{class:'sel'},sel)),
+   h('td',{class:'mono'},text),
+   h('td',{class:'v-mut'},(rule.format?'✓ ':'✗ ')+vt('format')+' · '+(rule.delete?'✓ ':'✗ ')+vt('delete')),
+   h('td',{class:'vacts'},
+    vbtn(vt('format'),()=>vformat(k),blockedFormat,rule.why),
+    vbtn(vt('clear'),()=>vassign('s'+k,null),k==='1'||k==='2'||k==='3'),
+    vbtn(vt('delete'),()=>vdelete(k),!rule.delete,rule.why))));
+ }
+ $('slices').replaceChildren(...rowsS);
+ $('pairs').textContent=Object.entries(VS.pairs||{}).map(([v,p])=>'iOS '+v+': '+p.note).join('\n');
+ const np=$('newPurpose'),keep=np.value;
+ np.replaceChildren(...VS.purposes.map(p=>h('option',{value:p.value},purposeLabel(p))));
+ if(keep)np.value=keep;
+ // 版本
+ const rowsV=[];
+ for(const v of Object.keys(VS.versions)){
+  const info=VS.versions[v],rec=VS.installed[v],boot=VS.boot[v],pair=(VS.pairs||{})[v];
+  let status=rec?(boot&&boot.stale?vt('statusStale'):vt('statusOk')):(info.implemented?vt('statusNone'):vt('statusBlocked'));
+  if(pair&&pair.status!=='ok'&&rec)status+=' · '+(pair.status==='unknown'?'?':'!')+' '+pair.note;
+  if(!info.implemented)status+=' · '+(info.reason||'');
+  const cls=rec?(boot&&boot.stale?'v-warn':'v-ok'):'v-mut';
+  const keepBox=h('input',{type:'checkbox',id:'keep-'+v,autocomplete:'off'});
+  const acts=[
+   vbtn(vt('plan'),()=>vplan(v)),
+   vbtn(vt('install'),()=>vinstall(v),!info.implemented||!!rec),
+   h('label',{class:'vkeep',title:vt('keepHint')},keepBox,h('span',null,vt('keepData')+' ('+vt('keepExp')+')')),
+   vbtn(vt('boot'),()=>vact({action:'boot',version:v},[vt('boot')+' · iOS '+v,vt('confirmBoot'),'edit']),!rec),
+   vbtn(vt('rebuild'),()=>vact({action:'rebuild',version:v}),!rec)];
+  if(!rec)acts.push(vbtn(vt('adopt'),()=>vact({action:'adopt',version:v},[vt('adopt')+' · iOS '+v,vt('confirmAdopt',{v}),'edit']),
+   !Object.values(VS.slices).includes(v+' Sys')));
+  rowsV.push(h('tr',null,
+   h('td',{class:'mono'},'iOS '+v),
+   h('td',{class:cls},status),
+   h('td',{class:'mono'},rec?'s'+rec.system+' / s'+rec.data:'—'),
+   h('td',{class:'vacts'},...acts)));
+ }
+ $('versions').replaceChildren(...rowsV);
+ renderPlanCard();
+}
+async function vassign(slice,value){
+ try{
+  const r=await j('/api/slots/assign',post({slice,purpose:value}));
+  vmsg(r.ok?'':(r.error||''));
+  if(r.ok)vload();
+ }catch(e){vmsg(t('notice.req',{msg:e.message}))}
+}
+function vformat(k){vact({action:'format',slice:'s'+k},[vt('format')+' · s'+k,vt('confirmFormat',{s:'s'+k}),'wipe'])}
+function vinstall(v){
+ const keep=!!($('keep-'+v)||{}).checked;
+ vact({action:'install',version:v,keep},[vt('install')+' · iOS '+v,vt(keep?'confirmKeep':'confirmInstall',{v}),'wipe']);
+}
+function vdelete(k){
+ const pair=Object.values(VS.installed||{}).some(r=>r.system===Number(k)||r.data===Number(k));
+ vact({action:'delete',slice:'s'+k,pair},[vt('delete')+' · s'+k,vt(pair?'confirmPair':'confirmDelete',{s:'s'+k}),'wipe']);
+}
+async function vplan(v){
+ const p=$('plan');
+ p.hidden=false;
+ let r;
+ try{r=await j('/api/slots/plan',post({version:v}))}
+ catch(e){p.textContent=t('notice.req',{msg:e.message});return}
+ if(r.error){p.textContent=r.error;return}
+ const lines=[vt('plan')+' · iOS '+v+' · '+(r.status==='ready'?vt('ready'):r.status)];
+ if(r.blocked)lines.push(vt('planBlocked')+r.blocked);
+ if(r.note)lines.push(r.note);
+ if(r.capacity_note)lines.push(r.capacity_note);
+ for(const s of r.steps||[])lines.push('  '+s.op+(s.slice!==undefined?' s'+s.slice:'')+(s.purpose?'  ('+s.purpose+')':'')+(s.from?'  from '+s.from:''));
+ p.textContent=lines.join('\n');
+}
+// 宗卷操作也是交给 n56patcher.py 的一个阶段：输出进主控制台，结束后刷新本弹窗
+async function vact(body,confirmSpec){
+ if(isBusy()){vmsg(vt('busy'));return}
+ body={...body,target:$('target').value};
+ if(confirmSpec&&!(await ask(...confirmSpec)))return;
+ let r;
+ try{r=await postRoot('/api/slots/run',body,vt(body.action==='rebind'?'rebind':body.action==='identify'?'identify':body.action==='snapshot'?'snapshot':body.action))}
+ catch(e){vmsg(t('notice.req',{msg:e.message}));return}
+ if(r.reason==='cancelled'){vmsg(vt('cancelled'));return}
+ vmsg(r.ok?vt('running'):r.reason==='busy'?vt('busy'):(r.reason||''));
+ await pull();
+}
+$('btnRebind').addEventListener('click',()=>vact({action:'rebind'},[vt('rebind'),vt('rebindConfirm'),'edit']));
+$('btnAssign').addEventListener('click',()=>{
+ const s=$('newSlice').value.trim();
+ if(!/^s\d+$/.test(s)){vmsg(vt('wrongSlice'));return}
+ vassign(s,$('newPurpose').value);
+});
+$('btnVerify').addEventListener('click',()=>vact({action:'verify'}));
+$('btnSnapshot').addEventListener('click',()=>vact({action:'snapshot'}));
+$('btnIdentify').addEventListener('click',()=>vact({action:'identify'}));
+$('vol2console').addEventListener('click',()=>{vol.close();$('logpanel').scrollIntoView({block:'nearest'})});
+$('openvol').addEventListener('click',()=>{drawer.close();openVol()});
+// ---- 宗卷优先：本次安装卡片、摘要、打开入口 ----
+function volText(){
+ return volCfg?t('vol.summary',{v:volCfg.version,sys:volCfg.system,data:volCfg.data,dp:volCfg.dp}):t('vol.none');
+}
+function renderVolSummary(){$('volsum').textContent=volText();renderFlags()}
+function openVol(){vmsg('');if(!vol.open)vol.showModal();vload()}
+let planKey='';
+// 设备上没有（识别结果里不存在）的号，安装时新建
+function isNewSlice(n){return !((VS.identified||{})[n])}
+function sliceOptions(p,cfg){
+ // 候选：建议值、已确认值 + 设备上识别到的卷（s2 原机 Data、s3 基带除外）
+ const ident=VS.identified||{};
+ const nums=new Set([...p.new,p.system,p.data,...(cfg?[cfg.system,cfg.data]:[]),...Object.keys(ident).map(Number)]);
+ return [...nums].filter(n=>n!==2&&n!==3).sort((a,b)=>a-b).map(n=>{
+  const v=ident[n]||{};
+  let desc=isNewSlice(n)?vt('newVol'):[v.name,v.kind!==v.name?v.kind:'',v.version?'iOS '+v.version:'',v.marker?'['+v.marker+']':''].filter(Boolean).join(' · ');
+  if(n===1)desc+=' · '+vt('overwrite12');
+  return [n,'s'+n+' · '+desc];
+ });
+}
+function renderPlanCard(){
+ const sess=VS.session,p=sess.proposal,cfg=sess.config;
+ if(!p)return;
+ $('vplantitle').textContent=vt('planTitle',{v:p.version,target:p.target});
+ const key=JSON.stringify([p,cfg,lang]);
+ if(key!==planKey){
+  planKey=key;
+  const opts=sliceOptions(p,cfg);
+  for(const [id,val] of [['vsys',cfg?cfg.system:p.system],['vdata',cfg?cfg.data:p.data]]){
+   $(id).replaceChildren(...opts.map(([n,label])=>h('option',{value:String(n)},label)));
+   $(id).value=String(val);
+  }
+  $('vdp').replaceChildren(...p.dp_modes.map(m=>h('option',{value:m},m+(m===p.dp_default?' ('+t('dlg.manifest')+')':''))));
+  $('vdp').value=cfg?cfg.dp:p.dp;
+ }
+ updatePlanNote();
+}
+function updatePlanNote(){
+ const p=VS.session.proposal,cfg=VS.session.config;
+ const sys=+$('vsys').value,data=+$('vdata').value,dp=$('vdp').value;
+ const fresh=[sys,data].filter(isNewSlice);
+ const notes=[];
+ if(fresh.length)notes.push(vt('noteNew',{list:fresh.map(n=>'s'+n).join('、')}));
+ if(fresh.length<2)notes.push(vt('noteExisting'));
+ if(dp==='none')notes.push(vt('noteNone'));
+ if(sys===data)notes.push(vt('sameSlice'));
+ $('vplannote').textContent=notes.join(' ');
+ const same=cfg&&cfg.system===sys&&cfg.data===data&&cfg.dp===dp;
+ $('vconfirmed').replaceChildren(...(same?[h('span',{class:'tag okt'},vt('confirmedTag'))]:[]));
+ $('btnConfirmVol').disabled=sys===data||isBusy();
+ $('btnConfirmVol').textContent=pendingRun?vt('confirmAndRun',{stage:label(pendingRun.stage)}):vt('confirmVol');
+}
+for(const id of ['vsys','vdata','vdp'])$(id).addEventListener('change',updatePlanNote);
+$('btnConfirmVol').addEventListener('click',async()=>{
+ const body={target:$('target').value,system:+$('vsys').value,data:+$('vdata').value,dp:$('vdp').value};
+ try{
+  const r=await j('/api/slots/confirm',post(body));
+  if(!r.ok){vmsg(r.error||'');return}
+  planKey='';
+  await vload();
+  vmsg(vt('volSaved'));
+  if(pendingRun){
+   const next=pendingRun;
+   pendingRun=null;
+   vol.close();
+   await launch(next.stage,next.body);
+  }
+ }catch(e){vmsg(t('notice.req',{msg:e.message}))}
+});
+
+$('closevol').addEventListener('click',()=>vol.close());
+vol.addEventListener('click',e=>{if(e.target===vol)vol.close()});
+vol.addEventListener('close',()=>{
+ if(location.hash==='#volumes')history.replaceState(null,'',location.pathname);
+ if(pendingRun){notice('notice.volCancel',{stage:label(pendingRun.stage)});pendingRun=null}
+});
+
 /* ---------- 启动 ---------- */
 async function loop(){
  await pull();
@@ -1076,290 +1559,103 @@ $('lang').addEventListener('change',e=>{
  applyStatic();mkStages();
  if(featMsg)$('feats').textContent=t(featMsg);
  refreshFeats();renderFlags();renderLogMeta();renderNotice();render();
+ applyVol();vrender();renderVolSummary();
 });
-applyStatic();mkStages();render();refreshFeats();loop();
+applyStatic();applyVol();mkStages();render();refreshFeats();loop();
+vload();
+if(location.hash==='#volumes')openVol();
 setInterval(tickTimer,250);
 </script></body></html>"""
 
 
-# ---------------------------------------------------------------- 宗卷设置页面
-# 独立页面 /volumes：分区用途声明、权限、donor 快照、安装与启动包。
-# 所有写操作要么直接改宗卷记录（不碰设备），要么交给 n56patcher.py slots / boot / build 执行。
-
-SLOTS_PAGE = r"""<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1"><title>宗卷设置 · n56-patcher</title>
-<style>
-:root{color-scheme:light dark;--bg:#f6f6f4;--card:#fff;--ink:#1d1d1f;--mut:#6e6e73;--line:#d9d9de;--ok:#1f7a3a;--warn:#a15c00;--bad:#b3261e;--acc:#0a63c9;--mono:ui-monospace,Menlo,monospace}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1c1c1e;--card:#2c2c2e;--ink:#f5f5f7;--mut:#a1a1a6;--line:#444446;--ok:#4cd080;--warn:#ffb020;--bad:#ff6b63;--acc:#4da3ff}}
-:root[data-theme="dark"]{color-scheme:dark;--bg:#1c1c1e;--card:#2c2c2e;--ink:#f5f5f7;--mut:#a1a1a6;--line:#444446;--ok:#4cd080;--warn:#ffb020;--bad:#ff6b63;--acc:#4da3ff}
-body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 -apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif}
-main{max-width:980px;margin:0 auto;padding:18px 16px 40px}
-header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
-h1{font-size:18px;margin:0}h2{font-size:15px;margin:0 0 8px}
-a{color:var(--acc)}
-.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:14px}
-table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
-th{font-size:12px;color:var(--mut);font-weight:600}
-.mono{font-family:var(--mono)}.mut{color:var(--mut)}
-button{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:7px;padding:4px 10px;cursor:pointer}
-button.primary{background:var(--acc);border-color:var(--acc);color:#fff}
-button:disabled{opacity:.45;cursor:not-allowed}
-select,input{font:inherit;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:7px;padding:3px 6px}
-.badge{display:inline-block;font-size:12px;padding:1px 7px;border-radius:999px;border:1px solid var(--line)}
-.ok{color:var(--ok)}.warn{color:var(--warn)}.bad{color:var(--bad)}
-.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-#plan{white-space:pre-wrap;font:12px/1.5 var(--mono);background:var(--bg);border-radius:8px;padding:10px;max-height:260px;overflow:auto;display:none}
-#log{white-space:pre-wrap;font:12px/1.5 var(--mono);background:#0d0d0d;color:#e6e6e6;border-radius:8px;padding:10px;height:240px;overflow:auto}
-.hint{font-size:12px;color:var(--mut)}
-@media (max-width:640px){th:nth-child(4),td:nth-child(4){display:none}}
-</style></head><body><main>
-<header><div><h1 id="title"></h1><div class="hint" id="sub"></div></div>
- <div class="row"><a href="/" id="back"></a>
- <select id="lang" aria-label="language"></select></div></header>
-
-<div class="card"><h2 id="tDevice"></h2>
- <div class="row"><span class="mono" id="deviceText"></span><button id="btnRebind"></button>
- <span id="donorBadge" class="badge"></span></div>
- <div class="hint" id="deviceHint"></div></div>
-
-<div class="card"><h2 id="tSlices"></h2>
- <table><thead><tr><th id="cSlice"></th><th id="cPurpose"></th><th id="cContent"></th><th id="cPerm"></th><th id="cAction"></th></tr></thead>
- <tbody id="slices"></tbody></table>
- <div class="row" style="margin-top:10px"><input id="newSlice" size="4" class="mono" placeholder="s4">
-  <select id="newPurpose"></select><button id="btnAssign" class="primary"></button>
-  <span class="hint" id="assignMsg"></span></div>
- <div class="hint" id="tHint"></div></div>
-
-<div class="card"><h2 id="tVersions"></h2>
- <table><thead><tr><th id="vVersion"></th><th id="vStatus"></th><th id="vSlices"></th><th id="vAction"></th></tr></thead>
- <tbody id="versions"></tbody></table>
- <pre id="plan"></pre></div>
-
-<div class="card"><h2 id="tIdent"></h2>
- <div class="row"><button id="btnIdentify"></button><span class="hint" id="identHint"></span></div>
- <div class="hint" id="pairs"></div></div>
-
-<div class="card"><h2 id="tDonor"></h2>
- <div class="row"><button id="btnVerify"></button><button id="btnSnapshot"></button></div>
- <div class="hint" id="donorHint"></div></div>
-
-<div class="card"><h2 id="tLog"></h2><div id="log"></div>
- <div class="row" style="margin-top:8px"><button id="btnStop"></button><span class="hint" id="runMsg"></span></div></div>
-</main>
-<script>
-const T={
-"zh-CN":{title:"宗卷设置",sub:"分区先声明用途再建立；s3 基带永不格式化；s1、s2 只能格式化后另作他用",back:"← 返回主界面",
- tDevice:"设备",rebind:"改绑",deviceUnbound:"未绑定（连接设备后自动绑定）",rebindConfirm:"改绑会把宗卷记录切换到当前连接的设备，原快照保留。确认？",keepData:"保留 Data 原数据",keepExp:"实验性",keepHint:"实验性：不清空 Data 卷，依赖 iOS 13 对原有 keybag 的兼容，未在设备上验证。",confirmKeep:"安装 iOS {v}（保留 Data 原数据，实验性）？Sys 仍会被清空。",donorOk:"donor 快照可用",donorNo:"donor 快照不可用",
- deviceHint:"设备 ID 是 DFU 阶段读取的 ECID，自动绑定，不再手动填写。快照按它分目录保存在 state/donors/。",
- tSlices:"分区与用途",cSlice:"分区",cPurpose:"用途",cContent:"实际内容",cPerm:"权限",cAction:"操作",
- format:"格式化",clear:"清除用途",delete:"删除",assign:"设定",confirmDelete:"确认删除 {s}？号码将释放，不再复用。",confirmPair:"{s} 属于已装版本：将同时删除该版本的 Sys 与 Data，号码释放且不再复用。继续？",
- tHint:"用途是你的声明；实际内容是分区上物理存在的东西。覆盖原机 12 System 前必须先完成 donor 快照。14 未提交：可声明并建空分区，但不能安装。",
- tVersions:"版本",vVersion:"版本",vStatus:"状态",vSlices:"分区",vAction:"操作",
- plan:"计划",install:"安装",boot:"启动此系统",rebuild:"重建启动包",
- statusNone:"未装",statusOk:"已装",statusStale:"启动包过期",statusBlocked:"不可安装",
- tIdent:"分区识别",identify:"识别分区（设备）",identHint:"需要设备进入 SSH ramdisk（sudo）。System 看 SystemVersion，Data 看安装时写入的标记。",tDonor:"donor 快照",verify:"校验快照",snapshot:"从设备生成快照",donorDeviceHint:"快照需要设备进入 SSH ramdisk（需要 sudo）。",
- tLog:"输出",stop:"停止",running:"运行中…",needSudo:"需要 sudo：请在终端运行，见日志。",
- wrongSlice:"分区号格式应为 s4 这样",none:"（清除）",noDevice:"先设置设备ID",
- confirmFormat:"确认清空 {s} 的全部内容？此操作不可撤销。",confirmInstall:"确认安装 iOS {v}？将清空对应分区。",
- confirmBoot:"启动会重新发送启动链，设备需进入 DFU。继续？",adopt:"认领",confirmAdopt:"认领 iOS {v}：会检查 Sys 版本，并在 Data 卷写入版本标记。继续？",planBlocked:"阻塞：",ready:"可执行",installed:"已记录为已装",notCommitted:"未提交，仅可建空分区"},
-"en":{title:"Volume settings",sub:"Declare each partition's purpose first; s3 baseband is never formatted; s1 and s2 can only be formatted and repurposed",back:"← Back",
- tDevice:"Device",rebind:"Rebind",deviceUnbound:"not bound (bound automatically when the device connects)",rebindConfirm:"Rebinding switches the volume record to the connected device. The existing snapshot is kept. Continue?",keepData:"Keep Data contents",keepExp:"experimental",keepHint:"Experimental: Data is not erased. Depends on iOS 13 accepting the original keybag; not verified on a device.",confirmKeep:"Install iOS {v} keeping Data contents (experimental)? Sys is still erased.",donorOk:"donor snapshot ready",donorNo:"donor snapshot not ready",
- deviceHint:"The device ID is the ECID read in DFU and bound automatically. Snapshots are stored per ID under state/donors/.",
- tSlices:"Partitions and purposes",cSlice:"Slice",cPurpose:"Purpose",cContent:"Actual content",cPerm:"Permissions",cAction:"Actions",
- format:"Format",clear:"Clear purpose",delete:"Delete",assign:"Set",confirmDelete:"Delete {s}? Its number is released and never reused.",confirmPair:"{s} belongs to an installed version: both its Sys and Data will be deleted; numbers are released and never reused. Continue?",
- tHint:"Purpose is your declaration; content is what is physically on the partition. Overwriting the original 12 System needs a donor snapshot first. 14 is not committed: you may declare it for an empty volume, but it cannot be installed.",
- tVersions:"Versions",vVersion:"Version",vStatus:"Status",vSlices:"Slices",vAction:"Actions",
- plan:"Plan",install:"Install",boot:"Boot this system",rebuild:"Rebuild boot pack",
- statusNone:"not installed",statusOk:"installed",statusStale:"boot pack stale",statusBlocked:"not installable",
- tIdent:"Identify partitions",identify:"Identify (device)",identHint:"Needs the device in SSH ramdisk (sudo). System is read from SystemVersion; Data from the marker written at install.",tDonor:"donor snapshot",verify:"Verify snapshot",snapshot:"Snapshot from device",donorDeviceHint:"Snapshotting needs the device in SSH ramdisk (sudo).",
- tLog:"Output",stop:"Stop",running:"running…",needSudo:"Needs sudo: run it in a terminal (see log).",
- wrongSlice:"Slice must look like s4",none:"(clear)",noDevice:"Set device ID first",
- confirmFormat:"Erase all content of {s}? This cannot be undone.",confirmInstall:"Install iOS {v}? The matching partitions will be erased.",
- confirmBoot:"Boot re-sends the boot chain; the device must be in DFU. Continue?",adopt:"Adopt",confirmAdopt:"Adopt iOS {v}: checks the Sys version and writes a version marker on Data. Continue?",planBlocked:"Blocked: ",ready:"ready",installed:"recorded as installed",notCommitted:"not committed; empty volume only"},
-"zh-TW":{title:"宗卷設定",sub:"分區先宣告用途再建立；s3 基頻永不格式化；s1、s2 只能格式化後另作他用",back:"← 返回主介面",
- tDevice:"裝置",rebind:"改綁",deviceUnbound:"未綁定（連接裝置後自動綁定）",rebindConfirm:"改綁會把宗卷記錄切換到目前連接的裝置，原快照保留。確認？",keepData:"保留 Data 原資料",keepExp:"實驗性",keepHint:"實驗性：不清空 Data 卷，依賴 iOS 13 對原有 keybag 的相容性，未在裝置上驗證。",confirmKeep:"安裝 iOS {v}（保留 Data 原資料，實驗性）？Sys 仍會被清空。",donorOk:"donor 快照可用",donorNo:"donor 快照不可用",
- deviceHint:"裝置 ID 是 DFU 階段讀取的 ECID，自動綁定。快照依它分目錄存放在 state/donors/。",
- tSlices:"分區與用途",cSlice:"分區",cPurpose:"用途",cContent:"實際內容",cPerm:"權限",cAction:"操作",
- format:"格式化",clear:"清除用途",delete:"刪除",assign:"設定",confirmDelete:"確認刪除 {s}？號碼將釋放，不再復用。",confirmPair:"{s} 屬於已裝版本：將同時刪除該版本的 Sys 與 Data，號碼釋放且不再復用。繼續？",
- tHint:"用途是你的宣告；實際內容是分區上實際存在的東西。覆寫原機 12 System 前必須先完成 donor 快照。14 未提交：可宣告並建空分區，但不能安裝。",
- tVersions:"版本",vVersion:"版本",vStatus:"狀態",vSlices:"分區",vAction:"操作",
- plan:"計畫",install:"安裝",boot:"啟動此系統",rebuild:"重建啟動包",
- statusNone:"未裝",statusOk:"已裝",statusStale:"啟動包過期",statusBlocked:"不可安裝",
- tIdent:"分區識別",identify:"識別分區（裝置）",identHint:"需要裝置進入 SSH ramdisk（sudo）。System 看 SystemVersion，Data 看安裝時寫入的標記。",tDonor:"donor 快照",verify:"校驗快照",snapshot:"從裝置生成快照",donorDeviceHint:"快照需要裝置進入 SSH ramdisk（需要 sudo）。",
- tLog:"輸出",stop:"停止",running:"執行中…",needSudo:"需要 sudo：請在終端執行，見日誌。",
- wrongSlice:"分區號格式應為 s4",none:"（清除）",noDevice:"先設定裝置ID",
- confirmFormat:"確認清空 {s} 的全部內容？此操作無法復原。",confirmInstall:"確認安裝 iOS {v}？對應分區將被清空。",
- confirmBoot:"啟動會重新發送啟動鏈，裝置需進入 DFU。繼續？",adopt:"認領",confirmAdopt:"認領 iOS {v}：會檢查 Sys 版本，並在 Data 卷寫入版本標記。繼續？",planBlocked:"阻塞：",ready:"可執行",installed:"已記錄為已裝",notCommitted:"未提交，僅可建空分區"},
-"ja":{title:"ボリューム設定",sub:"パーティションは用途を宣言してから作成します。s3 ベースバンドは決してフォーマットしません。s1・s2 はフォーマットして別用途にのみ使えます",back:"← 戻る",
- tDevice:"デバイス",rebind:"付け替え",deviceUnbound:"未バインド（接続時に自動でバインド）",rebindConfirm:"付け替えると宗卷記録が接続中のデバイスに切り替わります。既存のスナップショットは残ります。続けますか？",keepData:"Data の内容を保持",keepExp:"実験的",keepHint:"実験的：Data を消去しません。元の keybag を iOS 13 が受け入れることに依存し、デバイスでは未検証です。",confirmKeep:"Data の内容を保持して iOS {v} をインストール（実験的）？Sys は引き続き消去されます。",donorOk:"donor スナップショット利用可",donorNo:"donor スナップショット未準備",
- deviceHint:"デバイスIDは DFU で読み取った ECID を自動でバインドします。スナップショットは state/donors/ に保存されます。",
- tSlices:"パーティションと用途",cSlice:"パーティション",cPurpose:"用途",cContent:"実際の内容",cPerm:"権限",cAction:"操作",
- format:"フォーマット",clear:"用途をクリア",delete:"削除",assign:"設定",confirmDelete:"{s} を削除しますか？番号は解放され、再利用されません。",confirmPair:"{s} はインストール済みバージョンに属します。その Sys と Data を両方削除します。番号は解放され再利用されません。続けますか？",
- tHint:"用途はあなたの宣言、実際の内容はパーティション上の実体です。元の 12 System を上書きするには先に donor スナップショットが必要です。14 は未提出：空のボリュームとして宣言できますが、インストールはできません。",
- tVersions:"バージョン",vVersion:"バージョン",vStatus:"状態",vSlices:"パーティション",vAction:"操作",
- plan:"計画",install:"インストール",boot:"このシステムを起動",rebuild:"ブートパックを再構築",
- statusNone:"未インストール",statusOk:"インストール済み",statusStale:"ブートパック失効",statusBlocked:"インストール不可",
- tIdent:"パーティション識別",identify:"識別（デバイス）",identHint:"デバイスを SSH ramdisk にする必要があります（sudo）。System は SystemVersion、Data はインストール時のマーカーで判定します。",tDonor:"donor スナップショット",verify:"スナップショットを検証",snapshot:"デバイスから作成",donorDeviceHint:"作成にはデバイスを SSH ramdisk にする必要があります（sudo）。",
- tLog:"出力",stop:"停止",running:"実行中…",needSudo:"sudo が必要です：ターミナルで実行してください（ログ参照）。",
- wrongSlice:"パーティション番号は s4 の形式で",none:"（クリア）",noDevice:"先にデバイスIDを設定",
- confirmFormat:"{s} の内容をすべて消去しますか？元に戻せません。",confirmInstall:"iOS {v} をインストールしますか？対応するパーティションは消去されます。",
- confirmBoot:"起動はブートチェーンを再送します。デバイスは DFU である必要があります。続けますか？",adopt:"引き取り",confirmAdopt:"iOS {v} を引き取ります：System のバージョンを確認し、Data にマーカーを書き込みます。続けますか？",planBlocked:"ブロック：",ready:"実行可能",installed:"インストール済みとして記録",notCommitted:"未提出。空のボリュームのみ"}
-};
-let lang=(()=>{try{const s=localStorage.getItem('n56-lang');if(T[s])return s}catch(e){}return navigator.language&&navigator.language.startsWith('zh')?'zh-CN':'en'})();
-const t=k=>(T[lang]&&T[lang][k])||T['zh-CN'][k]||k;
-const $=id=>document.getElementById(id);
-let S=null, runOff=0, polling=null;
-
-async function api(path, body){
-  const r=await fetch(path,{method:body?'POST':'GET',headers:{'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});
-  return r.json();
-}
-function el(tag,props,text){const e=document.createElement(tag);if(props)for(const k in props){if(k==='onclick')e.onclick=props[k];else if(k==='disabled')e.disabled=props[k];else if(k==='value')e.value=props[k];else e.setAttribute(k,props[k]);}if(text!==undefined)e.textContent=text;return e;}
-
-function applyStatic(){
-  document.documentElement.lang=lang==='zh-CN'?'zh-CN':lang;
-  $('title').textContent=t('title');$('sub').textContent=t('sub');$('back').textContent=t('back');$('back').href='/';
-  $('tDevice').textContent=t('tDevice');$('btnRebind').textContent=t('rebind');$('deviceHint').textContent=t('deviceHint');
-  $('tSlices').textContent=t('tSlices');$('cSlice').textContent=t('cSlice');$('cPurpose').textContent=t('cPurpose');
-  $('cContent').textContent=t('cContent');$('cPerm').textContent=t('cPerm');$('cAction').textContent=t('cAction');
-  $('btnAssign').textContent=t('assign');$('tHint').textContent=t('tHint');$('tVersions').textContent=t('tVersions');
-  $('vVersion').textContent=t('vVersion');$('vStatus').textContent=t('vStatus');$('vSlices').textContent=t('vSlices');$('vAction').textContent=t('vAction');
-  $('tDonor').textContent=t('tDonor');$('btnVerify').textContent=t('verify');$('btnSnapshot').textContent=t('snapshot');
-  $('tIdent').textContent=t('tIdent');$('btnIdentify').textContent=t('identify');$('identHint').textContent=t('identHint');
-  $('donorHint').textContent=t('donorDeviceHint');$('tLog').textContent=t('tLog');$('btnStop').textContent=t('stop');
-  const sel=$('lang');sel.innerHTML='';[["zh-CN","简体中文"],["en","English"],["zh-TW","繁體中文"],["ja","日本語"]].forEach(([v,l])=>sel.appendChild(el('option',{value:v},l)));
-  sel.value=lang;
-}
-
-function render(){
-  if(!S) return;
-  $('deviceText').textContent=S.device_id||t('deviceUnbound');
-  $('btnRebind').textContent=t('rebind');
-  const db=$('donorBadge');db.textContent=S.donor_ready?t('donorOk'):t('donorNo');db.className='badge '+(S.donor_ready?'ok':'warn');
-  // 分区表
-  const tb=$('slices');tb.innerHTML='';
-  const keys=Object.keys(S.slices).sort((a,b)=>a-b);
-  for(const k of keys){
-    const purpose=S.slices[k], content=S.content[k];
-    const rule=S.protection[k]||{format:false,delete:false,why:''};
-    const tr=el('tr');
-    tr.appendChild(el('td',{class:'mono'},'s'+k));
-    const sel=el('select',{'aria-label':'purpose s'+k});
-    sel.appendChild(el('option',{value:''},t('none')));
-    for(const p of S.purposes){const o=el('option',{value:p.value},p.value+(p.installable?'':' ('+t('notCommitted')+')'));if(p.value===purpose)o.selected=true;sel.appendChild(o);}
-    if(k==='3')sel.disabled=true;
-    sel.onchange=()=>assign('s'+k, sel.value||null);
-    const td1=el('td');td1.appendChild(sel);tr.appendChild(td1);
-    const idn=(S.identified||{})[k];
-    let contentText=content||'—';
-    if(idn&&!idn.skipped&&idn.kind){contentText+='  ·  '+idn.kind+(idn.build?' '+idn.build:'')+(idn.marker?' [marker '+idn.marker+']':'');}
-    tr.appendChild(el('td',{class:'mono'},contentText));
-    const perm=el('td',{class:'hint'},(rule.format?'✓ '+t('format'):'✗ '+t('format'))+'  ·  '+t('delete'));
-    tr.appendChild(perm);
-    const act=el('td');
-    const blockedFormat = !rule.format || (content==='12 Sys' && !S.donor_ready);
-    act.appendChild(el('button',{disabled:blockedFormat,title:rule.why,onclick:()=>formatSlice(k)},t('format')));
-    act.appendChild(document.createTextNode(' '));
-    act.appendChild(el('button',{disabled:k==='1'||k==='2'||k==='3',onclick:()=>assign('s'+k,null)},t('clear')));
-    act.appendChild(document.createTextNode(' '));
-    act.appendChild(el('button',{disabled:!rule.delete,title:rule.why,onclick:()=>deleteSlice(k)},t('delete')));
-    tr.appendChild(act);
-    tb.appendChild(tr);
-  }
-  $('pairs').textContent=Object.entries(S.pairs||{}).map(([v,p])=>'iOS '+v+': '+p.note).join('\n');
-  // 新增分区用途的下拉
-  const np=$('newPurpose');np.innerHTML='';
-  for(const p of S.purposes){np.appendChild(el('option',{value:p.value},p.value+(p.installable?'':' ('+t('notCommitted')+')')));}
-  // 版本
-  const vb=$('versions');vb.innerHTML='';
-  for(const v of Object.keys(S.versions)){
-    const info=S.versions[v];
-    const rec=S.installed[v];
-    const tr=el('tr');
-    tr.appendChild(el('td',{class:'mono'},'iOS '+v));
-    let status=rec?(S.boot[v]&&S.boot[v].stale?t('statusStale'):t('statusOk')):(info.implemented?t('statusNone'):t('statusBlocked'));
-    const pair=(S.pairs||{})[v];
-    if(pair&&pair.status!=='ok'&&rec){status+=' · '+(pair.status==='unknown'?'?':'!')+' '+pair.note;}
-    tr.appendChild(el('td',{class:rec?(S.boot[v]&&S.boot[v].stale?'warn':'ok'):'mut'},status+(info.implemented?'':' · '+(info.reason||''))));
-    const sl=rec?('s'+rec.system+' / s'+rec.data):'—';
-    tr.appendChild(el('td',{class:'mono'},sl));
-    const act=el('td');
-    act.appendChild(el('button',{onclick:()=>plan(v)},t('plan')));act.appendChild(document.createTextNode(' '));
-    act.appendChild(el('button',{disabled:!info.implemented||!!rec,onclick:()=>installVersion(v)},t('install')));act.appendChild(document.createTextNode(' '));
-    const keepBox=el('input',{type:'checkbox',id:'keep-'+v,title:t('keepHint')});
-    const keepLab=el('label',{class:'hint',title:t('keepHint')});keepLab.appendChild(keepBox);keepLab.appendChild(document.createTextNode(' '+t('keepData')+' ('+t('keepExp')+')'));
-    act.appendChild(keepLab);act.appendChild(document.createTextNode(' '));
-    act.appendChild(el('button',{disabled:!rec,onclick:()=>runAction({action:'boot',version:v},t('confirmBoot'))},t('boot')));act.appendChild(document.createTextNode(' '));
-    act.appendChild(el('button',{disabled:!rec,onclick:()=>runAction({action:'rebuild',version:v})},t('rebuild')));
-    if(!rec){act.appendChild(document.createTextNode(' '));act.appendChild(el('button',{disabled:!Object.values(S.slices).includes(v+' Sys'),onclick:()=>runAction({action:'adopt',version:v},t('confirmAdopt').replace('{v}',v))},t('adopt')));}
-    tr.appendChild(act);vb.appendChild(tr);
-  }
-  $('lang').value=lang;
-}
-
-async function load(){ S=await api('/api/slots'); render(); }
-
-async function assign(slice, value){
-  const r=await api('/api/slots/assign',{slice,purpose:value});
-  $('assignMsg').textContent=r.ok?'':(r.error||'');
-  if(r.ok) load();
-}
-async function formatSlice(k){
-  if(!confirm(t('confirmFormat').replace('{s}','s'+k))) return;
-  runAction({action:'format',slice:'s'+k});
-}
-async function installVersion(v){
-  const keep=!!(document.getElementById('keep-'+v)||{}).checked;
-  if(!confirm((keep?t('confirmKeep'):t('confirmInstall')).replace('{v}',v))) return;
-  runAction({action:'install',version:v,keep});
-}
-async function plan(v){
-  const r=await api('/api/slots/plan',{version:v});
-  const p=$('plan');p.style.display='block';
-  if(r.error){p.textContent=r.error;return;}
-  const lines=[t('plan')+' · iOS '+v+' · '+(r.status==='ready'?t('ready'):r.status)];
-  if(r.blocked)lines.push(t('planBlocked')+r.blocked);
-  if(r.note)lines.push(r.note);
-  if(r.capacity_note)lines.push(r.capacity_note);
-  for(const s of (r.steps||[])){lines.push('  '+s.op+(s.slice!==undefined?' s'+s.slice:'')+(s.purpose?'  ('+s.purpose+')':'')+(s.from?'  from '+s.from:''));}
-  p.textContent=lines.join('\n');
-}
-async function deleteSlice(k){
-  const rec=Object.values(S.installed||{}).some(r=>r.system===Number(k)||r.data===Number(k));
-  if(!confirm(rec?t('confirmPair').replace('{s}','s'+k):t('confirmDelete').replace('{s}','s'+k))) return;
-  runAction({action:'delete',slice:'s'+k,pair:rec});
-}
-
-async function runAction(body, confirmText){
-  if(confirmText && !confirm(confirmText)) return;
-  const r=await api('/api/slots/run',body);
-  if(!r.ok){$('runMsg').textContent=r.reason==='need-sudo'?t('needSudo'):(r.reason||'');}
-  else{$('runMsg').textContent=t('running');}
-  startPoll();
-}
-async function startPoll(){
-  if(polling) return;
-  polling=setInterval(async()=>{
-    const r=await api('/api/log?off='+runOff);
-    if(r.lines&&r.lines.length){const log=$('log');log.textContent+=r.lines.join('');log.scrollTop=log.scrollHeight;}
-    runOff=r.off;
-    if(!r.running){clearInterval(polling);polling=null;$('runMsg').textContent='';load();}
-  },800);
-}
-
-$('btnRebind').onclick=()=>{if(confirm(t('rebindConfirm')))runAction({action:'rebind'});};
-$('btnAssign').onclick=()=>{const s=$('newSlice').value.trim();if(!/^s\d+$/.test(s)){$('assignMsg').textContent=t('wrongSlice');return;}assign(s,$('newPurpose').value);};
-$('btnVerify').onclick=async()=>{const r=await api('/api/slots/run',{action:'verify'});if(r.ok)startPoll();};
-$('btnSnapshot').onclick=()=>runAction({action:'snapshot'});
-$('btnStop').onclick=()=>api('/api/stop',{});
-$('btnIdentify').onclick=()=>runAction({action:'identify'});
-$('lang').onchange=e=>{lang=e.target.value;try{localStorage.setItem('n56-lang',lang)}catch(_){ }applyStatic();render();};
-applyStatic();load();
-</script></body></html>"""
+# ---------------------------------------------------------------- 宗卷设置（主页面里的弹窗）
+# 分区用途声明、权限、donor 快照、安装与启动包。所有写操作要么直接改宗卷记录（不碰设备），
+# 要么交给 n56patcher.py slots / boot / build 执行，输出进主控制台。
 
 
-def slots_state_payload():
-    """宗卷页面的状态：只读记录，不访问设备。"""
+
+def target_version(target):
+    from core import slots
+    return next((v for v, t in slots.VERSION_TARGETS.items() if t == target), None)
+
+
+def volume_proposal(state, target):
+    """按目标给出宗卷默认值（只在本次已识别设备分区后调用）。
+
+    宗卷记录里已有该版本的 Sys/Data 优先；其次是设备上识别到的同版本卷（System 按系统版本，
+    Data 按安装标记或卷名）；都没有就在设备与记录里最大的分区号之后新建。
+    Data 保护模式：记录里选过的优先，否则用目标默认值。
+    """
+    from core import slots
+    from core.context import load_target
+    version = target_version(target)
+    if version is None:
+        return None
+    identified = {int(k): v for k, v in state.get("identified", {}).items()}
+    sys_value, data_value = slots.purpose(version, "Sys"), slots.purpose(version, "Data")
+    system = (slots.slices_of(state, sys_value) or [None])[0]
+    data = (slots.slices_of(state, data_value) or [None])[0]
+    if system is None:
+        system = next((k for k, v in sorted(identified.items()) if k not in (2, 3)
+                       and v.get("kind") == "System" and v.get("version") == version), None)
+    if data is None:
+        data = next((k for k, v in sorted(identified.items()) if k not in (2, 3)
+                     and v.get("kind") == "Data" and v.get("marker") == version), None)
+    if data is None:
+        data = next((k for k, v in sorted(identified.items()) if v.get("name") == f"Data{version}"), None)
+    taken = set(identified) | {int(k) for k in state["slices"]} | {int(k) for k in state.get("content", {})}
+    taken |= set(state.get("released", [])) | {3}
+    following = max(taken) + 1
+    new = []
+    if system is None:
+        system = following
+        following += 1
+        new.append(system)
+    if data is None:
+        data = following
+        new.append(data)
+    default_dp = load_target(target).get("data_protection", "encrypted")
+    return {"version": version, "target": target, "system": system, "data": data, "new": new,
+            "dp": slots.data_protection_of(state, version, default_dp), "dp_default": default_dp,
+            "dp_modes": load_target(target).get("data_protection_modes", ["encrypted"])}
+
+
+def volume_confirm(body):
+    """确认宗卷设置：把 Sys/Data 用途声明到所选分区、记下 Data 保护模式，并解锁写盘阶段。"""
+    from core import slots
+    from core.slots_cli import STATE_PATH
+    target = body.get("target", "")
+    version = target_version(target)
+    try:
+        if not VOL_SESSION["identified"]:
+            raise slots.SlotError("先识别设备分区")
+        if version is None:
+            raise slots.SlotError(f"{target} 不支持宗卷安装")
+        system, data = int(body["system"]), int(body["data"])
+        if system == data:
+            raise slots.SlotError("System 与 Data 不能是同一个分区")
+        if 3 in (system, data) or 2 in (system, data):
+            raise slots.SlotError("s2（原机 Data）与 s3（基带）不能用作安装目标")
+        dp = body.get("dp") or ""
+
+        def apply(state):
+            for value, index in ((slots.purpose(version, "Sys"), system), (slots.purpose(version, "Data"), data)):
+                for other in slots.slices_of(state, value):
+                    if other != index:
+                        state = slots.assign(state, other, None)
+                if state["slices"].get(str(index)) != value:
+                    state = slots.assign(state, index, value)
+            return slots.set_data_protection(state, version, dp)
+        slots.mutate(STATE_PATH, apply)
+    except (slots.SlotError, KeyError, ValueError) as exc:
+        return {"ok": False, "error": str(exc)}
+    VOL_SESSION["volumes"][target] = {"version": version, "system": system, "data": data, "dp": dp}
+    RUNNER.put(f"[*] 宗卷设置：{target} → System s{system}、Data s{data}，Data {dp}\n")
+    return {"ok": True}
+
+
+def slots_state_payload(target=None):
+    """宗卷弹窗的状态：只读记录，不访问设备。未识别时不给建议，界面也不显示记录里的默认值。"""
     from core import slots
     from core.slots_cli import STATE_PATH, donor_ready, _donor_dir
     state = slots.load_state(STATE_PATH)
@@ -1383,6 +1679,12 @@ def slots_state_payload():
         "released": state["released"],
         "versions": {v: {"implemented": info["implemented"], "reason": info.get("reason", "")}
                      for v, info in slots.VERSIONS.items()},
+        "session": {
+            "identified": VOL_SESSION["identified"],
+            "config": VOL_SESSION["volumes"].get(target),
+            "proposal": volume_proposal(state, target) if VOL_SESSION["identified"] and target else None,
+            "supported": target_version(target) is not None if target else False,
+        },
     }
 
 
@@ -1412,34 +1714,39 @@ def slots_plan(body):
         return {"error": str(exc)}
 
 
-SLOT_RUN_SUDO = {"snapshot", "format", "install", "delete", "identify", "adopt", "rebind"}
+# identify 只读设备、只写本机记录，不需要 root
+SLOT_RUN_SUDO = {"snapshot", "format", "install", "delete", "adopt", "rebind"}
 
 
 def slots_run_args(body):
+    from core import slots
     action = body.get("action")
     py = sys.executable
     cli = os.path.join(REPO, "n56patcher.py")
+    base = [py, cli, "slots"]
+    # 设备操作走当前目标的 ramdisk（端口随目标）；安装、启动、重建按版本自带目标
+    if body.get("target") in slots.VERSION_TARGETS.values():
+        base += ["--target", body["target"]]
     if action == "snapshot":
-        return [py, cli, "slots", "snapshot"]
+        return base + ["snapshot"]
     if action == "verify":
-        return [py, cli, "slots", "verify"]
+        return base + ["verify"]
     if action == "format":
-        return [py, cli, "slots", "format", body.get("slice", "")]
+        return base + ["format", body.get("slice", "")]
     if action == "install":
-        return [py, cli, "slots", "install", body.get("version", "")] + (["--keep-data"] if body.get("keep") else [])
+        return base + ["install", body.get("version", "")] + (["--keep-data"] if body.get("keep") else [])
     if action == "rebind":
-        return [py, cli, "slots", "rebind-device"]
+        return base + ["rebind-device"]
     if action == "identify":
-        return [py, cli, "slots", "identify"]
+        return base + ["identify"]
     if action == "adopt":
-        return [py, cli, "slots", "adopt", body.get("version", "")]
+        return base + ["adopt", body.get("version", "")]
     if action == "delete":
-        tail = [py, cli, "slots", "delete", body.get("slice", "")]
-        return tail + (["--pair"] if body.get("pair") else [])
+        return base + ["delete", body.get("slice", "")] + (["--pair"] if body.get("pair") else [])
     if action == "boot":
-        return [py, cli, "slots", "boot", body.get("version", "")]
+        return base + ["boot", body.get("version", "")]
     if action == "rebuild":
-        return [py, cli, "slots", "rebuild", body.get("version", "")]
+        return base + ["rebuild", body.get("version", "")]
     return None
 
 
@@ -1475,9 +1782,14 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(200, {"lines": lines, "off": total, "started": started,
                                     "running": RUNNER.running()})
         if u.path == "/volumes":
-            return self._send(200, SLOTS_PAGE, "text/html")
+            # 旧的独立页面：宗卷设置已并入主页面的弹窗
+            self.send_response(302)
+            self.send_header("Location", "/#volumes")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return
         if u.path == "/api/slots":
-            return self._send(200, slots_state_payload())
+            return self._send(200, slots_state_payload(parse_qs(u.query).get("target", [None])[0]))
         return self._send(404, {"error": "not found"})
 
     def do_POST(self):
@@ -1490,11 +1802,15 @@ class Handler(BaseHTTPRequestHandler):
         if u.path == "/api/run":
             n = int(self.headers.get("Content-Length", 0))
             body = json.loads(self.rfile.read(n) or b"{}")
+            config = VOL_SESSION["volumes"].get(body.get("target"))
+            if body["stage"] in VOLUME_STAGES and not body.get("dry") and not config:
+                return self._send(200, {"ok": False, "reason": "need-volumes"})
+            if config and body["stage"] in VOLUME_STAGES | {"build", "boot"}:
+                # 宗卷设置给出卷号与 Data 保护模式；build/boot 也带上，工作目录与启动包才一致
+                body = {**body, "slot": config["version"], "dp": config["dp"]}
             args = self._build_args(body)
-            if body["stage"] in SUDO_STAGES and not body.get("dry") and os.geteuid() != 0:
-                RUNNER.put(f"[!] {body['stage']} 需要 root。请用终端运行：\n    sudo "
-                           + " ".join(args) + "\n")
-                return self._send(200, {"ok": False, "reason": "need-sudo"})
+            if body["stage"] in SUDO_STAGES and not body.get("dry"):
+                return self._send(200, start_privileged(args, body, body["stage"]))
             ok = RUNNER.start(args)
             return self._send(200, {"ok": ok})
         return self._send(404, {"error": "not found"})
@@ -1509,15 +1825,22 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(200, slots_assign(body))
         if path == "/api/slots/plan":
             return self._send(200, slots_plan(body))
+        if path == "/api/slots/confirm":
+            return self._send(200, volume_confirm(body))
         if path == "/api/slots/run":
             action = body.get("action")
             tail = slots_run_args(body)
             if tail is None:
                 return self._send(400, {"ok": False, "reason": "unknown-action"})
-            if action in SLOT_RUN_SUDO and os.geteuid() != 0:
-                RUNNER.put(f"[!] {action} 需要 root。请用终端运行：\n    sudo " + " ".join(tail) + "\n")
-                return self._send(200, {"ok": False, "reason": "need-sudo"})
-            ok = RUNNER.start(tail)
+            on_exit = None
+            if action == "identify":
+                def on_exit(code):
+                    # 识别成功才解锁宗卷设置；重新识别会清掉本次已确认的宗卷（分区可能变了）
+                    VOL_SESSION["identified"] = code == 0
+                    VOL_SESSION["volumes"].clear()
+            if action in SLOT_RUN_SUDO:
+                return self._send(200, start_privileged(tail, body, action, on_exit))
+            ok = RUNNER.start(tail, on_exit=on_exit)
             return self._send(200, {"ok": ok, "reason": "" if ok else "busy"})
         return self._send(404, {"error": "not found"})
 
@@ -1536,6 +1859,8 @@ class Handler(BaseHTTPRequestHandler):
             a += ["--bootargs", b["bootargs"].strip()]
         if b.get("dp"):
             a += ["--data-protection", b["dp"]]
+        if b.get("slot"):
+            a += ["--slot", b["slot"]]
         if (b.get("n66ipsw") or "").strip():
             a += ["--n66-ipsw", b["n66ipsw"].strip()]
         if (b.get("j96ipsw") or "").strip():

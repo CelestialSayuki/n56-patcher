@@ -1,6 +1,9 @@
-"""宗卷命令：n56patcher.py slots <动作>。网页“宗卷”页面调用的也是这里的动作。
+"""宗卷命令：n56patcher.py slots [--target 目标] <动作>。网页“宗卷设置”调用的也是这里的动作。
+
+--target 决定设备操作（识别、格式化、快照…）用哪个目标的 ramdisk；安装、启动、重建按版本自动选目标。
 
 动作：
+  protect <版本> <encrypted|none>  为版本选定 Data 保护模式（安装、重建、启动都按它）
   status                    显示分区、用途、实际内容、已装与启动包状态
   options                   输出可选用途与分区权限（JSON，供页面使用）
   rebind-device             改绑：把宗卷记录改为当前连接设备的 ECID（需要设备进入 DFU / ramdisk）
@@ -30,7 +33,11 @@ REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STATE_PATH = os.environ.get("N56_SLOTS_STATE") or os.path.join(REPO, "state", "volumes.json")
 DONOR_ROOT = os.environ.get("N56_DONOR_ROOT") or os.path.join(REPO, "state", "donors")
 WORK_ROOT = os.path.join(REPO, "build", "slots")
-TARGET = "n56-ios13"
+TARGET = "n56-ios13"   # 设备操作（识别、格式化、快照…）用的目标；slots --target 可改
+
+
+def target_of(version):
+    return slots.VERSION_TARGETS[version]
 SOURCE_BUILD = "16H88"   # 原机 SystemA 的 build（与 targets/n56_ios13.py 的 source_profiles.n56 一致）
 
 
@@ -193,7 +200,7 @@ def cmd_format(args):
     slice_no = _parse_slice(args.slice)
     slots.check_format(state, slice_no, donor_ready(state))
     purpose = state["slices"].get(str(slice_no)) or ""
-    encrypted = purpose.endswith("Data") and slots_device_encrypted()
+    encrypted = purpose.endswith("Data") and slots_device_encrypted(slots.version_of(purpose))
     ctx, flow = _device_flow("format")
     try:
         left = slots_device.wipe_slice(ctx, flow.rd, slice_no, encrypted=encrypted)
@@ -204,9 +211,12 @@ def cmd_format(args):
     return 0
 
 
-def slots_device_encrypted():
+def slots_device_encrypted(version=None):
+    """该版本的 Data 是否加密：宗卷设置里选定的模式优先，否则用它对应目标的默认值。"""
     from core.context import load_target
-    return load_target(TARGET).get("data_protection") == "encrypted"
+    target = slots.VERSION_TARGETS.get(version, TARGET)
+    default = load_target(target).get("data_protection", "encrypted")
+    return slots.data_protection_of(_state(), version, default) == "encrypted"
 
 
 def cmd_adopt(args):
@@ -227,7 +237,7 @@ def cmd_adopt(args):
         if sys_info["version"] != version:
             raise slots.SlotError(f"s{sys_slice} 的版本为 {sys_info['build']}，不是 iOS {version}，拒绝认领")
         slots_device.adopt_slice(ctx, flow.rd, data_slice, "Data", version,
-                                 encrypted=slots_device_encrypted())
+                                 encrypted=slots_device_encrypted(version))
     finally:
         flow.close()
     _update(lambda s: slots.adopt_install(s, version, sys_slice, data_slice))
@@ -310,7 +320,7 @@ def _boot_parts_from_manifest(boot):
 def current_boot_sha(version):
     """按当前配置计算启动包输入哈希（与 build 写入 boot.json 的内容一致），不碰设备。"""
     import n56patcher
-    args = n56patcher.build_parser().parse_args(["build", "--slot", version, "--dry-run"])
+    args = n56patcher.build_parser().parse_args(["build", "--target", target_of(version), "--slot", version, "--dry-run"])
     ctx, selection, flow = n56patcher.make_flow(args)
     try:
         return slots.boot_inputs_sha(_boot_parts_from_manifest({
@@ -327,7 +337,7 @@ def _rebuild(version):
     import n56patcher
     from core.log import Die
     try:
-        code = n56patcher.main(["build", "--slot", version])
+        code = n56patcher.main(["build", "--target", target_of(version), "--slot", version])
     except Die as exc:
         raise slots.SlotError(f"启动包重建失败：{exc}")
     if code:
@@ -367,7 +377,7 @@ def cmd_boot(args):
         print(f"启动包过期（{decision}），重建后再启动")
         _rebuild(version)
     try:
-        code = n56patcher.main(["boot", "--slot", version])
+        code = n56patcher.main(["boot", "--target", target_of(version), "--slot", version])
     except Die as exc:
         raise slots.SlotError(f"启动失败：{exc}")
     return code or 0
@@ -383,9 +393,10 @@ def cmd_install(args):
     if plan["status"] == "blocked":
         raise slots.SlotError(plan["blocked"])
     import n56patcher
-    install_args = ["install", "--slot", args.version] + (["--keep-data"] if args.keep_data else [])
+    target = ["--target", target_of(args.version)]
+    install_args = ["install", *target, "--slot", args.version] + (["--keep-data"] if args.keep_data else [])
     try:
-        for stage in (install_args, ["build", "--slot", args.version]):
+        for stage in (install_args, ["build", *target, "--slot", args.version]):
             code = n56patcher.main(stage)
             if code:
                 return code
@@ -400,7 +411,13 @@ def cmd_install(args):
 def build_parser():
     p = argparse.ArgumentParser(prog="n56patcher.py slots", description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument("--target", choices=sorted(set(slots.VERSION_TARGETS.values())),
+                   help="设备操作（识别、格式化、快照等）使用的目标，决定 ramdisk 端口；默认 n56-ios13")
     sub = p.add_subparsers(dest="action", required=True)
+    pr = sub.add_parser("protect", help="为版本选定 Data 保护模式（安装、重建、启动都按它）")
+    pr.add_argument("version")
+    pr.add_argument("mode", choices=["encrypted", "none"])
+    pr.set_defaults(fn=cmd_protect)
     sub.add_parser("status").set_defaults(fn=cmd_status)
     sub.add_parser("options").set_defaults(fn=cmd_options)
     sub.add_parser("rebind-device").set_defaults(fn=cmd_rebind_device)
@@ -447,8 +464,19 @@ def build_parser():
     return p
 
 
+def cmd_protect(args):
+    if args.version not in slots.VERSION_TARGETS:
+        raise slots.SlotError(f"版本 {args.version} 不可安装")
+    _update(lambda s: slots.set_data_protection(s, args.version, args.mode))
+    print(f"iOS {args.version} 的 Data 保护模式：{args.mode}")
+    return 0
+
+
 def main(argv=None):
+    global TARGET
     args = build_parser().parse_args(argv)
+    if args.target:
+        TARGET = args.target
     try:
         return args.fn(args)
     except (slots.SlotError, donors.DonorError) as exc:
