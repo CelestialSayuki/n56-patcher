@@ -14,6 +14,15 @@ class RootfsSetRoles(Patch):
     note = "设置目标 System/Data role"
 
     def apply(self, ctx, art=None):
+        if not ctx.t.get("_ack_persistent_role_recovery_risk"):
+            from core import log
+            log.die(
+                "安全中止：当前实现会把 SystemB/DataB 持久标记为 APFS "
+                "System/Data。已在 N56 实机确认，这可能使 Apple 原生启动链"
+                "无法回到 SystemA，并在普通重启后循环进入 Recovery。"
+                "当前尚未实现和验证可逆的角色切换。若你已理解该后果并仍要"
+                "继续研究，请显式添加 --ack-persistent-role-recovery-risk。"
+            )
         config = ctx.t["volumes"]
         if ctx.installation:
             ctx.installation.close()

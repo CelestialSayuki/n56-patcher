@@ -57,12 +57,10 @@ ipsw/iPad_64bit_TouchID_13.7_17H35_Restore.ipsw    # J96
 
 ### 3. 运行端到端流程
 
-首次运行或刷机后，让设备进入 DFU，再运行端到端流程，或在网页界面选择“端到端”：
+首次运行或刷机后，让设备进入 DFU，再运行端到端流程：
 
 ```sh
-sudo python3 n56patcher.py all
-# 本地网页界面，写盘阶段需要 sudo：
-sudo python3 gui.py
+sudo python3 n56patcher.py all --ack-persistent-role-recovery-risk
 ```
 
 ```mermaid
@@ -71,6 +69,8 @@ flowchart LR
 ```
 
 > [!IMPORTANT]
+> - **当前角色切换不构成可安全切换的双系统。** 安装末尾会把 SystemB/DataB 持久标记为 APFS `System/Data`。已在 N56 实机确认，这可能导致 Apple 原生启动链在普通重启后循环进入 Recovery，而不是回到 iOS 12。CLI 现在默认在写角色前中止；只有显式传入 `--ack-persistent-role-recovery-risk` 才继续。网页界面没有提供该确认开关。
+> - 在完成并实机验证可逆角色切换之前，不要把“普通重启回 iOS 12”作为本项目的能力。进入 iOS 13 仍需要 DFU 半系留启动。
 > - 刷机后旧 IM4M 和旧启动包都会失效。`build` 只检查 `state/IM4M.bin` 是否存在，不判断是否过期，单独构建前要先运行 `extract-im4m`。
 > - 网页界面的每个阶段使用独立的 `build/` 目录，分步执行时 `boot` 不会复用 `build` 的结果，全新安装请用“端到端”。
 > - `--dry-run` 只打印流程，不访问设备，不写设备，也不生成构建产物。
@@ -158,7 +158,8 @@ python3 n56patcher.py build --exclude kc.audio --workdir build/no-audio
 ```sh
 python3 n56patcher.py ramdisk
 python3 n56patcher.py extract-im4m
-sudo python3 n56patcher.py install --workdir build/current
+sudo python3 n56patcher.py install --workdir build/current \
+  --ack-persistent-role-recovery-risk
 python3 n56patcher.py build --workdir build/current
 python3 n56patcher.py boot --workdir build/current
 ```
@@ -171,6 +172,7 @@ python3 n56patcher.py boot --workdir build/current
 
 ```sh
 sudo python3 n56patcher.py install \
+  --ack-persistent-role-recovery-risk \
   --n66-ipsw /path/to/iPhone_5.5_13.7_17H35_Restore.ipsw \
   --j96-ipsw /path/to/iPad_64bit_TouchID_13.7_17H35_Restore.ipsw
 ```

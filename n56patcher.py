@@ -45,11 +45,17 @@ def build_parser():
     p.add_argument("--allow-manual", action="store_true", help="执行 manual 的 patch")
     p.add_argument("--dry-run", action="store_true", help="只演练，不碰设备/不产出")
     p.add_argument("--no-identity-check", action="store_true", help="boot 时不校验设备身份")
+    p.add_argument(
+        "--ack-persistent-role-recovery-risk",
+        action="store_true",
+        help="允许把 SystemB/DataB 持久标记为 System/Data；原生重启可能循环进入 Recovery",
+    )
     return p
 
 
 def make_flow(args):
     ctx = Context(args.target, workdir=args.workdir, dry_run=args.dry_run)
+    ctx.t["_ack_persistent_role_recovery_risk"] = args.ack_persistent_role_recovery_risk
     if args.bootargs:
         ctx.t["bootargs"] = args.bootargs
     if args.data_protection:
@@ -79,9 +85,28 @@ def make_flow(args):
     return ctx, selection, flow
 
 
+def guard_persistent_role_risk(args, selection):
+    """Fail before device access when the selected install would persist roles."""
+    write_stages = {"patch-rootfs", "install", "all"}
+    selected = any(
+        patch.id == "rootfs.set_roles"
+        for patch in selection.get("rootfs", ())
+    )
+    if (args.stage in write_stages and selected
+            and not args.dry_run
+            and not args.ack_persistent_role_recovery_risk):
+        log.die(
+            "安全中止（尚未访问设备）：当前安装会把 SystemB/DataB 持久标记为 "
+            "APFS System/Data，可能导致原生 iOS 12 启动循环进入 Recovery。"
+            "当前尚未实现和验证可逆的角色切换。若你已理解该后果并仍要继续"
+            "研究，请显式添加 --ack-persistent-role-recovery-risk。"
+        )
+
+
 def main(argv=None):
     args = build_parser().parse_args(argv)
     ctx, selection, flow = make_flow(args)
+    guard_persistent_role_risk(args, selection)
 
     if args.stage == "list":
         log.log(f"目标 {ctx.t['name']}  features={ctx.t.get('features')}")

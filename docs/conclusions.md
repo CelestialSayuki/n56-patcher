@@ -2,6 +2,9 @@
 
 目标：iPhone 6 Plus（N56AP / iPhone7,1）在 iOS 12.5.8 SystemA 之外启动第二系统 iOS 13.7。项目已跑通，最终启动包同时包含硬件适配、DataB 解密和 checkra1n。
 
+> [!CAUTION]
+> 当前安装流程曾默认把 s4/s5 持久改为 APFS `System/Data` role。2026-11-15 的 N56 实机重启验收确认：这样会让 Apple 原生启动链无法正常回到 SystemA，设备在普通重启后循环进入 Recovery；设置 `auto-boot=true` 并退出 Recovery 不能修复。此行为现在由 `--ack-persistent-role-recovery-risk` 显式保护。在实现并验证可逆角色切换之前，项目不能宣称普通重启会回到 iOS 12，也不能视为可安全切换的双系统。
+
 ## 启动链与系统组成
 
 - 启动顺序：gaster → iBSS → iBEC → DeviceTree → TrustCache → KernelCache → `bootx`，全部组件用本机 IM4M 签名。

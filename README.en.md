@@ -57,12 +57,10 @@ The first time a rootfs is needed, the flow extracts the DMG to `ipsw/cache/` an
 
 ### 3. Run the end-to-end flow
 
-On first run or after a restore, put the device in DFU, then run the end-to-end flow or choose “端到端” (end to end) in the web UI:
+On first run or after a restore, put the device in DFU, then run the end-to-end flow:
 
 ```sh
-sudo python3 n56patcher.py all
-# Local web UI; stages that write to disk need sudo:
-sudo python3 gui.py
+sudo python3 n56patcher.py all --ack-persistent-role-recovery-risk
 ```
 
 ```mermaid
@@ -71,6 +69,8 @@ flowchart LR
 ```
 
 > [!IMPORTANT]
+> - **The current role change is not a safely switchable dual boot.** The final install step persistently marks SystemB/DataB with the APFS `System/Data` roles. N56 hardware testing has confirmed that this can prevent Apple's stock boot chain from returning to SystemA and cause a Recovery loop after a normal reboot. The CLI now stops before writing those roles unless `--ack-persistent-role-recovery-risk` is explicitly supplied. The web UI does not expose that acknowledgement.
+> - Until reversible role switching is implemented and hardware-tested, do not treat “normal reboot returns to iOS 12” as a supported capability. Entering iOS 13 still requires a semi-tethered DFU boot.
 > - A restore invalidates the old IM4M and old boot bundles. `build` only checks that `state/IM4M.bin` exists, not whether it is stale, so run `extract-im4m` before building on its own.
 > - Each web UI stage uses its own `build/` directory, so when you run stages separately `boot` does not reuse the output of `build`. Use “端到端” (end to end) for a fresh install.
 > - `--dry-run` only prints the flow. It does not access or write to the device and does not produce build output.
@@ -158,7 +158,8 @@ The volume layout is `disk0s1s4` SystemB and `disk0s1s5` DataB.
 ```sh
 python3 n56patcher.py ramdisk
 python3 n56patcher.py extract-im4m
-sudo python3 n56patcher.py install --workdir build/current
+sudo python3 n56patcher.py install --workdir build/current \
+  --ack-persistent-role-recovery-risk
 python3 n56patcher.py build --workdir build/current
 python3 n56patcher.py boot --workdir build/current
 ```
@@ -171,6 +172,7 @@ Overlays are generated directly from SystemA and the N66/J96 rootfs. If the IPSW
 
 ```sh
 sudo python3 n56patcher.py install \
+  --ack-persistent-role-recovery-risk \
   --n66-ipsw /path/to/iPhone_5.5_13.7_17H35_Restore.ipsw \
   --j96-ipsw /path/to/iPad_64bit_TouchID_13.7_17H35_Restore.ipsw
 ```
