@@ -71,8 +71,8 @@ def setup():
         shutil.copytree(dualra1n / "other/apfsios14", apfs14, symlinks=True)
     fetch_checkra1n()
 
-    run(sys.executable, "-m", "pip", "install", "-q", "--target", "tools/bin/pydeps",
-        "progressbar2", "typing_extensions")
+    run(sys.executable, "-m", "pip", "install", "-q", "--upgrade", "--target", "tools/bin/pydeps",
+        "-r", str(REPO / "requirements.txt"))
     print("工具已就绪：tools/SSHRD_Script/Darwin、tools/dualra1n/binaries/Darwin、tools/img4lib/img4、donors/")
 
 

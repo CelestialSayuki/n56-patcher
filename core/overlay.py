@@ -132,8 +132,11 @@ class SourceOverlay(Patch):
         before = bytes.fromhex(item.before)
         after = bytes.fromhex(item.after)
         current = ssh.read_range(dest, item.offset, len(before))
+        if current == after:
+            return
         if current != before:
-            log.die(f"{self.id} bytes-patch before 不匹配: {item.dest}+0x{item.offset:x}")
+            log.die(f"{self.id} 补丁位置内容不匹配: {item.dest}+0x{item.offset:x}；"
+                    f"当前 {current.hex()}，原始 {before.hex()}，已应用 {after.hex()}")
         ssh.write_range(dest, item.offset, after)
         if ssh.read_range(dest, item.offset, len(after)) != after:
             log.die(f"{self.id} bytes-patch 回读失败: {item.dest}+0x{item.offset:x}")

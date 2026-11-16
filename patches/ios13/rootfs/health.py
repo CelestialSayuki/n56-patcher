@@ -1,9 +1,7 @@
-import os
-
 from core import log
 from core.overlay import SourceItem, SourceOverlay
 from patches.ios13.impl.rootfs.health_derive import derive_health
-from patches.ios13.impl.rootfs.health_resources import bundle_resource_paths
+from patches.ios13.impl.rootfs.health_resources import LIBRARIES, bundle_resource_paths
 
 
 CACHE = "System/Library/Caches/com.apple.dyld/dyld_shared_cache_arm64"
@@ -32,14 +30,11 @@ class Health(SourceOverlay):
 
     def apply(self, ctx, art=None):
         n66 = ctx.mount_rootfs("n66")
+        libraries = derive_health(ctx)
         resources = bundle_resource_paths(n66)
         log.log(f"  流式部署 {len(resources)} 份 Health bundle 资源…")
         ctx.ssh.mount(ctx.t["mounts"]["system_b"], "/mnt6")
         ctx.ssh.deploy_relative_paths(n66, resources, "/mnt6")
-        libraries = derive_health(ctx)
-        count = sum(len(files) for _, _, files in os.walk(libraries))
-        if count != 50:
-            log.die(f"Health donor 应有 50 个库，当前 {count}")
-        log.log("  流式部署 50 个 Health/Phone 最终库…")
-        ctx.ssh.deploy_path(libraries, "/mnt6", uid=0, gid=0)
+        log.log(f"  流式部署 {len(LIBRARIES)} 个 Health/Phone 最终库…")
+        ctx.ssh.deploy_relative_paths(libraries, LIBRARIES, "/mnt6", uid=0, gid=0)
         super().apply(ctx, art)

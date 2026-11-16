@@ -3,7 +3,8 @@ from pathlib import Path
 
 
 HERE = Path(__file__).resolve().parent
-LIBRARIES = tuple(json.loads((HERE / "health-v7-sha256.json").read_text()))
+LIBRARIES = tuple(path.lstrip("/") for path in json.loads(
+    (HERE / "health_toolchain/library-plan.json").read_text()))
 MACHO_MAGICS = {
     b"\xcf\xfa\xed\xfe", b"\xfe\xed\xfa\xcf",
     b"\xca\xfe\xba\xbe", b"\xbe\xba\xfe\xca",

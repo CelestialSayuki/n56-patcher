@@ -316,7 +316,7 @@ class Flow:
         lzss = self.ctx.wk("kc.lzss")
         full = self.ctx.wk("kc.full.lzss")
         run([mklzss, raw, lzss])
-        run(["python3", append_wt, ref, lzss, full])
+        run([sys.executable, append_wt, ref, lzss, full])
         self.t.img4_sign_replace(ref, out, "rkrn", full)
         # roundtrip：解出的 raw 必须与输入一致
         rt = self.ctx.wk("kc.roundtrip.raw")

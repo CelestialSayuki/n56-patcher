@@ -57,5 +57,5 @@ def build_mrm(ctx):
     result = subprocess.run(["codesign", "-d", "-vvvv", "--detached", sig_path, plist_path],
                             capture_output=True, text=True)
     if result.returncode:
-        log.die("mrm 分离签名校验失败")
+        log.die(f"mrm 分离签名校验失败：\n{result.stderr.strip()}")
     return {"plist": plist_path, "sig": sig_path}

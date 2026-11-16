@@ -138,7 +138,7 @@ class FakeSSH:
             self.files[dest] = source
             self.copied += 1
 
-    def deploy_relative_paths(self, root, paths, dest):
+    def deploy_relative_paths(self, root, paths, dest, uid=None, gid=None):
         for rel in paths:
             local = os.path.join(root, rel)
             self._check(local)
