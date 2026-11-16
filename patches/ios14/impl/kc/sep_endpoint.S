@@ -1,6 +1,6 @@
 .text
 .p2align 2
-.set SERVICE_COUNT, 4
+.set SERVICE_COUNT, 5
 
 // iOS 13 SKS initialization, using the iOS 14 AKS and manager layouts.
 .globl _sks_init
@@ -227,9 +227,7 @@ _sep_thread_wakeup:
 _sep_irq_resume:
     nop
 
-// SEP 12 uses fixed log/ART/credential endpoints. Publish their descriptions
-// after the manager registers, so the native 14 logger, ART and
-// AppleCredentialManager lookups ("sep-endpoint,scrd") can attach.
+// Publish the fixed SEP 12 services required by the native 14 clients.
 .p2align 2
 .globl _sep_legacy_services
 _sep_legacy_services:
@@ -278,6 +276,10 @@ _services_4k:
     .long 0x73637264
     .byte 10, 1, 1, 1, 1
     .space 3
+    // AppleSSE: endpoint 12, one 0x1000-byte buffer per direction.
+    .long 0x73736520
+    .byte 12, 1, 1, 1, 1
+    .space 3
     // Touch ID（AppleMesaSEPDriver，"sep-endpoint,sbio"）：12/13 断言 endpoint == 8，
     // 缓冲 0x4000 / 0x4b000 字节，两个方向各允许 0..0x4b 页。仅在 touchid 功能下计入条目数。
     .long 0x7362696f
@@ -297,6 +299,9 @@ _services_16k:
     .space 3
     .long 0x73637264
     .byte 10, 1, 1, 1, 1
+    .space 3
+    .long 0x73736520
+    .byte 12, 1, 1, 1, 1
     .space 3
     .long 0x7362696f
     .byte 8, 0, 0x13, 0, 0x13

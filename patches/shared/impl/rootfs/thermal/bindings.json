@@ -1,0 +1,25 @@
+{
+  "selectors": {
+    "_n56_sel_gasGaugeBatteryTemperature": "gasGaugeBatteryTemperature",
+    "_n56_sel_findComponent": "findComponent:",
+    "_n56_sel_dieTempMaxAverage": "dieTempMaxAverage",
+    "_n56_sel_calculateControlEffort": "calculateControlEffort:",
+    "_n56_sel_currentLoadingIndex": "currentLoadingIndex",
+    "_n56_sel_sharedInstance": "sharedInstance",
+    "_n56_sel_isContextTriggered": "isContextTriggered:",
+    "_n56_sel_updateAggregateDictStats": "updateAggregateDictStats:::",
+    "_n56_sel_initBrightnessTable": "initBrightnessTable:",
+    "_n56_sel_setTHERMAL_TRAP_LOAD": "setTHERMAL_TRAP_LOAD:",
+    "_n56_sel_setTHERMAL_TRAP_SLEEP": "setTHERMAL_TRAP_SLEEP:"
+  },
+  "references": {
+    "_n56_class_ContextAwareThermalManager": [
+      "class",
+      "ContextAwareThermalManager"
+    ],
+    "_n56_ivar_aggdTM": [
+      "ivar",
+      "aggdTM"
+    ]
+  }
+}

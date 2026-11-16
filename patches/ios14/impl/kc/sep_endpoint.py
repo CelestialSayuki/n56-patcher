@@ -1,4 +1,4 @@
-"""Restore fixed SKS endpoint registration used by the N56 iOS 12 SEP."""
+"""Register the fixed SKS and service endpoints of the N56 iOS 12 SEP."""
 from pathlib import Path
 import struct
 import subprocess
@@ -80,5 +80,5 @@ def adapt(kernel, work):
                       init=hex(SKS_INIT), code=hex(cave), code_size=len(code),
                       wake="mailbox-interrupt", hooks={name: hex(address)
                                                       for address, _, name in hooks},
-                      services={"log": 1, "arts": 2, "artr": 3, "scrd": 10},
+                      services={"log": 1, "arts": 2, "artr": 3, "scrd": 10, "sse": 12},
                       service_count=hex(cave + labels["sep_service_count"]))

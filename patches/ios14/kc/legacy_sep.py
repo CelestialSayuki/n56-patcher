@@ -5,6 +5,7 @@ from patches.ios14.impl.kc.sep_rpc import adapt as rpc
 from patches.ios14.impl.kc.sep_control import adapt as control
 from patches.ios14.impl.kc.sep_endpoint import adapt as endpoint
 from patches.ios14.impl.kc.sep_credential import adapt as credential
+from patches.ios14.impl.kc.sep_sse import adapt as sse
 from patches.shared.impl.kc.sn2400.macho import Kernel
 
 
@@ -26,5 +27,8 @@ class LegacySep(Transform):
         raw = work / "kernel.endpoint.raw"
         raw.write_bytes(data)
         data, credentials = credential(Kernel(raw))
+        raw = work / "kernel.credential.raw"
+        raw.write_bytes(data)
+        data, secure_element = sse(Kernel(raw))
         return data, {"rpc": report, "control": controls, "endpoint": endpoints,
-                      "credential": credentials}
+                      "credential": credentials, "sse": secure_element}

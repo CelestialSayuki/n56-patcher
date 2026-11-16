@@ -62,6 +62,13 @@ class Ios13TrustCache(TrustCache):
         hashes.update(bytes.fromhex(value) for value in self.ctx.t.get("profile_cdhashes", ()))
         hashes.add(self._cdhash(build_installd(self.ctx)))
         hashes.add(self._cdhash(build_backupd(self.ctx)))
+        target = self.ctx.t
+        thermal_id = "rootfs.thermal_platform"
+        if thermal_id not in target.get("exclude", ()) and (
+            "core" in target.get("features", ()) or thermal_id in target.get("patches", ())
+        ):
+            from patches.ios13.impl.rootfs.thermal.build import prepare as prepare_thermal
+            hashes.add(self._cdhash(prepare_thermal(self.ctx)["daemon"]))
         if "checkra1n" in self.ctx.t.get("features", ()):
             from patches.ios13.impl.rootfs.checkra1n import prepare
             hashes.update(self._cdhash(path) for path in prepare(self.ctx)["machos"])

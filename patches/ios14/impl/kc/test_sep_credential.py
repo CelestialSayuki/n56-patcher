@@ -111,6 +111,22 @@ class CredentialBytesTest(unittest.TestCase):
         self.assertEqual(len(changed_words), 3)
 
 
+class SSEBufferTest(unittest.TestCase):
+    def test_sse_buffers_match_the_native_sep(self):
+        from patches.ios14.impl.kc import sep_sse
+        kernel = FakeKernel(base=0xfffffff006449000, size=0x1000)
+        for _, address in sep_sse.POINTS:
+            kernel.put(address, 0x52880002)
+        data, report = sep_sse.adapt(kernel)
+        self.assertEqual(report["endpoint"], 12)
+        for _, address in sep_sse.POINTS:
+            self.assertEqual(disassemble(struct.unpack_from("<I", data, kernel.offset(address))[0]),
+                             "mov w2, #0x1000")
+        kernel.put(sep_sse.POINTS[0][1], 0xd503201f)
+        with self.assertRaisesRegex(ValueError, "入口不符"):
+            sep_sse.adapt(kernel)
+
+
 class ServiceTableTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -128,7 +144,7 @@ class ServiceTableTest(unittest.TestCase):
     def tearDownClass(cls):
         cls.dir.cleanup()
 
-    def records(self, label, count=4):
+    def records(self, label, count=5):
         start = self.labels[label]
         found = []
         for index in range(count):
@@ -136,21 +152,21 @@ class ServiceTableTest(unittest.TestCase):
             found.append((raw[:4][::-1].decode(), raw[4], tuple(raw[5:9]), raw[9:]))
         return found
 
-    def test_both_tables_publish_the_credential_endpoint_last(self):
+    def test_both_tables_publish_credential_and_sse_endpoints(self):
         for label in ("services_4k", "services_16k"):
             names = [(name, endpoint) for name, endpoint, _, _ in self.records(label)]
-            self.assertEqual(names, [("log ", 1), ("artr", 3), ("arts", 2), ("scrd", 10)])
+            self.assertEqual(names, [("log ", 1), ("artr", 3), ("arts", 2), ("scrd", 10), ("sse ", 12)])
             self.assertTrue(all(pad == b"\0\0\0" for *_, pad in self.records(label)))
 
     def test_tables_are_contiguous_and_the_loop_covers_all_records(self):
-        # 4 个固定服务 + 末尾的 sbio（只有 touchid 功能才把它计入条目数）
-        self.assertEqual(self.labels["services_16k"] - self.labels["services_4k"], 5 * 12)
+        # 5 个固定服务 + 末尾的 sbio（只有 touchid 功能才把它计入条目数）
+        self.assertEqual(self.labels["services_16k"] - self.labels["services_4k"], 6 * 12)
         for label in ("services_4k", "services_16k"):
-            self.assertEqual(self.records(label, 5)[4][:2], ("sbio", 8))
+            self.assertEqual(self.records(label, 6)[5][:2], ("sbio", 8))
         md = Cs(CS_ARCH_ARM64, CS_MODE_LITTLE_ENDIAN)
         start = self.labels["sep_legacy_services"]
         code = self.text[start:self.labels["services_4k"]]
-        adds = [i for i in md.disasm(code, start) if i.mnemonic == "add" and i.op_str == "x21, x20, #0x30"]
+        adds = [i for i in md.disasm(code, start) if i.mnemonic == "add" and i.op_str == "x21, x20, #0x3c"]
         self.assertEqual(len(adds), 1)
 
     def test_loop_publishes_each_record_through_the_native_factory(self):
@@ -195,7 +211,7 @@ class ServiceTableTest(unittest.TestCase):
             cpu.reg_write(UC_ARM64_REG_LR, 0x40000000)
             cpu.emu_start(code_base + self.labels["sep_legacy_services"], resume, count=500)
             self.assertEqual([(n, e) for n, e, _, _ in published],
-                             [("log ", 1), ("artr", 3), ("arts", 2), ("scrd", 10)])
+                             [("log ", 1), ("artr", 3), ("arts", 2), ("scrd", 10), ("sse ", 12)])
             self.assertTrue(all(m == manager for *_, m in published))
             self.assertEqual(published[0][2], (0, 0, 0, log_pages))
             self.assertEqual(published[-1][2], (1, 1, 1, 1))
