@@ -28,6 +28,14 @@ LAYOUTS = {
         "__DATA_CONST": (0xfffffff0070f66a0, "__DATA_CONST"),
         "__DATA": (0xfffffff007a1eaa0, "__PRELINK_DATA"),
     },
+    "com.apple.driver.ApplePinotLCD": {
+        # The loader writes slide values into the header during startup.
+        # Use prelink data padding for it and RX padding after Chestnut.
+        "__TEXT": (0xfffffff007a1ecf0, "__PRELINK_DATA"),
+        "__TEXT_EXEC": (0xfffffff006d5b170, "__PLK_TEXT_EXEC"),
+        "__DATA_CONST": (0xfffffff0070a0280, "__DATA_CONST"),
+        "__DATA": (0xfffffff007a1ebf0, "__PRELINK_DATA"),
+    },
 }
 WIFI_APPROVED = dict(zip(wifi.OLD_HASHES, (
     "3ba18c1fe074b77ed0d46b9cc43914633b9ca4fe90ae502c9e655d5c11a1c88a",
