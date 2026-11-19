@@ -7,9 +7,10 @@ from pathlib import Path
 import struct
 import sys
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from paths import ROOT, INPUT as BASELINE
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'sn2400'))
+sys.path.insert(0, str(Path(__file__).resolve().parents[5]))
+from patches.shared.impl.paths import ROOT, INPUT as BASELINE
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'sn2400'))  # verify (iOS 13)
+sys.path.insert(0, str(ROOT / 'patches/shared/impl/kc/sn2400'))          # macho, port (shared)
 from macho import Kernel
 from port import (DONOR, check_region, instructions, kmod_plan, make_mapper,
                   patch_plist, relocate_code, resolver, sha)

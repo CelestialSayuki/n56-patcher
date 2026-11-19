@@ -14,7 +14,7 @@ class PurposeTests(unittest.TestCase):
         options = {o["value"]: o for o in slots.purpose_options()}
         self.assertTrue(options["14 Sys"]["installable"])
         self.assertTrue(options["13 Sys"]["installable"])
-        self.assertEqual(slots.VERSION_TARGETS, {"13": "n56-ios13", "14": "n56-ios14"})
+        self.assertEqual(slots.VERSION_TARGETS, {"13": "n56-ios13", "14": "n56-ios14", "15": "n56-ios15"})
         state = slots.assign(slots.default_state(), 4, "14 Sys")
         state = slots.assign(state, 5, "14 Data")
         self.assertEqual(slots.plan_install(state, "14", donor_ready=True, free_slots=10)["status"], "ready")

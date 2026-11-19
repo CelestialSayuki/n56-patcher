@@ -4,10 +4,12 @@ import hashlib
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 import zipfile
 
 HERE = Path(__file__).resolve().parent
-from paths import ROOT, WORK, OUTPUT
+sys.path.insert(0, str(HERE.parents[5]))
+from patches.shared.impl.paths import ROOT, WORK, OUTPUT
 IMAGES = ('boot_iBSS.img4', 'boot_iBEC.img4', 'boot_DT.img4',
           'boot_TC.img4', 'boot_KC.img4')
 

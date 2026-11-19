@@ -20,8 +20,8 @@ import struct, sys, os, subprocess, base64
 
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from paths import N66, INPUT
+sys.path.insert(0, str(Path(__file__).resolve().parents[5]))
+from patches.shared.impl.paths import N66, INPUT
 
 J96 = INPUT
 

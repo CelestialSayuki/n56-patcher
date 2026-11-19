@@ -2,27 +2,28 @@
 
 # n56-patcher
 
-**iPhone 6 Plus（N56AP / iPhone7,1）的 iOS 13.7 / 14.8 第二系统构建与安装工具**
+**iPhone 6 Plus（N56AP / iPhone7,1）的 iOS 13.7 / 14.8 构建与安装工具**
 
 简体中文 · [English](README.en.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md)
 
 ![Device](https://img.shields.io/badge/Device-iPhone%206%20Plus-0A84FF?style=flat-square&logo=apple&logoColor=white)
 ![iOS](https://img.shields.io/badge/iOS-13.7%20(17H35)-5E5CE6?style=flat-square)
 ![iOS](https://img.shields.io/badge/iOS-14.8%20(18H17)-5E5CE6?style=flat-square)
+![iOS](https://img.shields.io/badge/iOS-15.8.8%20(19H422)-5E5CE6?style=flat-square)
 ![Host](https://img.shields.io/badge/Host-macOS%20%2B%20Xcode-30363D?style=flat-square)
 ![Language](https://img.shields.io/badge/Python-3-3776AB?style=flat-square&logo=python&logoColor=white)
 
-[快速开始](#快速开始) · [iOS 14.8](#ios-148) · [功能](#功能) · [进阶用法](#进阶用法) · [作者](#作者) · [支持项目](#支持项目)
+[快速开始](#快速开始) · [iOS 14.8](#ios-148) · [iOS 15.8.8](#ios-1588进行中) · [功能](#功能) · [进阶用法](#进阶用法) · [作者](#作者) · [支持项目](#支持项目)
 
 </div>
 
 ---
 
-默认从干净 J96 内核重建 KC，同时生成 iBSS、iBEC、DeviceTree、TrustCache 五个启动镜像。内核、设备树与系统补丁按版本放在 `patches/ios13/`；共用算法与设备资源放在 `patches/shared/`。
+默认从干净 J96 内核重建 KC，同时生成 iBSS、iBEC、DeviceTree、TrustCache 五个启动镜像。内核、设备树与系统补丁按版本放在 `patches/ios13/`、`ios14/`、`ios15/`；共用算法与设备资源放在 `patches/shared/`。
 
 iOS 13.7 已跑通，启动包包含硬件适配、DataB 解密和 checkra1n。从零开始执行 `all` 可一次完成全部安装步骤。参见 [13.7 技术结论](docs/conclusions/13.md) 和 [源码结构](docs/patch-layout.md)。Touch ID 已接入 iOS 12 SEP 收发桥。
 
-iOS 14.8 已能进系统并越狱，硬件与系统功能均已可用，见 [iOS 14.8](#ios-148)。
+iOS 14.8 已能进系统并越狱，硬件与系统功能均已可用，见 [iOS 14.8](#ios-148)。iOS 15.8.8 已能进系统并完成激活，其余功能逐项验收中，见 [iOS 15.8.8](#ios-1588进行中)。
 
 > [!WARNING]
 > 本工具会在设备上创建卷并写入系统，操作前请自行备份。本项目与 Apple 无关，按现状提供，风险由使用者自行承担。
@@ -31,14 +32,20 @@ iOS 14.8 已能进系统并越狱，硬件与系统功能均已可用，见 [iOS
 
 ### 1. 准备环境
 
-macOS 安装完整 Xcode（需要 iPhoneOS SDK）后：
+完整安装流程需要 Xcode 的 iPhoneOS SDK；只做离线宿主构建时，Command Line Tools 即可。
+项目依赖要求 Python 3.10+，推荐创建独立环境，不修改 macOS 自带 Python：
 
 ```sh
-python3 -m pip install -r requirements.txt
-python3 tools/setup.py
+tools/bootstrap.sh
+source .venv/bin/activate
 ```
 
-`tools/setup.py` 会生成 `donors/`（checkra1n 用户态，以及 apfsios14 工具集中的 fsck、apfs.fs）并从源码构建 gaster。首次构建需设备处于 DFU，用于解密 iBSS、iBEC。
+已有源码、仅修复 Intel / ARM 工具架构时，使用 `tools/bootstrap.sh --host-only`。
+可运行 `.venv/bin/python tools/doctor.py --target n56-ios15` 检查宿主环境；
+iOS 15 的状态见 [15.8.8 结论](docs/conclusions/15.md)。
+下文的 `python3` 指激活环境后的 Python；使用 sudo 时请显式指定 `.venv/bin/python`，避免退回系统 3.9。
+
+`tools/setup.py` 会生成 `donors/`（checkra1n 用户态，以及 apfsios14 工具集中的 fsck、apfs.fs）并从源码构建 gaster；之后缺的 donor 和 IPSW 派生输入由 `n56patcher.py init` 补齐（`all` 会自动先跑）。首次构建需设备处于 DFU，用于解密 iBSS、iBEC。
 
 下载 checkra1n 时若报 `CERTIFICATE_VERIFY_FAILED`，是 python.org 版 Python 没装根证书：脚本会自动改用系统证书或 `curl`；也可运行 Python 目录下的 `Install Certificates.command`，或手动下载 0.12.4 DMG 后用 `CHECKRA1N_DMG=/path/checkra1n.dmg python3 tools/setup.py` 离线完成。
 
@@ -65,9 +72,9 @@ ipsw/iPad_64bit_TouchID_13.7_17H35_Restore.ipsw    # J96
 首次运行或刷机后，让设备进入 DFU，再运行端到端流程，或在网页界面选择“端到端”：
 
 ```sh
-sudo python3 n56patcher.py all
+sudo .venv/bin/python n56patcher.py all
 # 本地网页界面，写盘阶段需要 sudo：
-sudo python3 gui.py
+sudo .venv/bin/python gui.py
 ```
 
 ```mermaid
@@ -104,7 +111,7 @@ ipsw/iPad_64bit_TouchID_14.8_18H17_Restore.ipsw    # J96
 刷回 iOS 12.5.8 后，设备进 DFU，执行一次即可装到当前阶段（含 checkra1n、Cydia 和 USB SSH），网页界面里选目标 `n56-ios14`、阶段“端到端”效果相同：
 
 ```sh
-sudo python3 n56patcher.py all --target n56-ios14
+sudo .venv/bin/python n56patcher.py all --target n56-ios14
 ```
 
 | 已可用 |
@@ -114,6 +121,10 @@ sudo python3 n56patcher.py all --target n56-ios14
 Touch ID（功能 `touchid`）默认开启，内核已接入 iOS 12 SEP 收发桥，包含初始化、录入和匹配的协议转换，13.7 与 14.8 均已接入。指纹模块需与 SEP 原厂配对，换过模块的机器和原生 iOS 12 一样无法录入。
 
 16 GB 机型空间很紧，装之前请先看 [docs/conclusions/14.md](docs/conclusions/14.md) 的“空间”一节。现状、首次开机和技术细节都在这份文档里。
+
+## iOS 15.8.8（进行中）
+
+目标 `n56-ios15`：J96 / N66 15.8.8，装在独立的 System15 / Data15 卷上，越狱用 palera1n rootless。已上机验证进系统、加密 Data15、激活、Wi-Fi、音频、相机、蓝牙、健康、设置里的监管资料和 rootless SSH、基带；Touch ID 因本机传感器换过无法验证。构建命令、所需 IPSW 和现状见 [docs/conclusions/15.md](docs/conclusions/15.md)。
 
 ## 功能
 
@@ -182,7 +193,7 @@ python3 n56patcher.py build --exclude kc.audio --workdir build/no-audio
 </details>
 
 <details>
-<summary><b>分步安装第二系统</b></summary>
+<summary><b>分步安装</b></summary>
 
 卷布局为 `disk0s1s4` SystemB、`disk0s1s5` DataB。
 
@@ -215,7 +226,7 @@ sudo python3 n56patcher.py install \
 
 - `targets/`：共用设备配置与各系统目标。
 - `patches/shared/`：设备资源、原生材料和共用移植算法。
-- `patches/ios13/`：按 KC、DT、rootfs 分层的版本补丁、实现与 ABI 映射。
+- `patches/ios13/`、`ios14/`、`ios15/`：按 KC、DT、rootfs 分层的版本补丁、实现与 ABI 映射。
 - `core/`：依赖排序、路径解析、工具调用、ramdisk 和 APFS。
 - `tools/`：固定版本的上游 submodule、初始化和输入导入工具，见 [UPSTREAM.md](tools/UPSTREAM.md)。
 

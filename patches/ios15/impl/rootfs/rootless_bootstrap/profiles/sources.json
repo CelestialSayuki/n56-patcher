@@ -1,0 +1,133 @@
+{
+  "schema": 1,
+  "target": {
+    "version": "ios15",
+    "build": "19H422",
+    "architecture": "arm64",
+    "cfver": 1800
+  },
+  "upstream": {
+    "palera1n": {
+      "repository": "https://github.com/palera1n/palera1n",
+      "ref": "v2.4",
+      "commit": "3ba32c40dbd90b9bcff1a71b5f9ee26c3388b0ad",
+      "license": "MIT"
+    },
+    "loader": {
+      "repository": "https://github.com/palera1n/loader",
+      "commit": "9faf50968854aa47de65231e2985d60f6944d627",
+      "license": "MIT",
+      "note": "source reference, not proof of CDN loader binary provenance"
+    },
+    "website": {
+      "repository": "https://github.com/palera1n/palera.in",
+      "commit": "b7caf05c3b4d0896445ee7d51c549efa2b1b038e",
+      "config": "src/lib/loaderv2.json",
+      "license": "AGPL-3.0"
+    },
+    "jbinit": {
+      "repository": "https://github.com/palera1n/jbinit",
+      "commit": "df653b8a4cc30cdc3bcec65d4aff0ed7b598da22",
+      "license": "MIT plus per-component notices",
+      "note": "reference only; not the proven source commit of the opaque CDN binpack"
+    },
+    "procursus": {
+      "repository": "https://github.com/palera1n/Procursus",
+      "commit": "279ef374dbdb2cba85eb269fa3c31574a2823e25",
+      "license": "0BSD build recipes; payload packages each have their own licenses"
+    },
+    "sileo": {
+      "repository": "https://github.com/Sileo/Sileo",
+      "ref": "2.5",
+      "commit": "eece58a9e7c9c55220c5acadb3f8e15de78b7f81",
+      "license": "BSD-4-Clause",
+      "compiled_deb_correspondence_proven": false
+    }
+  },
+  "artifacts": {
+    "bootstrap": {
+      "filename": "bootstrap-ssh-iphoneos-arm64.tar.zst",
+      "url": "https://apt.procurs.us/bootstraps/1800/bootstrap-ssh-iphoneos-arm64.tar.zst",
+      "sha256": "6592e54a1b4ef66d6a515f5bd29cf89e8f45c8e328443554ee596329ffbaf441",
+      "pin_kind": "observed-byte-hash; official fixed loader.json references this CF1800 rootless SSH archive",
+      "prefix": "var/jb"
+    },
+    "binpack": {
+      "filename": "binpack.dmg",
+      "url": "https://cdn.nickchan.lol/palera1n/c-rewrite/deps/binpack.dmg",
+      "sha256": "36894c6b7e00fc1f26ce980d8c8b4000cbd42c630f0a4fe2deac921f3a735294",
+      "pin_kind": "byte-hash of the binpack embedded in the official palera1n v2.4 macOS arm64 release",
+      "embedded_in": "https://github.com/palera1n/palera1n/releases/download/v2.4/palera1n-macos-arm64"
+    },
+    "deb_keyring": {
+      "filename": "dhinakg-keyring_2023.04.02_all.deb",
+      "url": "https://static.palera.in/bootstraps/1800/dhinakg-keyring_2023.04.02_all.deb",
+      "sha256": "84cadf82c1287d817613b259ed4ce4f84f7fbf0c19fcda59aeef3afd47745626",
+      "pin_kind": "observed-byte-hash; immutable locally, no upstream signed digest"
+    },
+    "deb_krw": {
+      "filename": "libkrw0-tfp0_1.1.1_iphoneos-arm64.deb",
+      "url": "https://static.palera.in/bootstraps/1800/libkrw0-tfp0_1.1.1_iphoneos-arm64.deb",
+      "sha256": "e32ce8a7ab52a512ae6b8fda696d9012de790f18445c54fbc8e34456c9edfe30",
+      "pin_kind": "observed-byte-hash; immutable locally, no upstream signed digest"
+    },
+    "deb_libxo": {
+      "filename": "libxo0_1.4.0_iphoneos-arm64.deb",
+      "url": "https://apt.procurs.us/pool/main/iphoneos-arm64-rootless/1800/libxo/libxo0_1.4.0_iphoneos-arm64.deb",
+      "sha256": "eecf986b4fce0d2a08098eac992b3186cc480d94a022d856405ce30de2dcc847",
+      "pin_kind": "SHA256 in captured CF1800 Packages.xz; repository PGP authentication not performed",
+      "needed_by": "/var/jb/usr/bin/w LC_LOAD_DYLIB @rpath/libxo.0.dylib",
+      "license": "BSD-2-Clause, payload LICENSE retained"
+    },
+    "deb_sileo": {
+      "filename": "sileo.deb",
+      "url": "https://static.palera.in/rootless/sileo.deb",
+      "vendored": "patches/ios15/impl/rootfs/rootless_bootstrap/vendor/sileo.deb",
+      "sha256": "86aca3a89147e66f853958f25ef9e864923270ae4dca978d4f743a476845701d",
+      "pin_kind": "observed-byte-hash; immutable locally, no upstream signed digest"
+    },
+    "notice_sileo": {
+      "filename": "Sileo-LICENSE",
+      "url": "https://raw.githubusercontent.com/Sileo/Sileo/eece58a9e7c9c55220c5acadb3f8e15de78b7f81/LICENSE",
+      "sha256": "4f3fd304c668e9a82c5a495236272f2b66a042bce0569761c5befefedd860792",
+      "license": "BSD-4-Clause"
+    }
+  },
+  "tools": [
+    "usr/bin/ldid",
+    "bin/launchctl",
+    "usr/bin/trustcache",
+    "usr/bin/uicache",
+    "usr/bin/mksh"
+  ],
+  "reference_only": [
+    "usr/sbin/palera1nd",
+    "usr/sbin/p1ctl",
+    "usr/lib/systemhook.dylib",
+    "usr/lib/universalhooks.dylib",
+    "loader.dmg"
+  ],
+  "poststrap_debs_not_required_for_base": [
+    "dhinakg-keyring_2023.04.02_all.deb",
+    "libkrw0-tfp0_1.1.1_iphoneos-arm64.deb"
+  ],
+  "policy": {
+    "rootful": false,
+    "automatic_ssh": true,
+    "compile": false,
+    "resign_resources": "Sileo only, one-shot ad-hoc preserving entitlements and content; cached thereafter",
+    "reuse_checkra1n_0124_offsetcache": false,
+    "basic_paleinfo_required": false,
+    "basic_krw_required": false,
+    "amfi_policy": "required palera1n KPF trustcache matcher: AMFI treats everything as trusted"
+  },
+  "reference_artifacts": {
+    "bootstrap_without_manager": {
+      "filename": "bootstrap-iphoneos-arm64.tar.zst",
+      "url": "https://static.palera.in/bootstraps/1800/bootstrap-iphoneos-arm64.tar.zst",
+      "sha256": "19981c2fd7e36728683c5f4bdcbc93a064150bb48e87b212baad325cf4269230",
+      "pin_kind": "observed-byte-hash; no upstream signed release digest",
+      "prefix": "var/jb"
+    }
+  }
+}

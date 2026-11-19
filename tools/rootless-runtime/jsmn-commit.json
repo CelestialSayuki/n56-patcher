@@ -1,0 +1,101 @@
+{
+  "sha": "25647e692c7906b96ffd2b05ca54c097948e879c",
+  "node_id": "C_kwDOApqNCtoAKDI1NjQ3ZTY5MmM3OTA2Yjk2ZmZkMmIwNWNhNTRjMDk3OTQ4ZTg3OWM",
+  "commit": {
+    "author": {
+      "name": "P4t",
+      "email": "patryk@fala.ehost.pl",
+      "date": "2021-10-14T11:51:38Z"
+    },
+    "committer": {
+      "name": "GitHub",
+      "email": "noreply@github.com",
+      "date": "2021-10-14T11:51:38Z"
+    },
+    "message": "Fix position of a comment in string parsing\n\nFixes #214",
+    "tree": {
+      "sha": "eb79a9589022bb6591df854ddd73d08d49c54b7c",
+      "url": "https://api.github.com/repos/zserge/jsmn/git/trees/eb79a9589022bb6591df854ddd73d08d49c54b7c"
+    },
+    "url": "https://api.github.com/repos/zserge/jsmn/git/commits/25647e692c7906b96ffd2b05ca54c097948e879c",
+    "comment_count": 0,
+    "verification": {
+      "verified": true,
+      "reason": "valid",
+      "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsBcBAABCAAQBQJhaBnKCRBK7hj4Ov3rIwAAEQwIADfVmlNu9pkLLlCPO9kbDnrY\n2KqGybytHz+LuykabIY0GgCkKfoXuFyvEF2tq+T24txHsdYie40fiIDSd80hBFXA\nePHkXpdRIa4tIwWOCMA/JaaMYn3QrSPgAfQB73iszZKJ3NEn3NeDwp/H1/jKjp4i\nJy+B9zyEZ4Z5yugD0lWiYh1sL3lTJrn/5masOzSLGCCcMSucMsx0vAcHZpvQRQVI\ne6TMMruX42USCpq3+7qhUhmpiKwXyC8TtUZ4AGjTqk5LaF9nCYAo0lpJuvPxz2sk\nSL8SPqcZsStZuFVMnGGfDXlVU6/p1RaqBo6xt8BzcRmUofNV8vrPUPlUZsXE848=\n=05Ee\n-----END PGP SIGNATURE-----\n",
+      "payload": "tree eb79a9589022bb6591df854ddd73d08d49c54b7c\nparent 1aa2e8f80849c983466b165d53542da9b1bd1b32\nauthor P4t <patryk@fala.ehost.pl> 1634212298 +0200\ncommitter GitHub <noreply@github.com> 1634212298 +0200\n\nFix position of a comment in string parsing\n\nFixes #214",
+      "verified_at": "2024-01-16T19:59:59Z"
+    }
+  },
+  "url": "https://api.github.com/repos/zserge/jsmn/commits/25647e692c7906b96ffd2b05ca54c097948e879c",
+  "html_url": "https://github.com/zserge/jsmn/commit/25647e692c7906b96ffd2b05ca54c097948e879c",
+  "comments_url": "https://api.github.com/repos/zserge/jsmn/commits/25647e692c7906b96ffd2b05ca54c097948e879c/comments",
+  "author": {
+    "login": "pt300",
+    "id": 8194653,
+    "node_id": "MDQ6VXNlcjgxOTQ2NTM=",
+    "avatar_url": "https://avatars.githubusercontent.com/u/8194653?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/pt300",
+    "html_url": "https://github.com/pt300",
+    "followers_url": "https://api.github.com/users/pt300/followers",
+    "following_url": "https://api.github.com/users/pt300/following{/other_user}",
+    "gists_url": "https://api.github.com/users/pt300/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/pt300/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/pt300/subscriptions",
+    "organizations_url": "https://api.github.com/users/pt300/orgs",
+    "repos_url": "https://api.github.com/users/pt300/repos",
+    "events_url": "https://api.github.com/users/pt300/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/pt300/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "committer": {
+    "login": "web-flow",
+    "id": 19864447,
+    "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+    "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/web-flow",
+    "html_url": "https://github.com/web-flow",
+    "followers_url": "https://api.github.com/users/web-flow/followers",
+    "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+    "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+    "organizations_url": "https://api.github.com/users/web-flow/orgs",
+    "repos_url": "https://api.github.com/users/web-flow/repos",
+    "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/web-flow/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "parents": [
+    {
+      "sha": "1aa2e8f80849c983466b165d53542da9b1bd1b32",
+      "url": "https://api.github.com/repos/zserge/jsmn/commits/1aa2e8f80849c983466b165d53542da9b1bd1b32",
+      "html_url": "https://github.com/zserge/jsmn/commit/1aa2e8f80849c983466b165d53542da9b1bd1b32"
+    }
+  ],
+  "stats": {
+    "total": 6,
+    "additions": 3,
+    "deletions": 3
+  },
+  "files": [
+    {
+      "sha": "8ac14c1bdec9d1600ae5217550902eecce0f56e1",
+      "filename": "jsmn.h",
+      "status": "modified",
+      "additions": 3,
+      "deletions": 3,
+      "changes": 6,
+      "blob_url": "https://github.com/zserge/jsmn/blob/25647e692c7906b96ffd2b05ca54c097948e879c/jsmn.h",
+      "raw_url": "https://github.com/zserge/jsmn/raw/25647e692c7906b96ffd2b05ca54c097948e879c/jsmn.h",
+      "contents_url": "https://api.github.com/repos/zserge/jsmn/contents/jsmn.h?ref=25647e692c7906b96ffd2b05ca54c097948e879c",
+      "patch": "@@ -196,10 +196,10 @@ static int jsmn_parse_string(jsmn_parser *parser, const char *js,\n   jsmntok_t *token;\n \n   int start = parser->pos;\n-\n-  parser->pos++;\n-\n+  \n   /* Skip starting quote */\n+  parser->pos++;\n+  \n   for (; parser->pos < len && js[parser->pos] != '\\0'; parser->pos++) {\n     char c = js[parser->pos];\n "
+    }
+  ]
+}

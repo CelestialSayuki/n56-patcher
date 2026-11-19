@@ -48,7 +48,14 @@ def intern_strings(xml):
     return re.sub(rb'<string>([^<]*)</string>', replace, xml)
 
 
-def allocate(kernel, host_name, size, occupied, search_padding=False):
+def allocate(kernel, host_name, size, occupied, search_padding=False, text_tail=None):
+    """``text_tail`` (iOS 15 only) is a callable (kernel, size, claims) -> address that
+    places __PRELINK_TEXT kext headers on XNU's header chain; None keeps the
+    first-fit behaviour that iOS 13/14 use."""
+    if text_tail is not None and host_name == '__PRELINK_TEXT':
+        address = text_tail(kernel, size, kernel.claims() + occupied)
+        occupied.append((address, address + size, 'DRV2604/' + host_name))
+        return address
     host = next(s for s in kernel.segs if s['name'] == host_name)
     start, end = host['vm'], host['vm'] + host['fs']
     if host_name == '__DATA_CONST':

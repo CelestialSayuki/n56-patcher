@@ -1,0 +1,175 @@
+{
+  "profile": "J96 iOS 15.8.8 19H422 / N56 native DRV2604",
+  "confirmed": {
+    "0xfffffff007cb0d60": {
+      "to": "0xfffffff007687bb8",
+      "symbol": "__ZN11OSMetaClassC2EPKcPKS_j"
+    },
+    "0xfffffff007cb1a68": {
+      "to": "0xfffffff007688340",
+      "symbol": "__ZN11OSMetaClassD2Ev"
+    },
+    "0xfffffff007cb4a64": {
+      "to": "0xfffffff007689eb4",
+      "symbol": "__ZN8OSObjectdlEPvm"
+    },
+    "0xfffffff007cb4b54": {
+      "to": "0xfffffff007689f34",
+      "symbol": "__ZN8OSObjectnwEm"
+    },
+    "0xfffffff007cb24b4": {
+      "to": "0xfffffff007688a54",
+      "symbol": "__ZNK11OSMetaClass19instanceConstructedEv"
+    },
+    "0xfffffff007cb0ef4": {
+      "to": "0xfffffff007687d50",
+      "symbol": "__ZN15OSMetaClassBase12safeMetaCastEPKS_PK11OSMetaClass"
+    },
+    "0xfffffff007671740": {
+      "to": "0xfffffff007128ac0",
+      "symbol": "_memset"
+    },
+    "0xfffffff0076bb268": {
+      "to": "0xfffffff0077b1bd4",
+      "symbol": "_panic"
+    },
+    "0xfffffff007cfc594": {
+      "to": "0xfffffff0076d6958",
+      "symbol": "_IOLog"
+    },
+    "0xfffffff007dbdf80": {
+      "to": "0xfffffff007788794",
+      "symbol": "_PE_parse_boot_argn"
+    },
+    "0xfffffff007680650": {
+      "to": "0xfffffff0071387cc",
+      "symbol": "___stack_chk_fail"
+    },
+    "0xfffffff007cb1d5c": {
+      "to": "0xfffffff007688478",
+      "symbol": "__ZNK11OSMetaClass12getClassNameEv"
+    },
+    "0xfffffff007e805d0": {
+      "to": "0xfffffff005b2d114",
+      "name": "AppleARMPWM::AppleARMPWM()"
+    },
+    "0xfffffff007e805f4": {
+      "to": "0xfffffff005b2d134",
+      "name": "AppleARMPWM::~AppleARMPWM()"
+    },
+    "0xfffffff007e6caa0": {
+      "to": "0xfffffff005b12608",
+      "name": "AppleARMPlatformDevice::getFunction(this,name)"
+    }
+  },
+  "pwm_metaclass": "0xfffffff00798f2e0",
+  "pwm_vtable": "0xfffffff006d16d08",
+  "pwm_meta_vtable": "0xfffffff006d172d0",
+  "pwm_ctor": "0xfffffff005b2d114",
+  "pwm_dtor": "0xfffffff005b2d134",
+  "iic_metaclass": "0xfffffff00798ecd8",
+  "iic_vtable": "0xfffffff006d0bb20",
+  "delay_function": "0xfffffff007163ec4",
+  "delay_scale_ns": 1000000,
+  "clock_global_note": "Shared transplant calls this clock_global; donor slot 0xfffffff0074d26b8 is AppleARMIICDevice::gMetaClass (safeMetaCast provider), NOT gPEClockFrequencyInfo. Clock enable/disable is AppleARMFunction vtable 0x78 -> 0x80.",
+  "guards": {
+    "pwm_ctor": {
+      "address": "0xfffffff005b2d114",
+      "size": 32,
+      "sha256": "38aca078b426d22298fc1442f45d5f6529f12922e70c24acded18ca880ccbebd",
+      "owner": "com.apple.driver.AppleARMPlatform"
+    },
+    "pwm_dtor": {
+      "address": "0xfffffff005b2d134",
+      "size": 4,
+      "sha256": "dfcbf2c633fac75301e710b8e006110c2613342a0a0d8b92bbb6752f47ca0a04",
+      "owner": "com.apple.driver.AppleARMPlatform"
+    },
+    "pwm_get_meta": {
+      "address": "0xfffffff005b2d140",
+      "size": 12,
+      "sha256": "7c4682be7475531b6306577ff1b2ad22a731a4ad0b1815d0461f4b1da5901443",
+      "owner": "com.apple.driver.AppleARMPlatform"
+    },
+    "pwm_meta_ctor": {
+      "address": "0xfffffff005b2d0dc",
+      "size": 52,
+      "sha256": "6ebda990dcebb983b6b6a4e664384df7e0d6d1b9447c1bbfb2145c8b34a44ae9",
+      "owner": "com.apple.driver.AppleARMPlatform"
+    },
+    "iic_get_meta": {
+      "address": "0xfffffff005b1410c",
+      "size": 12,
+      "sha256": "fbee36806489ca168965123fcf7a7c9f15e076f0984f7d3a1ee6dd17bcea50ea",
+      "owner": "com.apple.driver.AppleARMPlatform"
+    },
+    "iic_meta_ctor": {
+      "address": "0xfffffff005b14048",
+      "size": 52,
+      "sha256": "0fcef3cd361e128aceddf30eb513896d901fffa69925ca11ffb00f69ba06bd8d",
+      "owner": "com.apple.driver.AppleARMPlatform"
+    },
+    "get_function": {
+      "address": "0xfffffff005b12608",
+      "size": 84,
+      "sha256": "d6d073427de9e8ca3748da1d9c286daf76dca6be1690e3ea50173fc5b8f6c70f",
+      "owner": "com.apple.driver.AppleARMPlatform"
+    },
+    "iic_transaction": {
+      "address": "0xfffffff005b143c8",
+      "size": 64,
+      "sha256": "9744ab3c141029e7e8eaf0d42fd3d7ccc0a64cde09037071adfaca50145e7b53",
+      "owner": "com.apple.driver.AppleARMPlatform"
+    },
+    "ioservice_ctor_stub": {
+      "address": "0xfffffff005b41c70",
+      "size": 12,
+      "sha256": "34d23e077f840629d55240726668100c58748ad16b825e3ea5c935da10ad1e20",
+      "owner": "com.apple.driver.AppleARMPlatform"
+    },
+    "ioservice_dtor_stub": {
+      "address": "0xfffffff005b41c7c",
+      "size": 12,
+      "sha256": "ddd479a2be54388cc457193b3bbca5de5b68526ff7570755a32745a97fa83e14",
+      "owner": "com.apple.driver.AppleARMPlatform"
+    },
+    "metaclass_ctor_stub": {
+      "address": "0xfffffff005b41844",
+      "size": 12,
+      "sha256": "5d88a2897b40f91d6b37e630cd30f2b1913f2504a679496de79905f595d1cfcb",
+      "owner": "com.apple.driver.AppleARMPlatform"
+    },
+    "metaclass_dtor_stub": {
+      "address": "0xfffffff005b41850",
+      "size": 12,
+      "sha256": "6d62811306e5e0d897cbbb11ba9b63ce1c802731ac6979630e4e76e6fe23ae6c",
+      "owner": "com.apple.driver.AppleARMPlatform"
+    },
+    "delay_for_interval": {
+      "address": "0xfffffff007163ec4",
+      "symbol": "_delay_for_interval",
+      "size": 84,
+      "sha256": "72742da52825e0dee4b78b28704ba856520184ff7193a90761aefea3b77a3c29",
+      "owner": "kernel"
+    },
+    "iod_delay_microseconds": {
+      "address": "0xfffffff0076d6948",
+      "symbol": "_IODelay",
+      "size": 8,
+      "sha256": "51ffd58edcb1be99499fca4d9a52722d8edac3c4ad7fe805a6b7bb7fa561e2e1",
+      "owner": "kernel"
+    },
+    "ioservice_meta_ctor": {
+      "address": "0xfffffff0076f10c0",
+      "symbol": "__ZN9IOServiceC2EPK11OSMetaClass",
+      "size": 24,
+      "sha256": "fabf66879965129ace739a4a7a80777ab497c1feab861a1d525d5f3c84f51a20",
+      "owner": "kernel"
+    }
+  },
+  "donor_code": {
+    "address": "0xfffffff0086ee8f0",
+    "size": 4984,
+    "sha256": "fee2ce1dd8a8f3d62cf210709ac3bf428c1ae99610b63ad834dba90ab14df15f"
+  }
+}

@@ -1,0 +1,174 @@
+{
+  "build": "16H88",
+  "source": "native12 SSH ramdisk MobileKeyBag, NOT 15 dyld cache",
+  "source_sha256": "fbd7b62dbe05806f3a3a2b7a5302bb36162eca086fdfe72ff5880eb823c365dd",
+  "size": 386880,
+  "text_sections": [
+    {
+      "name": "__text",
+      "offset": 7012,
+      "size": 144140,
+      "sha256": "f1dc5e1adf5728c8d2d343583c9f3cf870ee96b324901409bdec15917849497d"
+    },
+    {
+      "name": "__stubs",
+      "offset": 151152,
+      "size": 2412,
+      "sha256": "8e917c41266f34a6619b4386b43afd699f935a6c0d7899c5c13d6dab8579007e"
+    },
+    {
+      "name": "__stub_helper",
+      "offset": 153564,
+      "size": 2436,
+      "sha256": "baca654b65fdf09d4cfc360210bcb799beb696035c11b14af03cf10d659416c2"
+    },
+    {
+      "name": "__cstring",
+      "offset": 156000,
+      "size": 25208,
+      "sha256": "aabb1f956fbd87b2b7215c4ca42106e5527ac457784423481cdcc55391ad87ef"
+    },
+    {
+      "name": "__const",
+      "offset": 181216,
+      "size": 2120,
+      "sha256": "c002235e9519367659606910ccdee31b59f8c4cbb812cd3ee5fe52d9fa8b6810"
+    },
+    {
+      "name": "__objc_methname",
+      "offset": 183336,
+      "size": 5665,
+      "sha256": "adb495c40cc64a8e37d78740b2bda4b45416a1964ae774a74f7c395b1bc199e4"
+    },
+    {
+      "name": "__objc_classname",
+      "offset": 189001,
+      "size": 42,
+      "sha256": "3bdda4e024e953099f2af97747e88ffff90938ae21e0f4ddb6e9cab69211fedc"
+    },
+    {
+      "name": "__gcc_except_tab",
+      "offset": 189044,
+      "size": 2640,
+      "sha256": "193267140fb18470090c5a64eb3df9ca895611a419a9c646506b2e9c20f7a597"
+    },
+    {
+      "name": "__objc_methtype",
+      "offset": 191684,
+      "size": 2188,
+      "sha256": "4d71702003e3061535b73f0a37161b2b24f4cda3355f0c2c101ccf69b0c99275"
+    },
+    {
+      "name": "__unwind_info",
+      "offset": 193872,
+      "size": 2724,
+      "sha256": "0b78d7357aefa400ea400af39e25951bcca934d563590098b64506ca309dac36"
+    }
+  ],
+  "preserve_patch": {
+    "offset": 36128,
+    "before": "04008052",
+    "after": "24008052"
+  },
+  "proof": {
+    "create_public_entry": {
+      "offset": 36340,
+      "size": 8,
+      "sha256": "a884db2b5ec303bfbac2f56bc86501ee65b9f7324ed10712993aaaeef9187370",
+      "meaning": "MKBKeyBagCreateSystem sets wrapped=0 then branches to internal native creator"
+    },
+    "create_native_implementation": {
+      "offset": 35892,
+      "size": 448,
+      "sha256": "3caef94032402d4a73690c149cd03d0c10545c190e219e3c705dfdce3967849f",
+      "meaning": "native AKS creation -> KBSaveSystemBagHandle -> device-bag map -> AKS unload; returns API failures"
+    },
+    "save_system_handle": {
+      "offset": 15552,
+      "size": 472,
+      "sha256": "1c93b238194abc7ec8ddd663450a4a82a4ab3edee423925ddc18d12ff86d901f",
+      "meaning": "save real AKS bag; sends BAG1 fourcc and preserve flag to KBSaveKeyBag"
+    },
+    "save_keybag": {
+      "offset": 13492,
+      "size": 2060,
+      "sha256": "92d15fbf456b5e639347804c0c4bef6ab61fa3c7abd3ed82ddf2d8adfe9f2583",
+      "meaning": "native read existing EffaceableStorage wrapping material and serialize/save file; never manufactured offline"
+    },
+    "reuse_existing_wrapping": {
+      "offset": 14000,
+      "size": 48,
+      "sha256": "e44d1ee1d8f0b7d8efb762623889af5ca6d673a18e422a94b9f9bf74ab9b20df",
+      "meaning": "preserve=1 follows existing-storage reader, skipping random wrapping material"
+    },
+    "skip_global_storage_roll": {
+      "offset": 14632,
+      "size": 176,
+      "sha256": "10e5c92c1b85ca257102521f22698c8a6052a704a8da85ac8e1dc608ae828610",
+      "meaning": "preserve=1 skips global EffaceableStorage write at 0x398c, resumes actual file save at 0x39d4"
+    }
+  },
+  "native_chain": {
+    "public_create": "0x8df4",
+    "native_create": "0x8c34",
+    "save_system_handle": "0x3cc0",
+    "save_keybag": "0x34b4",
+    "bag1_fourcc": "0x42414731",
+    "existing_storage_read_call": "0x36d0 -> 0x1c90",
+    "storage_write_skipped": "0x3928 -> 0x39d4 skips 0x398c -> 0x1b64",
+    "file_save_resume": "0x39d4"
+  },
+  "load_command_guards": [
+    {
+      "cmd": 25,
+      "sha256": "3bc5c8d2aa66ef795c6adc1f3a32a72d00685a50a549dbcecef0dea3495da016"
+    },
+    {
+      "cmd": 25,
+      "sha256": "2e2f190d6b674fafcfca20f2c1e493f8dce705977a9dd39191321e3d02ffb0b1"
+    },
+    {
+      "cmd": 25,
+      "sha256": "067e754d666b778b8281f993c70c47edf0bb7cb46ae333d4e80b42a92575e0d5"
+    },
+    {
+      "cmd": 13,
+      "sha256": "d100d0ebd5f3e0a370b6db1bad369c44b4c9fa5a4c36b2346d972dc38df232c0"
+    },
+    {
+      "cmd": 2147483682,
+      "sha256": "bb4257a5617223eabb9ec22cd7ce15003c6930dd5e5a22d1e1228d5c4960603a"
+    },
+    {
+      "cmd": 50,
+      "sha256": "b28d221aeb615bdbb35f295b051da4a15c55b0bc3fdb20ce7e7cbace18a287a5"
+    }
+  ],
+  "export_regions": [
+    {
+      "offset": 268472,
+      "size": 5384,
+      "sha256": "90b2757776829946c4b11ebbb3b42e3a4c7ae2593314dcf2492e718261dd6ea0"
+    }
+  ],
+  "immutable_data_regions": [
+    {
+      "name": "__DATA",
+      "offset": 196608,
+      "size": 16384,
+      "sha256": "f7edd6f94c54805a096b580c3fc3d0b7af10861eec0f6cc7c6ca13f704583bfe"
+    },
+    {
+      "name": "__DATA_CONST",
+      "offset": 212992,
+      "size": 32768,
+      "sha256": "a4b212b1a10e07e3ea2522b1e8928ba865d9b8d8597fb84522bff99d19e21428"
+    },
+    {
+      "name": "__LINKEDIT except replaceable code signature",
+      "offset": 262144,
+      "size": 121456,
+      "sha256": "bd4921fd5cabdedadae9ec028c87126eae20b736c1415e65c8af41fe2938937a"
+    }
+  ]
+}

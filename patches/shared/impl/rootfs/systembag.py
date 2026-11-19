@@ -2,6 +2,7 @@
 from pathlib import Path
 import subprocess
 import shutil
+import sys
 
 from core import log
 from core.context import REPO
@@ -24,7 +25,14 @@ def build_helper(ctx):
     source = Path(REPO) / "tools/systembag/create_systembag.c"
     output = ctx.wk("systembag/create_systembag")
     Path(output).parent.mkdir(parents=True, exist_ok=True)
-    sdk = subprocess.check_output(["xcrun", "--sdk", "iphoneos", "--show-sdk-path"], text=True).strip()
+    probe = subprocess.run(["xcrun", "--sdk", "iphoneos", "--show-sdk-path"],
+                           capture_output=True, text=True)
+    if probe.returncode:
+        # This helper only imports POSIX libSystem. Use the bounded iOS12
+        # toolchain fallback; do not turn it into an arbitrary iOS SDK.
+        run([sys.executable, str(source.with_name("build_helper.py")), output])
+        return output
+    sdk = probe.stdout.strip()
     run(["clang", "-arch", "arm64", "-isysroot", sdk, "-miphoneos-version-min=12.0", "-O2",
          str(source), "-o", output])
     run(["codesign", "-s", "-", "-f", "--entitlements",

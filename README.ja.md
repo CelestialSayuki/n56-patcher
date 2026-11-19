@@ -2,17 +2,18 @@
 
 # n56-patcher
 
-**iPhone 6 Plus（N56AP / iPhone7,1）で iOS 13.7 / 14.8 をセカンドシステムとして動かすためのビルド・インストールツール**
+**iPhone 6 Plus（N56AP / iPhone7,1）で iOS 13.7 / 14.8 を動かすためのビルド・インストールツール**
 
 [简体中文](README.md) · [English](README.en.md) · [繁體中文](README.zh-TW.md) · 日本語
 
 ![Device](https://img.shields.io/badge/Device-iPhone%206%20Plus-0A84FF?style=flat-square&logo=apple&logoColor=white)
 ![iOS](https://img.shields.io/badge/iOS-13.7%20(17H35)-5E5CE6?style=flat-square)
 ![iOS](https://img.shields.io/badge/iOS-14.8%20(18H17)-5E5CE6?style=flat-square)
+![iOS](https://img.shields.io/badge/iOS-15.8.8%20(19H422)-5E5CE6?style=flat-square)
 ![Host](https://img.shields.io/badge/Host-macOS%20%2B%20Xcode-30363D?style=flat-square)
 ![Language](https://img.shields.io/badge/Python-3-3776AB?style=flat-square&logo=python&logoColor=white)
 
-[クイックスタート](#クイックスタート) · [iOS 14.8](#ios-148) · [機能](#機能) · [高度な使い方](#高度な使い方) · [作者](#作者) · [プロジェクトの支援](#プロジェクトの支援)
+[クイックスタート](#クイックスタート) · [iOS 14.8](#ios-148) · [iOS 15.8.8](#ios-1588進行中) · [機能](#機能) · [高度な使い方](#高度な使い方) · [作者](#作者) · [プロジェクトの支援](#プロジェクトの支援)
 
 </div>
 
@@ -22,7 +23,7 @@
 
 プロジェクトは最初から最後まで動作を確認済みで、最終的なブートパッケージにはハードウェア対応、DataB の復号、checkra1n が含まれます。技術的な結論は [docs/conclusions/13.md](docs/conclusions/13.md)（中国語）を参照してください。Touch ID は iOS 12 SEP の通信ブリッジで動作します。
 
-iOS 14.8 は起動と脱獄ができ、ハードウェアとシステム機能はすべて動作しています。[iOS 14.8](#ios-148) を参照してください。
+iOS 14.8 は起動と脱獄ができ、ハードウェアとシステム機能はすべて動作しています。[iOS 14.8](#ios-148) を参照してください。iOS 15.8.8 は起動とアクティベーションまで完了し、残りの機能を順に検証中です。[iOS 15.8.8](#ios-1588進行中) を参照してください。
 
 > [!WARNING]
 > このツールはデバイス上にボリュームを作成し、システムを書き込みます。事前にバックアップを取ってください。本プロジェクトは Apple とは無関係で、現状のまま提供されます。使用に伴うリスクは利用者が負うものとします。
@@ -115,6 +116,10 @@ Touch ID（機能 `touchid`）はデフォルトで有効です。カーネル�
 
 16 GB モデルは容量に余裕がありません。インストール前に [docs/conclusions/14.md](docs/conclusions/14.md)（中国語）の「空間」の節を読んでください。現状、初回起動、技術的な詳細もこの文書にまとめています。
 
+## iOS 15.8.8（進行中）
+
+ターゲット `n56-ios15`：J96 / N66 の 15.8.8 を独立した System15 / Data15 ボリュームに入れ、palera1n rootless で脱獄します。実機で確認済み：起動、暗号化 Data15、アクティベーション、Wi-Fi、オーディオ、カメラ、Bluetooth、ヘルスケア、設定の認証情報ページ、rootless SSH。ベースバンドも動作しています。Touch ID はこの個体のセンサーが交換済みのため検証できません。ビルドコマンド、必要な IPSW、現状は [docs/conclusions/15.md](docs/conclusions/15.md) を参照してください。
+
 ## 機能
 
 デフォルトではすべての機能が選択されます。`--features` は機能単位で各レイヤーのパッチを選択し、`--patches` は KC の選択だけを上書きします。依存関係は自動で補完されます。
@@ -180,7 +185,7 @@ python3 n56patcher.py build --exclude kc.audio --workdir build/no-audio
 </details>
 
 <details>
-<summary><b>セカンドシステムの段階的なインストール</b></summary>
+<summary><b>段階的なインストール</b></summary>
 
 ボリューム構成は `disk0s1s4` が SystemB、`disk0s1s5` が DataB です。
 

@@ -1,0 +1,10 @@
+--- !tapi-tbd-v3
+archs: [ arm64 ]
+platform: ios
+install-name: /usr/lib/libSystem.B.dylib
+current-version: 1.0
+compatibility-version: 1.0
+exports:
+  - archs: [ arm64 ]
+    symbols: [ dyld_stub_binder, ___error, ___stack_chk_fail, ___memcpy_chk, ___stack_chk_guard, ___stderrp, _close, _fstat, _malloc, _free, _open, _read, _readlink, _strcmp, _strlen, _strncmp, _strchr, _memcmp, _memcpy, _memset, _printf, _puts, _fprintf, _snprintf, _strtoul, _geteuid, _getattrlist, _statfs, _fs_snapshot_list, _uname, _mount, _getentropy, _mach_task_self_, _mach_host_self, _task_for_pid, _host_get_special_port, _task_info, _mach_error_string ]
+...

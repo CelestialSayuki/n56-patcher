@@ -434,20 +434,20 @@ def rebuild(source, destination, source_cache, target_cache, image_path):
     if extra_shift:
         from capstone import Cs, CS_ARCH_ARM64, CS_MODE_ARM
         decoder = Cs(CS_ARCH_ARM64, CS_MODE_ARM)
-        decoder.detail = True
         for entry in new:
             for section in entry['old']['sections']:
                 if section['name'] not in ('__text', '__stubs', '__stub_helper'):
                     continue
                 start = entry['file'] + entry['prefix'] + section['vm'] - entry['old']['vm']
-                for instruction in decoder.disasm(output[start:start + section['size']], section['vm']):
-                    if instruction.mnemonic != 'adrp':
+                for address, _, mnemonic, _ in decoder.disasm_lite(bytes(output[start:start + section['size']]), section['vm']):
+                    if mnemonic != 'adrp':
                         continue
-                    target = instruction.operands[1].imm
+                    file = start + address - section['vm']
+                    opcode = struct.unpack_from('<I', output, file)[0]
+                    from compact_libraries import adrp_target
+                    target = adrp_target(address, opcode)
                     if extra['vm'] <= target < extra['vm'] + extra['size']:
-                        file = start + instruction.address - section['vm']
-                        opcode = struct.unpack_from('<I', output, file)[0]
-                        delta = ((target - base + extra_shift) >> 12) - ((instruction.address - base) >> 12)
+                        delta = ((target - base + extra_shift) >> 12) - ((address - base) >> 12)
                         opcode = (opcode & ~0x60ffffe0) | ((delta & 3) << 29) | (((delta >> 2) & 0x7ffff) << 5)
                         struct.pack_into('<I', output, file, opcode)
     Path(destination).write_bytes(output)

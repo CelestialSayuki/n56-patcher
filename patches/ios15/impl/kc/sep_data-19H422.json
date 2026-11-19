@@ -1,0 +1,330 @@
+{
+  "api_version": 1,
+  "build": "19H422",
+  "guards": {
+    "apfs_media_key_create": {
+      "address": "0xfffffff00673b934",
+      "size": 224,
+      "owner": "com.apple.filesystems.apfs",
+      "sha256": "a2f248d65d7537093d0b7e24e9d527905c67cbd1bf18ebacef914081b799caf8"
+    },
+    "apfs_media_key_dispatch": {
+      "address": "0xfffffff00673ba10",
+      "size": 360,
+      "owner": "com.apple.filesystems.apfs",
+      "sha256": "6b0050ec0811991b3a62e1fb64e42f0fc826d0df5d8fd9a817e57d2716131558"
+    },
+    "apfs_wrapped_media_key": {
+      "address": "0xfffffff0067eefbc",
+      "size": 256,
+      "owner": "com.apple.filesystems.apfs",
+      "sha256": "7f58f5c59bf45bb33fee90680476aaafa1e6f56d3b1f2f7817e90bb69f4bbf4f"
+    },
+    "apfs_migration_helper": {
+      "address": "0xfffffff0067ef394",
+      "size": 616,
+      "owner": "com.apple.filesystems.apfs",
+      "sha256": "e02de1ec41b19a302069e846e2a0ad41d32d332ec82ffd49f95b205029a68d4e"
+    },
+    "apfs_migration_caller_cleanup": {
+      "address": "0xfffffff00674a4b0",
+      "size": 136,
+      "owner": "com.apple.filesystems.apfs",
+      "sha256": "704b2c31792f073854a3c03b6caab0a2f807f90a46ef6f3208b83840c86c8544"
+    },
+    "credential_locker_capability": {
+      "address": "0xfffffff0068e0d64",
+      "size": 140,
+      "owner": "com.apple.driver.AppleSEPCredentialManager",
+      "sha256": "303022770127535d5c940fd858e834063b9bd9f8276f1dbf1a786e008d9bda52"
+    },
+    "sks_cookie_fetch_lookup_lock": {
+      "address": "0xfffffff0065ecfe8",
+      "size": 400,
+      "owner": "com.apple.driver.AppleSEPKeyStore",
+      "sha256": "18568d0e22e6978d00d045c821321784522ff59be42baeee24c89e6419ba1109"
+    },
+    "sks_media_key_owner": {
+      "address": "0xfffffff0065e798c",
+      "size": 48,
+      "owner": "com.apple.driver.AppleSEPKeyStore",
+      "sha256": "db7f02d67c21c33d115dbf4cb7b8af63d8a819a51f9b10f0cd915ebf6e6a7b8b"
+    }
+  },
+  "controls": {
+    "media_key_tag": {
+      "address": "0xfffffff00673b988",
+      "before": "6ce10194",
+      "owner": "com.apple.filesystems.apfs",
+      "template": "legacy_media_tag",
+      "ios14_reference": "0xfffffff006822ae4",
+      "meaning": "new media record tag=1; explicit existing record tag is NOT rewritten"
+    },
+    "media_key_dispatch": {
+      "address": "0xfffffff00673ba50",
+      "before": "3ae10194",
+      "owner": "com.apple.filesystems.apfs",
+      "template": "legacy_media_tag",
+      "ios14_reference": "0xfffffff006822c4c",
+      "meaning": "legacy callback +0x28, tags 1/2 only; keep validation and errors"
+    },
+    "wrapped_media_key_tag": {
+      "address": "0xfffffff0067ef040",
+      "before": "be13ff97",
+      "owner": "com.apple.filesystems.apfs",
+      "template": "legacy_media_tag",
+      "ios14_reference": "0xfffffff0068bd3dc",
+      "meaning": "new wrapped media record tag=2, not class-M tag=8"
+    },
+    "class_m_cleanup": {
+      "address": "0xfffffff0067ef394",
+      "before": "ff4302d1fc6f03a9",
+      "owner": "com.apple.filesystems.apfs",
+      "template": "skip_media_migration",
+      "ios14_reference": "0xfffffff006836858",
+      "meaning": "return success from migration-only helper; caller keeps +0xb0 unlock and release; do not copy 14 epilogue"
+    },
+    "locker_capability": {
+      "address": "0xfffffff0068e0d64",
+      "before": "ffc300d1f44f01a9",
+      "owner": "com.apple.driver.AppleSEPCredentialManager",
+      "template": "no_locker",
+      "ios14_reference": "0xfffffff006995488",
+      "meaning": "return false before unsupported SCRD selector-7 locker capability query"
+    },
+    "volume_cookie": {
+      "address": "0xfffffff0065ed00c",
+      "before": "40090054",
+      "owner": "com.apple.driver.AppleSEPKeyStore",
+      "template": "skip_volume_cookie",
+      "ios14_reference": "0xfffffff0066ef4c4",
+      "meaning": "skip unsupported cookie fetch only; retain +0x1b0 lock, +0x1a8 list lookup, result/error handling",
+      "target": "0xfffffff0065ed134"
+    }
+  },
+  "fields": {
+    "apfs_media_record_tag": {
+      "offset": 16,
+      "ios14_offset": 16,
+      "evidence_address": "0xfffffff00673ba60",
+      "evidence": "69224079",
+      "instruction": "ldrh w9, [x19, #0x10]"
+    },
+    "apfs_media_record_wrapped_length": {
+      "offset": 18,
+      "ios14_offset": 18,
+      "evidence_address": "0xfffffff00673ba34",
+      "evidence": "08244079",
+      "instruction": "ldrh w8, [x0, #0x12]"
+    },
+    "apfs_media_record_wrapped_bytes": {
+      "offset": 24,
+      "ios14_offset": 24,
+      "evidence_address": "0xfffffff00673ba2c",
+      "evidence": "08600091",
+      "instruction": "add x8, x0, #0x18"
+    },
+    "apfs_key_callbacks_legacy": {
+      "offset": 40,
+      "ios14_offset": 40,
+      "evidence_address": "0xfffffff00673ba58",
+      "evidence": "a81640f9",
+      "instruction": "ldr x8, [x21, #0x28]"
+    },
+    "apfs_key_callbacks_modern": {
+      "offset": 72,
+      "ios14_offset": 72,
+      "evidence_address": "0xfffffff00673baac",
+      "evidence": "a82640f9",
+      "instruction": "ldr x8, [x21, #0x48]"
+    },
+    "apfs_media_create_uuid_source": {
+      "offset": 16,
+      "ios14_offset": 8,
+      "evidence_address": "0xfffffff00673b998",
+      "evidence": "81420091",
+      "instruction": "add x1, x20, #0x10"
+    },
+    "apfs_migration_volume_key_state": {
+      "offset": 192,
+      "ios14_offset": 184,
+      "evidence_address": "0xfffffff0067ef3f8",
+      "evidence": "686240f9",
+      "instruction": "ldr x8, [x19, #0xc0]"
+    },
+    "apfs_migration_key_slot": {
+      "offset": 1304,
+      "ios14_offset": 1304,
+      "evidence_address": "0xfffffff0067ef3fc",
+      "evidence": "088d42f9",
+      "instruction": "ldr x8, [x8, #0x518]"
+    },
+    "apfs_volume_info": {
+      "offset": 200,
+      "ios14_offset": 192,
+      "evidence_address": "0xfffffff0067ef414",
+      "evidence": "686640f9",
+      "instruction": "ldr x8, [x19, #0xc8]"
+    },
+    "apfs_volume_name_in_info": {
+      "offset": 1288,
+      "ios14_offset": null,
+      "evidence_address": "0xfffffff0067ef418",
+      "evidence": "088542f9",
+      "instruction": "ldr x8, [x8, #0x508]"
+    },
+    "apfs_migration_caller_lock": {
+      "offset": 176,
+      "ios14_offset": 176,
+      "evidence_address": "0xfffffff00674a514",
+      "evidence": "60c20291",
+      "instruction": "add x0, x19, #0xb0"
+    },
+    "sks_media_service_owner": {
+      "offset": 376,
+      "ios14_offset": null,
+      "evidence_address": "0xfffffff0065e799c",
+      "evidence": "00bd40f9",
+      "instruction": "ldr x0, [x8, #0x178]"
+    },
+    "sks_cookie_list": {
+      "offset": 424,
+      "ios14_offset": 416,
+      "evidence_address": "0xfffffff0065ed144",
+      "evidence": "9bd740f9",
+      "instruction": "ldr x27, [x28, #0x1a8]"
+    },
+    "sks_cookie_lock": {
+      "offset": 432,
+      "ios14_offset": 424,
+      "evidence_address": "0xfffffff0065ed138",
+      "evidence": "80db40f9",
+      "instruction": "ldr x0, [x28, #0x1b0]"
+    }
+  },
+  "first_stage": {
+    "rpc": {
+      "template": "7f04003101190054e4180035ff8300d1fd7b01a9fd430091e30305aae40306aae50307aae61f42a9e82743a9e82700a91f2003d5fd7b41a9ff830091c0035fd6bf04003101170054e6160035ff8300d1fd7b01a9fd430091e50307aae61f42a9e82743a9e82700a91f2003d5fd7b41a9ff830091c0035fd665000034e41400b4a9000014ff0301d1fd7b03a9fdc30091e403062ae50307aae61f4829e8a744a9eaaf45a9ec3740f9e82700a9ea2f01a9ec1300f91f2003d5fd7b43a9ff030191c0035fd664000034831200b496000014ff0301d1fd7b03a9fdc30091e303052ae403062ae503072ae64340b9e72740f9e82745a9ea6340b9ebb346a9ed3f40f9e82700a9ea1300b9ebb301a9ed1700f91f2003d5fd7b43a9ff030191c0035fd665000034a40f00b47f000014ff4301d1fd7b04a9fd030191e403062ae503072ae62b40f9e75b40b9e82746a9ea2f47a9ec3748a9ee3f49a9e82700a9ea2f01a9ec3702a9ee3f03a91f2003d5fd7b44a9ff430191c0035fd665000034e40c00b469000014e80740f9e91340b969000034480c00b464000014e80f40f9e92340b969000034a80b00b45f000014ff0301d1fd7b03a9fdc30091e403062ae50307aae64340b9e76740b9e8a746a9eaaf47a9ec4740f9e82700a9ea2f01a9ec1300f91f2003d5fd7b43a9ff030191c0035fd664000034230900b44b000014e80740f9e91340b969000034880800b446000014e80f40f9e92340b969000034e80700b441000014ff0301d1fd7b03a9fdc30091e303052ae403062ae503072ae64340b9e73740f9e87340b9e97740b9ea3f40f9eb8340b96b791b12ecb748a9ee4f40f9e8270029ea0700f9eb1300b9ecb701a9ee1700f91f2003d5fd7b43a9ff030191c0035fd665000034840400b426000014e80b40f9e91b40b969000034e80300b421000014ea0b40b95f710071c1030054ff4301d1fd7b04a9fd030191e403062ae503072ae62b40f987018052e82747a9ea2f48a9ec374aa9ee3f4ca9e82700a9ea2f01a9ec3702a9ee3f03a91f2003d5e0000035e84f40f9480000b41f0100b9e85f40f9480000b41f0100b9fd7b44a9ff430191c0035fd6405880520000bc72c0035fd6e05880520000bc72c0035fd6",
+      "labels": {
+        "media_create_v1": 0,
+        "call_media_create_v1": 48,
+        "media_unwrap_v1": 64,
+        "call_media_unwrap_v1": 104,
+        "file_op_v1": 120,
+        "call_file_op_v1": 180,
+        "file_wrap_v1": 196,
+        "call_file_wrap_v1": 272,
+        "file_unwrap_v1": 288,
+        "call_file_unwrap_v1": 360,
+        "file_op_v2": 376,
+        "call_file_op_v2": 480,
+        "file_wrap_v2": 496,
+        "call_file_wrap_v2": 628,
+        "file_unwrap_v2": 644,
+        "call_file_unwrap_v2": 748
+      }
+    },
+    "endpoint": {
+      "template": "ff0301d1f65701a9f44f02a9fd7b03a9fdc30091f30300aa60aa40f9e00a00b5201b0010d7000094e00313aa00000000200a0036e00313aa00000000c00900b4f40300aa0000000000000000e20308aae00314aae10313aa4302805264620591880240f908a942f900013fd6400800b4f50300aa880240f9084942f9e00314aae10313aa00013fd6680240f908bd41f9e00313aa00013fd6080040f9085140f9e10315aa00013fd6a80240f9085940f9e00315aa00013fd668a240f9680200b5a0160010af000094880240f908ad42f9e00314aa01008052020088520300825200013fd6400500b4f60300aaa80240f9088140f9e00315aae10316aa00013fd68004003576a200f968a640f9680200b5a01400109b000094880240f908ad42f9e00314aa01008052020088520300825200013fd6400300b4f40300aaa80240f9088540f9e00315aae10314aa00013fd68002003574a600f975aa00f9c012003088000094e00313aa00000000e01200308400009460aa40f9fd7b43a9f44f42a9f65741a9ff030191c0035fd600000000e10300aae00316aa0000000000000000e00314aa00000000ff0301d1f65701a9f44f02a9fd7b03a9fdc30091f30300aa154440f914a0059116008052a01000106c0000949ffe9f08e00314aa010080522200805203488852e301a0720000000053008052a98240f9280950b9480080373f0908f97306007161ffff54000080d20000000088fedf08e8000035d6060011dfa20f7183fdff54c05a80520000bc720200001400008052f30300aaf35b00a9a00d00704f000094e00313aafd7b43a9f44f42a9f65741a9ff030191c0035fd6f30300aa08cc40b91f2100718101005400a005912900805208fc5f08e800003509fc0808a8ffff35010080520200805200000000020000145f3f03d5e00313aa00000000f457bea9fd7b01a9fd430091687e41b9f4010010090400101f0100719402899a95f20091e00314aae10313aa00000000943200919f0215eb61ffff54fd7b41a9f457c2a8f70300f90000000020676f6c0100000004000000727472610304040404000000737472610204040404000000647263730a01010101000000206573730c010101010000006f69627308004b004b00000020676f6c0100000001000000727472610301010101000000737472610201010101000000647263730a01010101000000206573730c010101010000006f696273080013001300000000000000534b5320666978656420696e69740a00534b532062696e6420696e7075740a00534b532062696e64206f75747075740a00534b532070726f746f636f6c20626567696e0a00534b532070726f746f636f6c2072657475726e65640a00534550206c65676163792077616b6520626567696e0a00534550206c65676163792077616b6520726573756c743d25236c7820726574726965733d256c750a00",
+      "labels": {
+        "sks_init": 0,
+        "sks_enabled": 44,
+        "sks_manager": 56,
+        "sks_callback": 68,
+        "sks_protocol": 360,
+        "sks_input_alloc_failed": 396,
+        "sks_input_bind_failed": 408,
+        "sks_output_alloc_failed": 412,
+        "sks_output_bind_failed": 420,
+        "sep_legacy_wake": 424,
+        "sep_assert_wait": 492,
+        "sep_thread_block": 528,
+        "sep_legacy_irq": 608,
+        "sep_thread_wakeup": 656,
+        "sep_irq_resume": 672,
+        "sep_legacy_services": 676,
+        "sep_service_count": 708,
+        "sep_service_factory": 720,
+        "sep_services_resume": 748,
+        "services_4k": 752,
+        "services_16k": 824,
+        "sep_stage_log": 896
+      },
+      "callback": "0xfffffff0065ef0d8",
+      "tail_calls": {
+        "sep_irq_resume": "0xfffffff006320938",
+        "sep_services_resume": "0xfffffff00632046c",
+        "sep_stage_log": "0xfffffff00633b76c"
+      }
+    },
+    "v0": {
+      "media_create": {
+        "size": 128,
+        "sha256": "a79c767dc13565f7a6ec043d65539b2561020b986a80acf561024fad2bbc8d91"
+      },
+      "media_unwrap": {
+        "size": 128,
+        "sha256": "6dfa8d8c502b35f17694c9881fd23f815056927343ee5597559accf0656b7d15"
+      },
+      "file_op": {
+        "size": 128,
+        "sha256": "66226afae484ff1fb07b68e98bc28ba79c2af1f1f7415d291c7e3d93f1bca11d"
+      },
+      "file_wrap": {
+        "size": 128,
+        "sha256": "159fc59f3fe3e0c2aea48816cbd7f05f361542e0e99a65ddd3bec3e062e43b4a"
+      },
+      "file_unwrap": {
+        "size": 128,
+        "sha256": "64b248b8b3c4bd8d35e30d9b1c1e0330f8bed1be87b2d6a09fe68f9f0203601f"
+      }
+    },
+    "transport_words": [
+      {
+        "address": "0xfffffff0068f2388",
+        "after": "21008052",
+        "owner": "com.apple.driver.AppleSEPCredentialManager"
+      },
+      {
+        "address": "0xfffffff0068f445c",
+        "after": "02008252",
+        "owner": "com.apple.driver.AppleSEPCredentialManager"
+      },
+      {
+        "address": "0xfffffff0068f44b4",
+        "after": "02008252",
+        "owner": "com.apple.driver.AppleSEPCredentialManager"
+      },
+      {
+        "address": "0xfffffff006340d4c",
+        "after": "02008252",
+        "owner": "com.apple.driver.AppleSSE"
+      },
+      {
+        "address": "0xfffffff006340da4",
+        "after": "02008252",
+        "owner": "com.apple.driver.AppleSSE"
+      }
+    ]
+  },
+  "provenance": {
+    "target": "J96 19H422 unslid; addresses reidentified in 15, not 14 offsets",
+    "stock_sha256": "68214a68523f4bb2dbb54432aaa7651b56d53c89a9f1b851e8c4120dcad64f3c",
+    "ios14_reference_sha256": "a40bd63739f169ccb6706a0c6c131a217866df32e510bc5a618bd93530e091ef",
+    "native_n56_16H88_sha256": "858c32f5cdde200a79d55623c354f1a59c9290aa5f6f08b65ccf9aafa4d183bf",
+    "native_media_operations": {
+      "49": "0xfffffff008490250 mov w1, #0x31",
+      "50": "0xfffffff00849043c mov w1, #0x32"
+    },
+    "native_v0_request_version_evidence": [
+      "0xfffffff0084901e0 str wzr, [sp, #0x48]",
+      "0xfffffff0084903e0 str wzr, [sp, #0x48]"
+    ],
+    "migration_helper_call": "0xfffffff00674a500 -> 0xfffffff0067ef394",
+    "migration_caller_cleanup": [
+      "0xfffffff00674a514 add x0, x19, #0xb0",
+      "0xfffffff00674a518 bl 0xfffffff006816db4",
+      "0xfffffff00674a520 bl 0xfffffff006745d04"
+    ]
+  }
+}

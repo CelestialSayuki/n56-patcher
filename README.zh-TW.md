@@ -2,17 +2,18 @@
 
 # n56-patcher
 
-**iPhone 6 Plus（N56AP / iPhone7,1）的 iOS 13.7 / 14.8 第二系統建置與安裝工具**
+**iPhone 6 Plus（N56AP / iPhone7,1）的 iOS 13.7 / 14.8 建置與安裝工具**
 
 [简体中文](README.md) · [English](README.en.md) · 繁體中文 · [日本語](README.ja.md)
 
 ![Device](https://img.shields.io/badge/Device-iPhone%206%20Plus-0A84FF?style=flat-square&logo=apple&logoColor=white)
 ![iOS](https://img.shields.io/badge/iOS-13.7%20(17H35)-5E5CE6?style=flat-square)
 ![iOS](https://img.shields.io/badge/iOS-14.8%20(18H17)-5E5CE6?style=flat-square)
+![iOS](https://img.shields.io/badge/iOS-15.8.8%20(19H422)-5E5CE6?style=flat-square)
 ![Host](https://img.shields.io/badge/Host-macOS%20%2B%20Xcode-30363D?style=flat-square)
 ![Language](https://img.shields.io/badge/Python-3-3776AB?style=flat-square&logo=python&logoColor=white)
 
-[快速開始](#快速開始) · [iOS 14.8](#ios-148) · [功能](#功能) · [進階用法](#進階用法) · [作者](#作者) · [支持專案](#支持專案)
+[快速開始](#快速開始) · [iOS 14.8](#ios-148) · [iOS 15.8.8](#ios-1588進行中) · [功能](#功能) · [進階用法](#進階用法) · [作者](#作者) · [支持專案](#支持專案)
 
 </div>
 
@@ -22,7 +23,7 @@
 
 專案已從頭到尾跑通，最終啟動包包含硬體適配、DataB 解密和 checkra1n。技術結論見 [docs/conclusions/13.md](docs/conclusions/13.md)（簡體中文）。Touch ID 已接入 iOS 12 SEP 收發橋。
 
-iOS 14.8 已能進系統並越獄，硬體與系統功能均已可用，見 [iOS 14.8](#ios-148)。
+iOS 14.8 已能進系統並越獄，硬體與系統功能均已可用，見 [iOS 14.8](#ios-148)。iOS 15.8.8 已能進系統並完成啟用，其餘功能逐項驗收中，見 [iOS 15.8.8](#ios-1588進行中)。
 
 > [!WARNING]
 > 本工具會在裝置上建立磁碟區並寫入系統，操作前請自行備份。本專案與 Apple 無關，按現狀提供，風險由使用者自行承擔。
@@ -115,6 +116,10 @@ Touch ID（功能 `touchid`）預設開啟，核心已接入 iOS 12 SEP 收發�
 
 16 GB 機型空間很緊，安裝前請先看 [docs/conclusions/14.md](docs/conclusions/14.md)（簡體中文）的「空間」一節。現狀、首次開機和技術細節都在這份文件裡。
 
+## iOS 15.8.8（進行中）
+
+目標 `n56-ios15`：J96 / N66 15.8.8，裝在獨立的 System15 / Data15 卷上，越獄用 palera1n rootless。已上機驗證進系統、加密 Data15、啟用、Wi-Fi、音訊、相機、藍牙、健康、設定裡的法規資訊和 rootless SSH、基頻；Touch ID 因本機感應器換過無法驗證。建置命令、所需 IPSW 和現狀見 [docs/conclusions/15.md](docs/conclusions/15.md)。
+
 ## 功能
 
 預設選擇全功能。`--features` 按功能選擇各層補丁，`--patches` 單獨覆蓋 KC 選擇；相依項目自動補齊。
@@ -180,7 +185,7 @@ python3 n56patcher.py build --exclude kc.audio --workdir build/no-audio
 </details>
 
 <details>
-<summary><b>分步安裝第二系統</b></summary>
+<summary><b>分步安裝</b></summary>
 
 磁碟區配置為 `disk0s1s4` SystemB、`disk0s1s5` DataB。
 

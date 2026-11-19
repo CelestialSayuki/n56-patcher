@@ -10,8 +10,8 @@ Selected here:
   2. non-Mach-O files that only N66 has, inside a bundle that J96 also has;
 Not selected: the iPhone wallpapers. They live in /Library/Wallpaper, outside these scopes, and
 replace the iPad set rather than add to it; `rootfs.wallpaper` installs them.
-Bundles that only N66 has (Phone, Health, Wallet, the Watch companions) need code that is
-not in the J96 dyld cache and are left to their own patches.
+Bundles that only N66 has (Phone, Health, Wallet, the Watch companions) are deployed whole by
+`rootfs.companion`.
 """
 import hashlib
 import os

@@ -30,7 +30,8 @@ class Companion(Patch):
     layer = "rootfs"
     role = "overlay"
     feature = "companion"
-    note = "健康与 Apple Watch 配套：N66 的 App、63 个派生库、配套守护进程与 launchd 缓存"
+    checkpoint_version = "phone-apps"
+    note = "健康、Apple Watch 配套与电话/钱包：N66 的 App、63 个派生库、配套守护进程与 launchd 缓存"
 
     def apply(self, ctx, art=None):
         if not launchd_cache.fairplay_selected(ctx):

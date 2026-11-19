@@ -1,6 +1,7 @@
 """健康 / 手表配套要从 N66 18H17 补到 System14 的文件与 launchd 任务。
 
-文件：N66 有、J96 没有、路径属于健康或手表配套的文件，加上下面列出的守护进程。手表 App
+文件：N66 有、J96 没有、路径属于健康或手表配套的文件，加上下面列出的守护进程，以及电话、
+钱包两个 iPhone 独有 App（shared PHONE_APPS）。手表 App
 （Bridge.app）在 N66 上是首次开机时从 private/var/staged_system_apps 安装的可删除 App，这里
 直接放进 /Applications。.lproj 只留中英文（缺的语言回落到英文），省出空间。
 
@@ -10,6 +11,8 @@ launchd：N66 launchd 缓存里这些守护进程的任务，以及 N66 独有�
 import os
 import re
 from pathlib import Path
+
+from patches.shared.impl.rootfs.companion.plan import phone_apps
 
 SCOPE = re.compile(
     r"health|nano|bridge|companion|watch|pairing|brook|sleep|respiratory|hearing|measure|"
@@ -72,6 +75,8 @@ def files(n66, j96, daemons):
     for relative in _walk(n66, STAGED):
         if _lproj_allowed(relative):
             chosen[relative] = INSTALLED + relative[len(STAGED):]
+    for relative in phone_apps(n66, j96):
+        chosen[relative] = relative
     for job in daemons.values():
         relative = program(job).lstrip("/")
         if not os.path.lexists(j96 / relative):

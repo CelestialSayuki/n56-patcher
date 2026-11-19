@@ -21,9 +21,10 @@ VERSIONS = {
     "12": {"implemented": True, "source_only": True, "reason": "仅作为 donor 来源"},
     "13": {"implemented": True},
     "14": {"implemented": True},
+    "15": {"implemented": True},
 }
 # 可安装版本对应的目标清单（targets/<name>.py）。宗卷的设备操作、安装、重建与启动都按它选目标。
-VERSION_TARGETS = {"13": "n56-ios13", "14": "n56-ios14"}
+VERSION_TARGETS = {"13": "n56-ios13", "14": "n56-ios14", "15": "n56-ios15"}
 
 
 def data_protection_of(state, version, default=None):
@@ -218,7 +219,7 @@ def mark_formatted(state, slice_no):
 
 
 # 系统 build 到版本号的对应（用于按 SystemVersion 识别 System 卷）。
-VERSION_BY_BUILD = {"16H88": "12", "17H35": "13", "18H17": "14"}
+VERSION_BY_BUILD = {"16H88": "12", "17H35": "13", "18H17": "14", "19H422": "15"}
 
 # 我们在安装时写入 Data 卷的标记文件（内容为版本号），用于识别 Data 卷属于哪个版本。
 DATA_MARKER = "/.n56-slot"

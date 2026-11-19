@@ -293,6 +293,13 @@ def _cached(output, report):
     return entries
 
 
+_job = None
+
+
+def _run_job(library):
+    return _job(library)
+
+
 def derive(ctx):
     """返回 (库根目录, {库路径: 报告})。"""
     if hasattr(ctx, "_companion_libraries"):
@@ -315,12 +322,13 @@ def derive(ctx):
             log.die(f"库清单与 cache 不符：N66 缺 {missing[:3]}，J96 已有 {present[:3]}")
         resolver = branch_stubs.Resolver(source)
         shutil.rmtree(output, ignore_errors=True)
-        entries = {}
-        for index, library in enumerate(LIBRARIES, 1):
-            entries[library] = build_one(library, directory / "extracted", output, directory,
+        # 各库互不依赖：fork 出的子进程继承已打开的 cache 索引，并行重建。
+        global _job
+        _job = lambda library: build_one(library, directory / "extracted", output, directory,
                                          source, target, resolver)
-            if index % 10 == 0:
-                log.log(f"  配套库已重建 {index}/{len(LIBRARIES)}")
+        import multiprocessing
+        with multiprocessing.get_context("fork").Pool(os.cpu_count() or 1) as pool:
+            entries = dict(zip(LIBRARIES, pool.map(_run_job, LIBRARIES, chunksize=1)))
         report.write_text(json.dumps(entries, ensure_ascii=False, indent=2, default=str) + "\n")
     ctx._companion_libraries = (output, entries)
     return ctx._companion_libraries

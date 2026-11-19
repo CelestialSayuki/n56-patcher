@@ -203,6 +203,10 @@ class Relocator:
             self.references.append(dict(kind='adrp/' + consumer['kind'], pc=current.address,
                                         old=consumer['old'], new=target))
 
+    def switch_table_bases(self):
+        """Original donors materialize switch bases with ADR by default."""
+        return {i.operands[1].imm & MASK for i in self.instructions if i.mnemonic == 'adr'}
+
     def run(self):
         for index, instruction in enumerate(self.instructions):
             word = struct.unpack('<I', self.source.read(instruction.address, 4))[0]
@@ -235,7 +239,7 @@ class Relocator:
                 self.write(pc, encode_pc(word, self.remap(pc), literal, 19, 5))
         # One inline data range can hold several switch tables back to back. Each entry is
         # relative to the base of its own table, which is the address its `adr` loads.
-        loaded = {i.operands[1].imm & MASK for i in self.instructions if i.mnemonic == 'adr'}
+        loaded = self.switch_table_bases()
         for start, end in self.tables:
             bases = sorted(base for base in loaded if start <= base < end)
             if not bases or bases[0] != start:

@@ -1,8 +1,6 @@
 """Build the N56 hardware kernel from the J96/N66 iOS 14 inputs."""
-from copy import deepcopy
 import json
 from pathlib import Path
-import plistlib
 import shutil
 import subprocess
 import sys
@@ -10,7 +8,7 @@ import sys
 from .boot_volumes import REPO
 sys.path.insert(0, str(REPO / "patches/shared/impl/kc/vibration"))
 from patches.shared.impl.kc.sn2400.macho import Kernel
-from patches.shared.impl.kc.sn2400.port import compact_plist
+from patches.shared.impl.kc.n56_touch import touch
 from patches.shared.impl.kc.wifi import hashstore_patch as wifi
 from patches.shared.impl.kc.vibration import transplant as vibration
 from .kext import transplant
@@ -42,25 +40,6 @@ WIFI_APPROVED = dict(zip(wifi.OLD_HASHES, (
     "cad7fd6d3718f86c5d2394e3570af4b23f0b419bf9725cd0ff7cc825a27922bb",
     "d687809bfb46fd11ca56f000b17c74e189f703946a83d43fae52e0827505f342",
 )))
-
-
-def touch(native, target):
-    source = next(iter(native.kexts["com.apple.driver.AppleMultitouchSPIN56"]["IOKitPersonalities"].values()))
-    info = deepcopy(target.info)
-    entry = next(e for e in info["_PrelinkInfoDictionary"]
-                 if e["CFBundleIdentifier"] == "com.apple.driver.AppleMultitouchSPIJ96")
-    personality = entry["IOKitPersonalities"]["AppleMultitouchSPI - J96"]
-    for name in ("IONameMatch", "fll-mval", "mt-merge-personality", "ref-clk-div-val", "touch-size-id"):
-        personality[name] = deepcopy(source[name])
-    personality.pop("parser-options", None)
-    xml = vibration.intern_strings(compact_plist(plistlib.dumps(info, sort_keys=False)))
-    segment = next(s for s in target.segs if s["name"] == "__PRELINK_INFO")
-    if len(xml) > segment["fs"]:
-        raise ValueError("N56 touch plist exceeds prelink capacity")
-    data = bytearray(target.data)
-    data[segment["fo"]:segment["fo"] + segment["fs"]] = xml.ljust(segment["fs"], b"\0")
-    return data
-
 
 
 def driver(input_path, donor_path, bundle, output):

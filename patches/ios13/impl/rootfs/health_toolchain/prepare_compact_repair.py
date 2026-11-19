@@ -14,30 +14,36 @@ BASE = HERE / 'full/repair-v2'
 OUT = HERE / 'full/repair-v3'
 
 
+from parallel import map_libraries
+
+
 def main():
     OUT.mkdir(exist_ok=True)
     manifest = json.loads((BASE / 'manifest.json').read_text())
     raw = (BASE / 'trustcache.raw').read_bytes()
     results, hashes, payloads = {}, {}, {}
-    for index, library in enumerate(manifest['cdhashes'], 1):
+    def one(library):
         relative = library.lstrip('/')
         destination = OUT / 'libraries' / relative
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(BASE / 'libraries' / relative, destination)
         subprocess.run(['codesign', '--remove-signature', str(destination)],
                        check=True, capture_output=True)
-        results[library] = compact(destination, destination)
+        result = compact(destination, destination)
         subprocess.run(['codesign', '-s', '-', '-f', '--digest-algorithm=sha256', str(destination)],
                        check=True, capture_output=True)
         check_layout(destination)
         signature = subprocess.run(['codesign', '-dvvvv', str(destination)], check=True,
                                    capture_output=True, text=True).stderr
-        digest = re.search(r'CandidateCDHash sha256=([0-9a-f]{40})', signature)[1]
-        hashes[library] = digest
+        return result, re.search(r'CandidateCDHash sha256=([0-9a-f]{40})', signature)[1]
+
+    libraries = list(manifest['cdhashes'])
+    for library, (result, digest) in zip(libraries, map_libraries(one, libraries)):
+        relative = library.lstrip('/')
+        results[library], hashes[library] = result, digest
         raw = trust_cache(raw, bytes.fromhex(digest))
-        payloads[relative] = destination
-        if index % 10 == 0:
-            print(f'紧凑动态库已生成 {index}/50。', flush=True)
+        payloads[relative] = OUT / 'libraries' / relative
+    print(f'紧凑动态库已生成 {len(libraries)}/50。', flush=True)
     for name in ('mrm.plist', 'mrm.plist.sig', 'cache-source.plist', 'boot.sh'):
         shutil.copy2(BASE / name, OUT / name)
     for name in ('mrm.plist', 'mrm.plist.sig'):

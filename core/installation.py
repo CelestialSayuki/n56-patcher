@@ -38,6 +38,12 @@ def restore_layout(ctx):
         if layout["target"] != ctx.t["name"] or layout["build"] != ctx.t["build"]:
             log.die("工作目录属于另一系统目标，请更换 --workdir")
         bind_volumes(ctx, layout["system"], layout["data"])
+        if ctx.t.get("version") == "ios15":
+            token = layout.get("new_data_authorization")
+            if token is not None and (not isinstance(token, dict) or not isinstance(token.get("uuid"), str)):
+                log.die("Data 创建授权记录损坏，拒绝自动创建 systembag")
+            ctx._ios15_new_data = token
+            ctx._ios15_volume_identity = layout.get("volume_identity")
 
 
 class IndependentInstallation:
@@ -104,7 +110,16 @@ class IndependentInstallation:
                 name = config["names"][kind]
                 if not create:
                     log.die(f"缺少 {name}，请先执行 volumes")
-                apfs.append_volume(name, encrypted=kind == "data" and self.encrypted_data)
+                if (kind == "data" and self.encrypted_data
+                        and self.ctx.t.get("version") == "ios15"):
+                    from patches.ios15.impl.rootfs.keybag_boot import before_protected_create
+                    before_protected_create(self.ctx)
+                # iOS 15 固定使用配置的卷号（如 s4/s5），不随容器末尾追加：
+                # 删掉旧 Data15 后，末尾追加会落到 s7，而不是要求的 s5。
+                index = self.ctx.t["mounts"][kind + "_b"] if self.ctx.t.get("version") == "ios15" else None
+                apfs.append_volume(name, encrypted=kind == "data" and self.encrypted_data, index=index)
+                if kind == "data" and self.ctx.t.get("version") == "ios15":
+                    self.ctx._ios15_created_data_here = True
         volumes = apfs.volumes()
         selected = {kind: named_volume(volumes, name) for kind, name in config["names"].items()}
         if any(v is None for v in selected.values()):
@@ -114,6 +129,16 @@ class IndependentInstallation:
             mode = "encrypted" if self.encrypted_data else "none"
             log.die(f'{config["names"]["data"]} 需要使用 {mode} 保护模式')
         bind_volumes(self.ctx, selected["system"][0], selected["data"][0])
+        if self.ctx.t.get("version") == "ios15":
+            self.ctx._ios15_selected_volumes = selected
+        if self.ctx.t.get("version") == "ios15":
+            token = getattr(self.ctx, "_ios15_new_data", None)
+            actual_uuid = selected["data"][2][0xf0:0x100].hex()
+            if getattr(self.ctx, "_ios15_created_data_here", False):
+                self.ctx._ios15_new_data = {"slice": selected["data"][0], "uuid": actual_uuid}
+                self.ctx._ios15_created_data_here = False
+            elif token and (token.get("slice") != selected["data"][0] or token.get("uuid") != actual_uuid):
+                self.ctx._ios15_new_data = None
         self.save_layout()
         return selected["system"][0], selected["data"][0]
 
@@ -140,6 +165,8 @@ class IndependentInstallation:
         # 槽位的权限由 core/slots.py 管理；这里不再使用目标的保留卷下限。
         self.ctx.t["volumes"]["min_slice"] = 1
         bind_volumes(self.ctx, slot["system"], slot["data"])
+        if self.ctx.t.get("version") == "ios15":
+            self.ctx._ios15_selected_volumes = {"system": present[slot["system"]], "data": present[slot["data"]]}
         self.save_layout()
         return slot["system"], slot["data"]
 
@@ -155,6 +182,10 @@ class IndependentInstallation:
         mounts = self.ctx.t["mounts"]
         layout = dict(target=self.ctx.t["name"], build=self.ctx.t["build"],
                       system=mounts["system_b"], data=mounts["data_b"])
+        if self.ctx.t.get("version") == "ios15" and getattr(self.ctx, "_ios15_volume_identity", None):
+            layout["volume_identity"] = self.ctx._ios15_volume_identity
+        if self.ctx.t.get("version") == "ios15" and getattr(self.ctx, "_ios15_new_data", None):
+            layout["new_data_authorization"] = self.ctx._ios15_new_data
         Path(self.ctx.wk("layout.json")).write_text(json.dumps(layout, indent=2) + "\n")
 
     def close(self):

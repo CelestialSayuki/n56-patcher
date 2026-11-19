@@ -13,11 +13,13 @@ targets/
   _n56.py              设备与工具
   n56_ios13.py         iOS 13.7
   n56_ios14.py         iOS 14.8（见 conclusions/14.md）
+  n56_ios15.py         iOS 15.8.8（见 conclusions/15.md）
 
 patches/
-  shared/              设备资源、原生材料、通用移植算法、两版共用的补丁（如 rootfs.cydia）
+  shared/              设备资源、原生材料、通用移植算法和共享补丁（如 rootfs.cydia）
   ios13/               iOS 13.7 补丁与 ABI
   ios14/               iOS 14.8 补丁与 ABI
+  ios15/               iOS 15.8.8 补丁与 ABI
 ```
 
 补丁目录各自按 `kc/`、`dt/`、`rootfs/` 分层，`impl/` 放实现和布局。共享算法接收版本配置；固定地址和目标 ABI 放在对应系统目录。
@@ -27,6 +29,7 @@ patches/
 ```sh
 python3 n56patcher.py list --target n56-ios13
 python3 n56patcher.py list --target n56-ios14
+python3 n56patcher.py list --target n56-ios15
 ```
 
 `tools/` 放上游工具、环境初始化及调试入口。系统补丁和安装步骤由主管线调用。

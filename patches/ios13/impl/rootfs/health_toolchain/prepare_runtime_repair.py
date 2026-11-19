@@ -42,6 +42,9 @@ def check_layout(path):
     assert end <= linkedit['file'] + linkedit['filesize']
 
 
+from parallel import map_libraries
+
+
 def main():
     OUT.mkdir(exist_ok=True)
     source = CacheIndex(Path('/Volumes/YukonH17H35.N66OS') / CACHE)
@@ -63,7 +66,7 @@ def main():
         shutil.copy2(CURRENT_CACHE / name, OUT / name)
     shutil.copy2(OUT / 'mrm.plist', OUT / 'cache-source.plist')
     results, hashes, payloads = {}, {}, {}
-    for index, library in enumerate(libraries, 1):
+    def one(library):
         relative = library.lstrip('/')
         destination = OUT / 'libraries' / relative
         destination.parent.mkdir(parents=True, exist_ok=True)
@@ -75,12 +78,14 @@ def main():
         check_layout(destination)
         signature = subprocess.run(['codesign', '-dvvvv', str(destination)], check=True,
                                    capture_output=True, text=True).stderr
-        digest = re.search(r'CandidateCDHash sha256=([0-9a-f]{40})', signature)[1]
+        return result, re.search(r'CandidateCDHash sha256=([0-9a-f]{40})', signature)[1]
+
+    for library, (result, digest) in zip(libraries, map_libraries(one, libraries)):
+        relative = library.lstrip('/')
         raw = trust_cache(raw, bytes.fromhex(digest))
         hashes[library], results[library] = digest, result
-        payloads[relative] = destination
-        if index % 10 == 0:
-            print(f'动态库已重打 {index}/{len(libraries)}。', flush=True)
+        payloads[relative] = OUT / 'libraries' / relative
+    print(f'动态库已重打 {len(libraries)}/{len(libraries)}。', flush=True)
     for name in ('mrm.plist', 'mrm.plist.sig'):
         payloads['System/Library/Caches/com.apple.xpc.launchd/' + name] = OUT / name
     (OUT / 'trustcache.raw').write_bytes(raw)

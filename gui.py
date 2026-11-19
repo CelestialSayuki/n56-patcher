@@ -12,11 +12,13 @@
 宗卷设置是主页面里的弹窗（旧地址 /volumes 会跳转过来）。
 仅监听本地回环，不对外。
 """
+import sys
+sys.dont_write_bytecode = True                  # 仓库里不留 __pycache__（子进程同样）
+import os
+os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
 import argparse
 import json
-import os
 import subprocess
-import sys
 import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -27,9 +29,12 @@ sys.path.insert(0, REPO)
 
 from core.context import load_target, TARGETS_DIR
 from core import patch as patchmod
+from core.jailbreak_mode import metadata as jailbreak_metadata, configure as configure_jailbreak_mode, require_backend
 
 SUDO_STAGES = {"rootfs", "patch-rootfs", "build", "boot", "install", "all"}
-STAGES = ["ramdisk", "extract-im4m", "volumes", "rootfs",
+# 会起 ramdisk（SSH + iproxy）的阶段：残留的 root iproxy 在时，要先问密码
+RAMDISK_STAGES = {"ramdisk", "extract-im4m", "volumes"}
+STAGES = ["init", "ramdisk", "extract-im4m", "volumes", "rootfs",
           "patch-rootfs", "build", "boot", "all", "status", "list"]
 
 
@@ -118,6 +123,18 @@ RUNNER = Runner()
 
 def need_root():
     return os.geteuid() != 0
+
+
+def stale_root_proxies():
+    """之前 sudo 跑留下的本项目 iproxy（属于 root）。普通用户结束不了，要先在网页上输入密码。"""
+    iproxy = os.path.join(REPO, "tools/SSHRD_Script/Darwin/iproxy")
+    out = subprocess.run(["ps", "-axo", "pid=,user=,command="], capture_output=True, text=True).stdout
+    found = []
+    for line in out.splitlines():
+        parts = line.split(None, 2)
+        if len(parts) == 3 and parts[1] == "root" and parts[2].startswith(iproxy + " "):
+            found.append(int(parts[0]))
+    return found
 
 
 def password_ok(password):
@@ -251,7 +268,7 @@ input:focus-visible+.sw{outline:2px solid var(--amber);outline-offset:2px}
 .ph h2{font:650 12.5px/1.3 var(--sans)}
 .ph small{color:var(--mut);font-size:12px}
 .ph .end{margin-left:auto;display:flex;flex-wrap:wrap;gap:6px}
-.chain{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));margin-top:8px;
+.chain{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));margin-top:8px;
  background:repeating-linear-gradient(90deg,var(--line) 0 1px,transparent 1px 8px) 0 0/100% 5px no-repeat}
 .chain li{position:relative;min-width:0}
 .chain li:not(:last-child)::after{content:"";position:absolute;z-index:0;left:calc(10px + 8px);right:calc(-10px - 8px);top:25px;height:2px;background:var(--line2)}
@@ -551,6 +568,14 @@ input:focus-visible+.sw{outline:2px solid var(--amber);outline-offset:2px}
    <p class="hint" id="featnone" data-i18n="featNone" hidden></p>
    <p class="hint" data-i18n="featHint"></p>
   </section>
+  <section class="dws" id="jailbreaksection" aria-labelledby="h-jailbreak" hidden>
+   <div class="ph"><h2 id="h-jailbreak" data-i18n="jbMode"></h2></div>
+   <label class="field"><span data-i18n="jbMode"></span><select id="jailbreakmode" autocomplete="off" disabled>
+    <option value="rootless" data-i18n="jbRootless"></option><option value="rootful" data-i18n="jbRootful"></option>
+   </select></label>
+   <p class="hint" data-i18n="jbHint"></p>
+   <p class="hint" id="jailbreakwarning" data-i18n="jbPending" hidden></p>
+  </section>
   <section class="dws" aria-labelledby="h-risk">
    <div class="ph"><h2 id="h-risk" data-i18n="risk"></h2></div>
    <label class="optrow"><span><b>allow-manual</b><em data-i18n="manualDesc"></em></span><input type="checkbox" role="switch" id="manual" autocomplete="off"><span class="sw"></span></label>
@@ -615,11 +640,12 @@ input:focus-visible+.sw{outline:2px solid var(--amber);outline-offset:2px}
 const STAGES=%STAGES%;
 const I18N={
  "zh-CN":{
-  volNav:"宗卷设置","vol.section":"宗卷","vol.none":"未设置：执行写盘阶段时会先进入 ramdisk 读取设备分区，再弹出宗卷设置。","notice.volAuto":"正在进入 ramdisk 读取设备分区，读完会弹出宗卷设置，确认后继续{stage}。","notice.volFail":"读取设备分区失败，见控制台。","notice.volCancel":"已取消：{stage} 需要先确认宗卷设置。","dlg.clean":"端到端只适用于干净的设备：刚刷回 iOS 12.5.8，之前没装过第二系统，也没手动改过分区。设备上已经装过东西的，请改用分步执行，并先在宗卷设置里核对分区。","vol.summary":"iOS {v}：System s{sys} · Data s{data} · Data {dp}","btn.needVol":"先完成宗卷设置","spec.vol":"宗卷","notice.needVol":"{stage} 需要先完成宗卷设置。","pw.title":"需要输入密码","pw.note":"「{what}」需要管理员权限。本界面不是用 sudo 启动的，请输入这台 Mac 的登录密码。密码只用来启动这一次，不会保存。","pw.label":"密码","pw.go":"确定","pw.bad":"密码不对，请重试。","notice.pwCancel":"已取消：{stage} 需要管理员密码。",
-  sub:"iPhone 6 Plus · 第二系统（iOS 13.7 / 14.8）",lang:"语言",target:"目标",stop:"停止",stopping:"停止中…",
+  volNav:"宗卷设置","vol.section":"宗卷","vol.none":"未设置：执行写盘阶段时会先进入 ramdisk 读取设备分区，再弹出宗卷设置。","notice.volAuto":"正在进入 ramdisk 读取设备分区，读完会弹出宗卷设置，确认后继续{stage}。","notice.volFail":"读取设备分区失败，见控制台。","notice.volCancel":"已取消：{stage} 需要先确认宗卷设置。","dlg.clean":"端到端只适用于干净的设备：刚刷回 iOS 12.5.8，也没手动改过分区。设备上已经装过东西的，请改用分步执行，并先在宗卷设置里核对分区。","vol.summary":"iOS {v}：System s{sys} · Data s{data} · Data {dp}","btn.needVol":"先完成宗卷设置","spec.vol":"宗卷","notice.needVol":"{stage} 需要先完成宗卷设置。","pw.title":"需要输入密码","pw.note":"「{what}」需要管理员权限。本界面不是用 sudo 启动的，请输入这台 Mac 的登录密码。密码只用来启动这一次，不会保存。","pw.label":"密码","pw.go":"确定","pw.bad":"密码不对，请重试。","notice.pwCancel":"已取消：{stage} 需要管理员密码。",
+  sub:"iPhone 6 Plus",lang:"语言",target:"目标",stop:"停止",stopping:"停止中…",
   chain:"启动链",chainHint:"节点状态只记录本次服务运行期间的结果，不代表设备实际状态",stepAria:"当前步骤",closeNotice:"关闭提示",
   combos:"一键组合",console:"控制台",copy:"复制",copied:"已复制",copyFail:"复制失败",clear:"清屏",clearTitle:"只清空显示，不影响后端缓冲",jump:"回到底部",logEmpty:"尚无输出。选中阶段并点击执行后，日志会显示在这里。",
   openOpts:"打开选项",options:"选项",close:"关闭",restore:"恢复默认",selectAll:"全选",featNone:"未选 feature：仅构建基础层。",featHint:"功能选择用于构建、自动构建启动和安装阶段，真实依赖自动补齐。",
+  jbMode:"palera1n 布局",jbRootless:"rootless（推荐）",jbRootful:"rootful",jbHint:"iOS 15 及以上开启 palera1n 后可选；切换模式需重建启动包和 bootstrap。",jbPending:"此目标的 rootful 后端尚未实现：可选择或 dry-run，但禁止实际构建和写盘。",
   risk:"放宽检查",manualDesc:"执行标记为 manual 的 patch",noid:"不校验设备身份",noidDesc:"boot 时跳过身份检查",input:"输入与覆盖",dp:"Data 加密",dpDefaultEnc:"清单默认",ipswPh:"已导入 DMG 时可留空",bootargs:"boot-args 覆盖",bootargsPh:"留空用清单默认",
   cancel:"取消",confirm:"确认执行",modified:"改",
   "tag.sudo":"写盘 · sudo","tag.edit":"写设备","tag.must":"刷机后必做","tag.opt":"可选",
@@ -630,28 +656,30 @@ const I18N={
   "log.gap":"… 更早的 {n} 行已从显示中移除","log.lines":"{n} 行",
   "feat.base":"仅基础层","feat.changed":"已改","feat.loading":"加载中…","feat.loadFail":"feature 加载失败。","feat.none":"该目标没有可选 feature。",flagNoid:"跳过身份校验",
   "dlg.stage":"阶段","dlg.target":"目标","dlg.manifest":"清单默认","dlg.on":"开","dlg.titleEdit":"确认写设备：{name}","dlg.titleWipe":"确认写盘：{name}",
-  "dlg.noteEdit":"此阶段会改动设备（新建/修改卷或向第二系统卷写入文件、改卷 role）。确认设备{ready}。","dlg.noteWipe":"此阶段会写入设备存储（rootfs 全量流写会先清空目标卷）。确认设备{ready}，运行期间不要断开连接。",
+  "dlg.noteEdit":"此阶段会改动设备（新建/修改卷或向系统卷写入文件、改卷 role）。确认设备{ready}。","dlg.noteWipe":"此阶段会写入设备存储（rootfs 全量流写会先清空目标卷）。确认设备{ready}，运行期间不要断开连接。",
   "ready.ramdisk":"已进 ramdisk","ready.dfu":"处于 DFU",
   "notice.sudo":"当前未以 root 启动，{stage} 未执行（写盘需 root；dry-run 不受此限）。请退出后用 sudo python3 gui.py 重新启动本界面。","notice.req":"请求失败：{msg}","notice.stop":"停止请求失败：{msg}",
   s:{
+   init:{short:"初始化",note:"补齐 donor（checkra1n、apfsios14）和 IPSW 派生输入，已有的跳过。首次需联网，并把 IPSW 放进 ipsw/。",effect:"只写本地 donors/、ipsw/cache/，不碰设备",need:"无"},
    ramdisk:{short:"进 ramdisk",note:"DFU → gaster → SSH ramdisk 就绪",effect:"引导 SSH ramdisk，不写设备存储",need:"设备处于 DFU"},
    "extract-im4m":{short:"重提 IM4M",label:"重提 IM4M（刷机后）",note:"读 NOR 重提本机 IM4M。刷机后必须执行，否则组件可能无法通过校验。",effect:"只读设备，写入本地 state/IM4M.bin",need:"ramdisk 已就绪"},
-   volumes:{short:"建系统卷",note:"在容器内新建第二系统的 System / Data 卷（role 0），卷号接在现有最大卷号之后。",effect:"写设备：新建卷",need:"ramdisk 已就绪"},
+   volumes:{short:"建系统卷",note:"在容器内新建 System / Data 卷（role 0），卷号接在现有最大卷号之后。",effect:"写设备：新建卷",need:"ramdisk 已就绪"},
    rootfs:{short:"写 rootfs",note:"清空目标 System 卷后把所选版本的 rootfs 流式写入，约 20–30 分钟。",effect:"写设备：清空目标卷后全量写入",need:"ramdisk 已就绪"},
-   "patch-rootfs":{short:"施加 patch",label:"施加 rootfs patch",note:"向第二系统卷写入 overlay（含越狱与 Cydia），完成收尾并改卷 role。",effect:"写设备：写入文件、改卷 role",need:"ramdisk 已就绪"},
+   "patch-rootfs":{short:"施加 patch",label:"施加 rootfs patch",note:"向系统卷写入 overlay（含越狱与 Cydia），完成收尾并改卷 role。",effect:"写设备：写入文件、改卷 role",need:"ramdisk 已就绪"},
    build:{short:"构建启动镜像",note:"iBSS / iBEC / DT / TC / KC → img4",effect:"只写本地 build 目录",need:"首次构建需设备处于 DFU（解密 iBSS、iBEC）"},
-   boot:{short:"启动第二系统",note:"经 DFU 发送启动链，缺组件时先 build。",effect:"向设备发送启动链，不写设备存储",need:"设备处于 DFU"},
-   all:{short:"端到端",note:"缺 iBSS/iBEC 时先解密，再 ramdisk + extract-im4m + volumes + rootfs + patch-rootfs + build + boot",effect:"写设备：清空目标卷后全量写入",need:"干净的设备（刚刷回 12.5.8、没装过第二系统、没手动改过分区），处于 DFU"},
+   boot:{short:"启动系统",note:"经 DFU 发送启动链，缺组件时先 build。",effect:"向设备发送启动链，不写设备存储",need:"设备处于 DFU"},
+   all:{short:"端到端",note:"init（缺 iBSS/iBEC 时顺带解密）+ ramdisk + extract-im4m + volumes + rootfs + patch-rootfs + build + boot",effect:"写设备：清空目标卷后全量写入",need:"干净的设备（刚刷回 12.5.8、没手动改过分区），处于 DFU"},
    status:{short:"查看卷 role",note:"各卷 apfs_role · 需 ramdisk"},
    list:{short:"列出选挂",note:"当前选挂的 patch"}
   }
  },
  "en":{
   volNav:"Volumes","vol.section":"Volumes","vol.none":"Not set: disk-writing stages first enter ramdisk to read the device partitions, then open Volume settings.","notice.volAuto":"Entering ramdisk to read the device partitions. Volume settings will open when done; confirm them to continue with {stage}.","notice.volFail":"Reading the device partitions failed. See the console.","notice.volCancel":"Cancelled: {stage} needs confirmed volume settings.","dlg.clean":"End to end is only for a clean device: freshly restored to iOS 12.5.8, with no second system installed before and no manual partition changes. If the device already has anything installed, run the stages one by one and check the partitions in Volume settings first.","vol.summary":"iOS {v}: System s{sys} · Data s{data} · Data {dp}","btn.needVol":"Set up volumes first","spec.vol":"Volumes","notice.needVol":"{stage} needs volume settings first.","pw.title":"Password required","pw.note":"\"{what}\" needs administrator rights. This UI was not started with sudo, so enter the login password for this Mac. It is used only to start this run and is not stored.","pw.label":"Password","pw.go":"OK","pw.bad":"Incorrect password. Try again.","notice.pwCancel":"Cancelled: {stage} needs the administrator password.",
-  sub:"iPhone 6 Plus · Second system (iOS 13.7 / 14.8)",lang:"Language",target:"Target",stop:"Stop",stopping:"Stopping…",
+  sub:"iPhone 6 Plus",lang:"Language",target:"Target",stop:"Stop",stopping:"Stopping…",
   chain:"Boot chain",chainHint:"Node status only reflects results from this server session, not the actual device state",stepAria:"Current step",closeNotice:"Dismiss notice",
   combos:"Combos",console:"Console",copy:"Copy",copied:"Copied",copyFail:"Copy failed",clear:"Clear",clearTitle:"Clears the display only, not the server buffer",jump:"Back to bottom",logEmpty:"No output yet. Select a stage and run it to see logs here.",
   openOpts:"Open options",options:"Options",close:"Close",restore:"Restore defaults",selectAll:"Select all",featNone:"No features selected: only the base layer is built.",featHint:"Feature selection applies to the build, auto-build boot and install stages. Real dependencies are added automatically.",
+  jbMode:"palera1n layout",jbRootless:"rootless (recommended)",jbRootful:"rootful",jbHint:"Available with palera1n on iOS 15+. Changing layout requires rebuilding boot artifacts and bootstrap.",jbPending:"Rootful is not implemented for this target: selection/dry-run is available, real builds and device writes are blocked.",
   risk:"Relaxed checks",manualDesc:"Run patches marked as manual",noid:"Skip device identity check",noidDesc:"Skips the identity check during boot",input:"Inputs and overrides",dp:"Data encryption",dpDefaultEnc:"Manifest default",ipswPh:"Optional if the DMG is already imported",bootargs:"boot-args override",bootargsPh:"Leave empty for the manifest default",
   cancel:"Cancel",confirm:"Run",modified:"edited",
   "tag.sudo":"Writes · sudo","tag.edit":"Writes device","tag.must":"Required after restore","tag.opt":"Optional",
@@ -666,6 +694,7 @@ const I18N={
   "ready.ramdisk":"is in ramdisk","ready.dfu":"is in DFU",
   "notice.sudo":"This server is not running as root, so {stage} did not run. Disk writes need root; dry-run does not. Quit and restart this UI with sudo python3 gui.py.","notice.req":"Request failed: {msg}","notice.stop":"Stop request failed: {msg}",
   s:{
+   init:{short:"Initialize",note:"Prepares donors (checkra1n, apfsios14) and IPSW-derived inputs, skipping what already exists. First run needs network access and the IPSWs in ipsw/.",effect:"Writes only local donors/ and ipsw/cache/; does not touch the device",need:"Nothing"},
    ramdisk:{short:"Enter ramdisk",note:"DFU → gaster → SSH ramdisk ready",effect:"Boots the SSH ramdisk without writing device storage",need:"Device in DFU"},
    "extract-im4m":{short:"Re-extract IM4M",label:"Re-extract IM4M (after restore)",note:"Reads NOR to re-extract this device's IM4M. Required after a restore, or components may fail validation.",effect:"Reads the device and writes local state/IM4M.bin",need:"Ramdisk ready"},
    volumes:{short:"Create volumes",label:"Create System/Data volumes",note:"Creates the second system's System and Data volumes (role 0) after the highest existing volume number.",effect:"Writes device: creates volumes",need:"Ramdisk ready"},
@@ -673,17 +702,18 @@ const I18N={
    "patch-rootfs":{short:"Apply patches",label:"Apply rootfs patches",note:"Writes overlays (including the jailbreak and Cydia) to the second-system volumes, finishes setup and changes volume roles.",effect:"Writes device: writes files and changes volume roles",need:"Ramdisk ready"},
    build:{short:"Build images",label:"Build boot images",note:"iBSS / iBEC / DT / TC / KC → img4",effect:"Writes the local build directory only",need:"First build needs the device in DFU (to decrypt iBSS and iBEC)"},
    boot:{short:"Boot second system",note:"Sends the boot chain through DFU, building first if components are missing.",effect:"Sends the boot chain without writing device storage",need:"Device in DFU"},
-   all:{short:"End to end",note:"Decrypts iBSS/iBEC if missing, then ramdisk + extract-im4m + volumes + rootfs + patch-rootfs + build + boot",effect:"Writes device: wipes the target volume, then writes everything",need:"A clean device (freshly restored to 12.5.8, no second system, no manual partition changes) in DFU"},
+   all:{short:"End to end",note:"init (also decrypts iBSS/iBEC if missing) + ramdisk + extract-im4m + volumes + rootfs + patch-rootfs + build + boot",effect:"Writes device: wipes the target volume, then writes everything",need:"A clean device (freshly restored to 12.5.8, no second system, no manual partition changes) in DFU"},
    status:{short:"Volume roles",note:"apfs_role of each volume · needs ramdisk"},
    list:{short:"List selection",note:"Currently selected patches"}
   }
  },
  "zh-TW":{
-  volNav:"宗卷設定","vol.section":"宗卷","vol.none":"未設定：執行寫入磁碟的階段時會先進入 ramdisk 讀取裝置分區，再彈出宗卷設定。","notice.volAuto":"正在進入 ramdisk 讀取裝置分區，讀完會彈出宗卷設定，確認後繼續{stage}。","notice.volFail":"讀取裝置分區失敗，見主控台。","notice.volCancel":"已取消：{stage} 需要先確認宗卷設定。","dlg.clean":"端到端只適用於乾淨的裝置：剛刷回 iOS 12.5.8，之前沒裝過第二系統，也沒手動改過分區。裝置上已經裝過東西的，請改用分步執行，並先在宗卷設定裡核對分區。","vol.summary":"iOS {v}：System s{sys} · Data s{data} · Data {dp}","btn.needVol":"先完成宗卷設定","spec.vol":"宗卷","notice.needVol":"{stage} 需要先完成宗卷設定。","pw.title":"需要輸入密碼","pw.note":"「{what}」需要管理員權限。本介面不是用 sudo 啟動的，請輸入這台 Mac 的登入密碼。密碼只用來啟動這一次，不會儲存。","pw.label":"密碼","pw.go":"確定","pw.bad":"密碼不正確，請重試。","notice.pwCancel":"已取消：{stage} 需要管理員密碼。",
-  sub:"iPhone 6 Plus · 第二系統（iOS 13.7 / 14.8）",lang:"語言",target:"目標",stop:"停止",stopping:"停止中…",
+  volNav:"宗卷設定","vol.section":"宗卷","vol.none":"未設定：執行寫入磁碟的階段時會先進入 ramdisk 讀取裝置分區，再彈出宗卷設定。","notice.volAuto":"正在進入 ramdisk 讀取裝置分區，讀完會彈出宗卷設定，確認後繼續{stage}。","notice.volFail":"讀取裝置分區失敗，見主控台。","notice.volCancel":"已取消：{stage} 需要先確認宗卷設定。","dlg.clean":"端到端只適用於乾淨的裝置：剛刷回 iOS 12.5.8，也沒手動改過分區。裝置上已經裝過東西的，請改用分步執行，並先在宗卷設定裡核對分區。","vol.summary":"iOS {v}：System s{sys} · Data s{data} · Data {dp}","btn.needVol":"先完成宗卷設定","spec.vol":"宗卷","notice.needVol":"{stage} 需要先完成宗卷設定。","pw.title":"需要輸入密碼","pw.note":"「{what}」需要管理員權限。本介面不是用 sudo 啟動的，請輸入這台 Mac 的登入密碼。密碼只用來啟動這一次，不會儲存。","pw.label":"密碼","pw.go":"確定","pw.bad":"密碼不正確，請重試。","notice.pwCancel":"已取消：{stage} 需要管理員密碼。",
+  sub:"iPhone 6 Plus",lang:"語言",target:"目標",stop:"停止",stopping:"停止中…",
   chain:"啟動鏈",chainHint:"節點狀態只記錄本次服務執行期間的結果，不代表裝置實際狀態",stepAria:"目前步驟",closeNotice:"關閉提示",
   combos:"一鍵組合",console:"主控台",copy:"複製",copied:"已複製",copyFail:"複製失敗",clear:"清除",clearTitle:"只清除顯示，不影響後端緩衝",jump:"回到底部",logEmpty:"尚無輸出。選取階段並點擊執行後，日誌會顯示在這裡。",
   openOpts:"開啟選項",options:"選項",close:"關閉",restore:"恢復預設",selectAll:"全選",featNone:"未選 feature：僅建置基礎層。",featHint:"功能選擇用於建置、自動建置啟動和安裝階段，實際相依項目自動補齊。",
+  jbMode:"palera1n 佈局",jbRootless:"rootless（建議）",jbRootful:"rootful",jbHint:"iOS 15 以上啟用 palera1n 後可選；切換模式需重建啟動包與 bootstrap。",jbPending:"此目標的 rootful 後端尚未實作：可選擇或 dry-run，但禁止實際建置與寫入。",
   risk:"放寬檢查",manualDesc:"執行標記為 manual 的 patch",noid:"不驗證裝置身分",noidDesc:"boot 時略過身分檢查",input:"輸入與覆蓋",dp:"Data 加密",dpDefaultEnc:"清單預設",ipswPh:"已匯入 DMG 時可留空",bootargs:"boot-args 覆蓋",bootargsPh:"留空使用清單預設",
   cancel:"取消",confirm:"確認執行",modified:"改",
   "tag.sudo":"寫入磁碟 · sudo","tag.edit":"寫入裝置","tag.must":"刷機後必做","tag.opt":"選用",
@@ -694,28 +724,30 @@ const I18N={
   "log.gap":"… 更早的 {n} 行已從顯示中移除","log.lines":"{n} 行",
   "feat.base":"僅基礎層","feat.changed":"已改","feat.loading":"載入中…","feat.loadFail":"feature 載入失敗。","feat.none":"此目標沒有可選 feature。",flagNoid:"略過身分驗證",
   "dlg.stage":"階段","dlg.target":"目標","dlg.manifest":"清單預設","dlg.on":"開","dlg.titleEdit":"確認寫入裝置：{name}","dlg.titleWipe":"確認寫入磁碟：{name}",
-  "dlg.noteEdit":"此階段會變更裝置（新建/修改磁碟區或向第二系統磁碟區寫入檔案、變更磁碟區 role）。請確認裝置{ready}。","dlg.noteWipe":"此階段會寫入裝置儲存空間（rootfs 全量串流寫入會先清空目標磁碟區）。請確認裝置{ready}，執行期間不要中斷連線。",
+  "dlg.noteEdit":"此階段會變更裝置（新建/修改磁碟區或向系統磁碟區寫入檔案、變更磁碟區 role）。請確認裝置{ready}。","dlg.noteWipe":"此階段會寫入裝置儲存空間（rootfs 全量串流寫入會先清空目標磁碟區）。請確認裝置{ready}，執行期間不要中斷連線。",
   "ready.ramdisk":"已進入 ramdisk","ready.dfu":"處於 DFU",
   "notice.sudo":"目前未以 root 啟動，{stage} 未執行（寫入磁碟需要 root；dry-run 不受此限）。請結束後用 sudo python3 gui.py 重新啟動本介面。","notice.req":"請求失敗：{msg}","notice.stop":"停止請求失敗：{msg}",
   s:{
+   init:{short:"初始化",note:"補齊 donor（checkra1n、apfsios14）和 IPSW 衍生輸入，已有的會跳過。首次需連網，並把 IPSW 放進 ipsw/。",effect:"只寫入本機 donors/、ipsw/cache/，不碰裝置",need:"無"},
    ramdisk:{short:"進入 ramdisk",note:"DFU → gaster → SSH ramdisk 就緒",effect:"引導 SSH ramdisk，不寫入裝置儲存空間",need:"裝置處於 DFU"},
    "extract-im4m":{short:"重新提取 IM4M",label:"重新提取 IM4M（刷機後）",note:"讀取 NOR 重新提取本機 IM4M。刷機後必須執行，否則元件可能無法通過驗證。",effect:"唯讀裝置，寫入本機 state/IM4M.bin",need:"ramdisk 已就緒"},
-   volumes:{short:"建立系統磁碟區",label:"建立 System/Data 磁碟區",note:"在容器內新建第二系統的 System / Data 磁碟區（role 0），編號接在現有最大編號之後。",effect:"寫入裝置：新建磁碟區",need:"ramdisk 已就緒"},
+   volumes:{short:"建立系統磁碟區",label:"建立 System/Data 磁碟區",note:"在容器內新建 System / Data 磁碟區（role 0），編號接在現有最大編號之後。",effect:"寫入裝置：新建磁碟區",need:"ramdisk 已就緒"},
    rootfs:{short:"寫入 rootfs",note:"清空目標 System 磁碟區後把所選版本的 rootfs 串流寫入，約 20–30 分鐘。",effect:"寫入裝置：清空目標磁碟區後全量寫入",need:"ramdisk 已就緒"},
-   "patch-rootfs":{short:"套用 patch",label:"套用 rootfs patch",note:"向第二系統磁碟區寫入 overlay（含越獄與 Cydia），完成收尾並變更磁碟區 role。",effect:"寫入裝置：寫入檔案、變更磁碟區 role",need:"ramdisk 已就緒"},
+   "patch-rootfs":{short:"套用 patch",label:"套用 rootfs patch",note:"向系統磁碟區寫入 overlay（含越獄與 Cydia），完成收尾並變更磁碟區 role。",effect:"寫入裝置：寫入檔案、變更磁碟區 role",need:"ramdisk 已就緒"},
    build:{short:"建置啟動映像",note:"iBSS / iBEC / DT / TC / KC → img4",effect:"只寫入本機 build 目錄",need:"首次建置需裝置處於 DFU（解密 iBSS、iBEC）"},
-   boot:{short:"啟動第二系統",note:"經 DFU 傳送啟動鏈，缺元件時先 build。",effect:"向裝置傳送啟動鏈，不寫入裝置儲存空間",need:"裝置處於 DFU"},
-   all:{short:"端到端",note:"缺 iBSS/iBEC 時先解密，再 ramdisk + extract-im4m + volumes + rootfs + patch-rootfs + build + boot",effect:"寫入裝置：清空目標磁碟區後全量寫入",need:"乾淨的裝置（剛刷回 12.5.8、沒裝過第二系統、沒手動改過分區），處於 DFU"},
+   boot:{short:"啟動系統",note:"經 DFU 傳送啟動鏈，缺元件時先 build。",effect:"向裝置傳送啟動鏈，不寫入裝置儲存空間",need:"裝置處於 DFU"},
+   all:{short:"端到端",note:"init（缺 iBSS/iBEC 時順帶解密）+ ramdisk + extract-im4m + volumes + rootfs + patch-rootfs + build + boot",effect:"寫入裝置：清空目標磁碟區後全量寫入",need:"乾淨的裝置（剛刷回 12.5.8、沒手動改過分區），處於 DFU"},
    status:{short:"查看磁碟區 role",note:"各磁碟區 apfs_role · 需要 ramdisk"},
    list:{short:"列出選取項目",note:"目前選取的 patch"}
   }
  },
  "ja":{
-  volNav:"ボリューム設定","vol.section":"ボリューム","vol.none":"未設定：書き込みステージの実行時に、まず ramdisk に入ってパーティションを読み取り、ボリューム設定を開きます。","notice.volAuto":"ramdisk に入ってデバイスのパーティションを読み取っています。終わるとボリューム設定が開きます。確定すると{stage}を続行します。","notice.volFail":"パーティションの読み取りに失敗しました。コンソールを確認してください。","notice.volCancel":"キャンセルしました：{stage} にはボリューム設定の確定が必要です。","dlg.clean":"エンドツーエンドはクリーンなデバイス専用です：iOS 12.5.8 を復元したばかりで、セカンドシステムを入れたことがなく、パーティションを手動で変更していないこと。すでに何か入っている場合は、ステージを一つずつ実行し、先にボリューム設定でパーティションを確認してください。","vol.summary":"iOS {v}：System s{sys} · Data s{data} · Data {dp}","btn.needVol":"先にボリューム設定","spec.vol":"ボリューム","notice.needVol":"{stage} の前にボリューム設定が必要です。","pw.title":"パスワードが必要です","pw.note":"「{what}」には管理者権限が必要です。この画面は sudo で起動されていないため、この Mac のログインパスワードを入力してください。パスワードは今回の起動にだけ使い、保存しません。","pw.label":"パスワード","pw.go":"OK","pw.bad":"パスワードが違います。もう一度入力してください。","notice.pwCancel":"キャンセルしました：{stage} には管理者パスワードが必要です。",
-  sub:"iPhone 6 Plus · セカンドシステム（iOS 13.7 / 14.8）",lang:"言語",target:"ターゲット",stop:"停止",stopping:"停止中…",
+  volNav:"ボリューム設定","vol.section":"ボリューム","vol.none":"未設定：書き込みステージの実行時に、まず ramdisk に入ってパーティションを読み取り、ボリューム設定を開きます。","notice.volAuto":"ramdisk に入ってデバイスのパーティションを読み取っています。終わるとボリューム設定が開きます。確定すると{stage}を続行します。","notice.volFail":"パーティションの読み取りに失敗しました。コンソールを確認してください。","notice.volCancel":"キャンセルしました：{stage} にはボリューム設定の確定が必要です。","dlg.clean":"エンドツーエンドはクリーンなデバイス専用です：iOS 12.5.8 を復元したばかりで、パーティションを手動で変更していないこと。すでに何か入っている場合は、ステージを一つずつ実行し、先にボリューム設定でパーティションを確認してください。","vol.summary":"iOS {v}：System s{sys} · Data s{data} · Data {dp}","btn.needVol":"先にボリューム設定","spec.vol":"ボリューム","notice.needVol":"{stage} の前にボリューム設定が必要です。","pw.title":"パスワードが必要です","pw.note":"「{what}」には管理者権限が必要です。この画面は sudo で起動されていないため、この Mac のログインパスワードを入力してください。パスワードは今回の起動にだけ使い、保存しません。","pw.label":"パスワード","pw.go":"OK","pw.bad":"パスワードが違います。もう一度入力してください。","notice.pwCancel":"キャンセルしました：{stage} には管理者パスワードが必要です。",
+  sub:"iPhone 6 Plus",lang:"言語",target:"ターゲット",stop:"停止",stopping:"停止中…",
   chain:"ブートチェーン",chainHint:"ノードの状態はこのサーバー実行中の結果のみで、デバイスの実際の状態ではありません",stepAria:"現在のステップ",closeNotice:"通知を閉じる",
   combos:"ワンクリック",console:"コンソール",copy:"コピー",copied:"コピーしました",copyFail:"コピー失敗",clear:"クリア",clearTitle:"表示のみクリアし、サーバーのバッファには影響しません",jump:"一番下へ",logEmpty:"出力はまだありません。ステージを選択して実行すると、ここにログが表示されます。",
   openOpts:"オプションを開く",options:"オプション",close:"閉じる",restore:"デフォルトに戻す",selectAll:"すべて選択",featNone:"feature 未選択：ベースレイヤーのみビルドします。",featHint:"機能の選択はビルド、自動ビルド起動、インストールの各ステージに適用され、依存関係は自動で補完されます。",
+  jbMode:"palera1n レイアウト",jbRootless:"rootless（推奨）",jbRootful:"rootful",jbHint:"iOS 15 以降で palera1n を有効にすると選択できます。変更時は起動ファイルと bootstrap の再ビルドが必要です。",jbPending:"このターゲットの rootful バックエンドは未実装です。選択と dry-run は可能ですが、実ビルドと書き込みは拒否されます。",
   risk:"チェックの緩和",manualDesc:"manual と指定された patch を実行",noid:"デバイス ID を検証しない",noidDesc:"boot 時に ID チェックをスキップ",input:"入力と上書き",dp:"Data 暗号化",dpDefaultEnc:"マニフェスト既定",ipswPh:"DMG をインポート済みなら空欄可",bootargs:"boot-args の上書き",bootargsPh:"空欄でマニフェスト既定を使用",
   cancel:"キャンセル",confirm:"実行する",modified:"変更",
   "tag.sudo":"書き込み · sudo","tag.edit":"デバイス書き込み","tag.must":"復元後に必須","tag.opt":"任意",
@@ -726,18 +758,19 @@ const I18N={
   "log.gap":"… 以前の {n} 行を表示から削除しました","log.lines":"{n} 行",
   "feat.base":"ベースレイヤーのみ","feat.changed":"変更あり","feat.loading":"読み込み中…","feat.loadFail":"feature の読み込みに失敗しました。","feat.none":"このターゲットに選択可能な feature はありません。",flagNoid:"ID 検証をスキップ",
   "dlg.stage":"ステージ","dlg.target":"ターゲット","dlg.manifest":"マニフェスト既定","dlg.on":"オン","dlg.titleEdit":"デバイス書き込みの確認：{name}","dlg.titleWipe":"ディスク書き込みの確認：{name}",
-  "dlg.noteEdit":"このステージはデバイスを変更します（ボリュームの作成・変更、セカンドシステムのボリュームへのファイル書き込み、ボリューム role の変更）。デバイスが{ready}ことを確認してください。","dlg.noteWipe":"このステージはデバイスのストレージに書き込みます（rootfs の全量書き込みでは先にターゲットボリュームを消去します）。デバイスが{ready}ことを確認し、実行中は接続を切らないでください。",
+  "dlg.noteEdit":"このステージはデバイスを変更します（ボリュームの作成・変更、ボリュームへのファイル書き込み、ボリューム role の変更）。デバイスが{ready}ことを確認してください。","dlg.noteWipe":"このステージはデバイスのストレージに書き込みます（rootfs の全量書き込みでは先にターゲットボリュームを消去します）。デバイスが{ready}ことを確認し、実行中は接続を切らないでください。",
   "ready.ramdisk":"ramdisk に入っている","ready.dfu":"DFU 状態である",
   "notice.sudo":"root で起動していないため、{stage} は実行されませんでした（書き込みには root が必要です。dry-run は対象外です）。終了して sudo python3 gui.py で再起動してください。","notice.req":"リクエスト失敗：{msg}","notice.stop":"停止リクエスト失敗：{msg}",
   s:{
+   init:{short:"初期化",note:"donor（checkra1n、apfsios14）と IPSW 由来の入力を用意します。既にあるものはスキップ。初回はネット接続と ipsw/ への IPSW 配置が必要です。",effect:"ローカルの donors/ と ipsw/cache/ のみ書き込み、デバイスには触れません",need:"なし"},
    ramdisk:{short:"ramdisk に入る",note:"DFU → gaster → SSH ramdisk 準備完了",effect:"SSH ramdisk を起動。デバイスのストレージには書き込みません",need:"デバイスが DFU 状態"},
    "extract-im4m":{short:"IM4M を再抽出",label:"IM4M を再抽出（復元後）",note:"NOR を読み取り、このデバイスの IM4M を再抽出します。復元後は必須で、実行しないとコンポーネントが検証を通らない場合があります。",effect:"デバイスは読み取りのみ。ローカルの state/IM4M.bin に書き込みます",need:"ramdisk 準備完了"},
-   volumes:{short:"ボリュームを作成",label:"System/Data ボリュームを作成",note:"コンテナ内にセカンドシステムの System / Data ボリューム（role 0）を、既存の最大番号の後ろに作成します。",effect:"デバイス書き込み：ボリュームを作成",need:"ramdisk 準備完了"},
+   volumes:{short:"ボリュームを作成",label:"System/Data ボリュームを作成",note:"コンテナ内に System / Data ボリューム（role 0）を、既存の最大番号の後ろに作成します。",effect:"デバイス書き込み：ボリュームを作成",need:"ramdisk 準備完了"},
    rootfs:{short:"rootfs を書き込み",note:"ターゲットの System ボリュームを消去し、選択したバージョンの rootfs をストリーム書き込みします。約 20〜30 分かかります。",effect:"デバイス書き込み：ターゲットボリュームを消去して全量書き込み",need:"ramdisk 準備完了"},
-   "patch-rootfs":{short:"patch を適用",label:"rootfs patch を適用",note:"セカンドシステムのボリュームに overlay（脱獄と Cydia を含む）を書き込み、仕上げを行ってボリューム role を変更します。",effect:"デバイス書き込み：ファイル書き込み、ボリューム role の変更",need:"ramdisk 準備完了"},
+   "patch-rootfs":{short:"patch を適用",label:"rootfs patch を適用",note:"ボリュームに overlay（脱獄と Cydia を含む）を書き込み、仕上げを行ってボリューム role を変更します。",effect:"デバイス書き込み：ファイル書き込み、ボリューム role の変更",need:"ramdisk 準備完了"},
    build:{short:"イメージをビルド",label:"ブートイメージをビルド",note:"iBSS / iBEC / DT / TC / KC → img4",effect:"ローカルの build ディレクトリのみ書き込み",need:"初回ビルドではデバイスを DFU にする必要があります（iBSS、iBEC の復号）"},
-   boot:{short:"セカンドシステムを起動",note:"DFU 経由でブートチェーンを送信します。コンポーネントが不足していれば先に build します。",effect:"ブートチェーンを送信。デバイスのストレージには書き込みません",need:"デバイスが DFU 状態"},
-   all:{short:"エンドツーエンド",note:"iBSS/iBEC がなければ先に復号し、ramdisk + extract-im4m + volumes + rootfs + patch-rootfs + build + boot を実行",effect:"デバイス書き込み：ターゲットボリュームを消去して全量書き込み",need:"クリーンなデバイス（12.5.8 を復元したばかり、セカンドシステムなし、パーティション未変更）が DFU 状態"},
+   boot:{short:"システムを起動",note:"DFU 経由でブートチェーンを送信します。コンポーネントが不足していれば先に build します。",effect:"ブートチェーンを送信。デバイスのストレージには書き込みません",need:"デバイスが DFU 状態"},
+   all:{short:"エンドツーエンド",note:"init（iBSS/iBEC がなければ復号も）+ ramdisk + extract-im4m + volumes + rootfs + patch-rootfs + build + boot を実行",effect:"デバイス書き込み：ターゲットボリュームを消去して全量書き込み",need:"クリーンなデバイス（12.5.8 を復元したばかり、パーティション未変更）が DFU 状態"},
    status:{short:"ボリューム role",note:"各ボリュームの apfs_role · ramdisk が必要"},
    list:{short:"選択を一覧表示",note:"現在選択中の patch"}
   }
@@ -773,6 +806,7 @@ function applyStatic(){
 }
 const TAG_CLASS_OF={sudo:'danger',edit:'edit',must:'must',opt:'opt'};
 const META={
+ init:{group:'flow'},
  ramdisk:{group:'flow'},
  'extract-im4m':{group:'flow',tone:'must',tag:'must'},
  volumes:{group:'flow',tone:'edit',confirm:1,sev:'edit',tag:'edit',ready:'ready.ramdisk'},
@@ -780,7 +814,7 @@ const META={
  'patch-rootfs':{group:'flow',tone:'edit',confirm:1,sev:'edit',tag:'edit',ready:'ready.ramdisk'},
  build:{group:'flow'},
  boot:{group:'flow'},
- all:{group:'combo',num:'A',tone:'danger',confirm:1,sev:'wipe',sudo:1,tag:'sudo',members:['ramdisk','extract-im4m','volumes','rootfs','patch-rootfs','build','boot'],ready:'ready.dfu'},
+ all:{group:'combo',num:'A',tone:'danger',confirm:1,sev:'wipe',sudo:1,tag:'sudo',members:['init','ramdisk','extract-im4m','volumes','rootfs','patch-rootfs','build','boot'],ready:'ready.dfu'},
  status:{group:'query'},
  list:{group:'query'}
 };
@@ -834,19 +868,19 @@ function markSub(kind){
 function enterSub(id){
  if(!((META[state.active]||{}).members||[]).includes(id))return;
  markSub('ok');
- state.sub=id;state.results[id]='run';
+ state.sub=id;state.subN=(state.subN||0)+1;state.results[id]='run';
 }
 // 端到端运行时带上当前子阶段和进度，其他阶段只显示 ID
 function activeName(){
  if(!state.sub)return state.active;
  const ms=META[state.active].members;
- return label(state.active)+' · '+title(state.sub)+' · '+(ms.indexOf(state.sub)+1)+'/'+ms.length;
+ return label(state.active)+' · '+title(state.sub)+' · '+state.subN+'/'+ms.length;   // 按实际进入顺序计数（15 的 build 排在 rootfs 之前）
 }
 function trackLine(line){
  let m;
  if((m=line.match(RUN_LINE))){
   state.active=m[1];state.activeDry=line.includes(' --dry-run');
-  state.startedAt=Date.now();state.results[m[1]]='run';state.last=null;follow=true;state.sub=null;
+  state.startedAt=Date.now();state.results[m[1]]='run';state.last=null;follow=true;state.sub=null;state.subN=0;
   for(const s of (META[m[1]]||{}).members||[])delete state.results[s];
   if(replaying&&(META[m[1]]||{}).group!=='query')selected=m[1];
  }else if((m=line.match(END_LINE))){
@@ -896,7 +930,7 @@ function renderStep(){
   stepKey=key;
   const idx=FLOW.indexOf(selected);
   $('stcard').className=m.tone==='danger'?'stage-danger':'';
-  $('stnum').textContent=m.num||String(idx+1).padStart(2,'0');
+  $('stnum').textContent=m.num||String(idx).padStart(2,'0');
   $('sttitle').textContent=title(selected);
   $('stmeta').replaceChildren(selected,...(m.tag?[tagEl(m)]:[]));
   $('stnote').textContent=st(selected,'note');
@@ -961,8 +995,9 @@ function select(id){
 
 /* ---------- 日志 ---------- */
 const logEl=$('log');
-let off=0,tail='',tailEl=null,follow=true,lineCount=0,dropped=0,gapEl=null,inflight=null;
+let off=0,tail='',tailEl=null,progEl=null,follow=true,lineCount=0,dropped=0,gapEl=null,inflight=null;
 const ANSI=/\x1b\[[0-9;]*[A-Za-z]/g;
+const PROG=/^\s*(\[[=#>\s-]*\]\s*[\d.]+%|[\d.]+%\s*\[[=#>\s-]*\])\s*$/;   // 进度条：连续的只占一行
 const TAG=/^(\s*)(\[\*\]|\[!\]|\[>\]|\[ERROR\]|\[\d+\/\d+\])/;
 const TAG_CLASS={'[*]':'l-ok','[!]':'l-warn','[ERROR]':'l-err'};
 
@@ -1001,7 +1036,12 @@ function ingest(text){
  for(const [i,p] of parts.entries()){
   trackLine(p);
   if(p===''&&(lineCount===0||RUN_LINE.test(parts[i+1]||'')))continue;
-  frag.append(lineEl(p));lineCount++;
+  const el=lineEl(p);
+  if(PROG.test(p)){
+   if(progEl&&progEl.parentNode){progEl.replaceWith(el);progEl=el;continue}
+   progEl=el;
+  }else progEl=null;
+  frag.append(el);lineCount++;
  }
  if(tail){tailEl=lineEl(tail);frag.append(tailEl);lineCount++}
  logEl.append(frag);
@@ -1011,7 +1051,7 @@ function ingest(text){
  $('jump').hidden=follow;
 }
 function clearDisplay(){
- logEl.replaceChildren();tailEl=null;gapEl=null;lineCount=0;dropped=0;
+ logEl.replaceChildren();tailEl=null;progEl=null;gapEl=null;lineCount=0;dropped=0;
  $('logcount').textContent='';follow=true;$('jump').hidden=true;
 }
 function resetAll(){
@@ -1059,9 +1099,20 @@ $('logcopy').addEventListener('click',async()=>{
 
 /* ---------- 目标、feature 与选项 ---------- */
 let featToken=0,featDefault=[],targetsLoaded=false,featsReady=false,featMsg='';
+let jailbreakMeta={available:false,modes:[],default:'rootless',implemented:[]};
+const jailbreakPrefs=Object.create(null);
 function setFeatMsg(key){featMsg=key;$('feats').textContent=t(key)}
 function featInputs(){return [...document.querySelectorAll('[data-f]')]}
 function selectedFeats(){return featInputs().filter(c=>c.checked).map(c=>c.dataset.f)}
+function selectedJailbreakMode(){
+ return featsReady&&jailbreakMeta.available&&selectedFeats().includes('palera1n')?$('jailbreakmode').value:'';
+}
+function syncJailbreakMode(){
+ const active=!!selectedJailbreakMode();
+ $('jailbreaksection').hidden=!active;
+ $('jailbreakmode').disabled=!active;
+ $('jailbreakwarning').hidden=!active||jailbreakMeta.implemented.includes($('jailbreakmode').value);
+}
 function refreshFeats(){
  const inputs=featInputs(),sel=selectedFeats(),n=sel.length;
  let changed=false;
@@ -1077,9 +1128,12 @@ function refreshFeats(){
  $('featlist').textContent=inputs.length?(n?sel.join(' '):t('feat.base'))+(changed?' · '+t('feat.changed'):''):'';
  $('featnone').hidden=!inputs.length||n>0;
  $('featdef').disabled=$('featall').disabled=!inputs.length;
+ syncJailbreakMode();renderFlags();
 }
 function renderFlags(){
  const flags=[];
+ const mode=selectedJailbreakMode();
+ if(mode)flags.push(['palera1n · '+mode,jailbreakMeta.implemented.includes(mode)?'info':'risk']);
  if($('manual').checked)flags.push(['allow-manual','risk']);
  if($('noid').checked)flags.push([t('flagNoid'),'risk']);
  if(volCfg)flags.push(['s'+volCfg.system+'/s'+volCfg.data+' · '+volCfg.dp,volCfg.dp==='none'?'risk':'info']);
@@ -1091,6 +1145,7 @@ function renderFlags(){
 async function loadFeats(){
  const t=$('target').value,tok=++featToken,box=$('feats');
  featsReady=false;
+ jailbreakMeta={available:false,modes:[],default:'rootless',implemented:[]};
  setFeatMsg('feat.loading');
  refreshFeats();render();
  let d;
@@ -1098,7 +1153,10 @@ async function loadFeats(){
  catch(e){if(tok===featToken){setFeatMsg('feat.loadFail');refreshFeats()}return}
  if(tok!==featToken)return;
  featDefault=d.sel;featMsg='';
- const names=[...new Set([...d.all,...d.sel])].sort();
+ jailbreakMeta=d.jailbreak||{available:false,modes:[],default:'rootless',implemented:[]};
+ const preferred=jailbreakPrefs[t]||jailbreakMeta.default||'rootless';
+ $('jailbreakmode').value=jailbreakMeta.modes.includes(preferred)?preferred:'rootless';
+ const names=[...new Set([...d.all,...d.sel])].filter(f=>!(jailbreakMeta.available&&f==='rootless')).sort();
  box.replaceChildren(...names.map(f=>{
   const input=h('input',{type:'checkbox','data-f':f,autocomplete:'off',onchange:refreshFeats});
   input.checked=d.sel.includes(f);
@@ -1121,6 +1179,7 @@ $('target').addEventListener('change',()=>{loadFeats();vload()});
 $('featall').addEventListener('click',()=>setAllFeats(()=>true));
 $('featdef').addEventListener('click',()=>setAllFeats(f=>featDefault.includes(f)));
 $('dry').addEventListener('change',render);
+$('jailbreakmode').addEventListener('change',()=>{jailbreakPrefs[$('target').value]=$('jailbreakmode').value;syncJailbreakMode();renderFlags()});
 const drawer=$('drawer');
 for(const id of ['fsum','openopts'])$(id).addEventListener('click',()=>drawer.showModal());
 $('closeopts').addEventListener('click',()=>drawer.close());
@@ -1129,7 +1188,7 @@ for(const ev of ['input','change'])drawer.addEventListener(ev,renderFlags);
 
 /* ---------- 阶段 ---------- */
 function mkStages(){
- let flowNum=0;
+ let flowNum=-1;   // init 编号 00
  for(const id in rows)delete rows[id];
  $('chain').replaceChildren();$('combos').replaceChildren();$('queries').replaceChildren();
  for(const id of STAGES){
@@ -1158,13 +1217,14 @@ function mkStages(){
 function payload(stage){
  return {stage,target:$('target').value,features:selectedFeats(),
   dry:$('dry').checked,manual:$('manual').checked,noid:$('noid').checked,
-  bootargs:$('bootargs').value,dp:'',
+  bootargs:$('bootargs').value,dp:'',jailbreak_mode:selectedJailbreakMode(),
   n66ipsw:$('n66ipsw').value,j96ipsw:$('j96ipsw').value};
 }
 function confirmRun(body,meta){
  const edit=meta.sev==='edit',dlg=$('dlg'),items=[[t('dlg.stage'),body.stage],[t('dlg.target'),body.target]];
  dlg.dataset.sev=edit?'edit':'wipe';
  if(FEATURE_STAGES.has(body.stage))items.push(['features',body.features.join(', ')||t('feat.base')]);
+ if(body.jailbreak_mode)items.push([t('jbMode'),body.jailbreak_mode]);
  if(VOL_GATED.has(body.stage))items.push([t('spec.vol'),volText()]);
  items.push(['boot-args',body.bootargs.trim()||t('dlg.manifest')]);
  if(body.n66ipsw.trim())items.push(['N66 IPSW',body.n66ipsw.trim()]);
@@ -1199,8 +1259,9 @@ async function readPartitionsThen(stage,body){
  notice('notice.volAuto',{stage:label(stage)});
  state.pending=true;render();
  try{
-  const r=await j('/api/slots/run',post({action:'identify',target:body.target}));
-  if(!r.ok){pendingRun=null;notice('notice.volFail')}
+  const r=await postRoot('/api/slots/run',{action:'identify',target:body.target},vt('identify'));
+  if(r.reason==='cancelled'){pendingRun=null;notice('notice.pwCancel',{stage:label(stage)})}
+  else if(!r.ok){pendingRun=null;notice('notice.volFail')}
  }catch(e){pendingRun=null;notice('notice.req',{msg:e.message})}
  await pull();await pull();
  state.pending=false;render();
@@ -1305,14 +1366,18 @@ function askPassword(what,bad){
 }
 $('pwinput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('pwdlg').close('go')}});
 function post(body){return {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}}
-// 需要 root 的请求：后端回 need-sudo / bad-password 时弹窗要密码，再带上密码重发。
+// 需要 root 的请求：本页面会话内记住已验证的管理员密码（只在内存里，刷新即失效），之后自动带上；
+// 后端回 need-sudo / bad-password 时才弹窗。
+let sudoPw=null;
 async function postRoot(url,body,what){
- let r=await j(url,post(body));
+ let pw=sudoPw;
+ let r=await j(url,post(pw?{...body,password:pw}:body));
  while(r.reason==='need-sudo'||r.reason==='bad-password'){
-  const pw=await askPassword(what,r.reason==='bad-password');
+  pw=await askPassword(what,r.reason==='bad-password');
   if(pw===null)return {ok:false,reason:'cancelled'};
   r=await j(url,post({...body,password:pw}));
  }
+ if(pw&&r.reason!=='bad-password')sudoPw=pw;
  return r;
 }
 // 通用确认（复用 #dlg）；行列表留空时隐藏
@@ -1774,7 +1839,7 @@ class Handler(BaseHTTPRequestHandler):
         if u.path == "/api/features":
             t = parse_qs(u.query).get("target", ["n56-ios13"])[0]
             sel, allf = target_features(t)
-            return self._send(200, {"sel": sel, "all": allf})
+            return self._send(200, {"sel": sel, "all": allf, "jailbreak": jailbreak_metadata(load_target(t))})
         if u.path == "/api/log":
             off = int(parse_qs(u.query).get("off", ["0"])[0])
             lines, total = RUNNER.since(off)
@@ -1808,8 +1873,12 @@ class Handler(BaseHTTPRequestHandler):
             if config and body["stage"] in VOLUME_STAGES | {"build", "boot"}:
                 # 宗卷设置给出卷号与 Data 保护模式；build/boot 也带上，工作目录与启动包才一致
                 body = {**body, "slot": config["version"], "dp": config["dp"]}
-            args = self._build_args(body)
-            if body["stage"] in SUDO_STAGES and not body.get("dry"):
+            try:
+                args = self._build_args(body)
+            except (ValueError, SystemExit) as exc:
+                return self._send(400, {"ok": False, "reason": getattr(exc, "message", str(exc))})
+            needs_root = body["stage"] in SUDO_STAGES or (body["stage"] in RAMDISK_STAGES and stale_root_proxies())
+            if needs_root and not body.get("dry"):
                 return self._send(200, start_privileged(args, body, body["stage"]))
             ok = RUNNER.start(args)
             return self._send(200, {"ok": ok})
@@ -1838,7 +1907,7 @@ class Handler(BaseHTTPRequestHandler):
                     # 识别成功才解锁宗卷设置；重新识别会清掉本次已确认的宗卷（分区可能变了）
                     VOL_SESSION["identified"] = code == 0
                     VOL_SESSION["volumes"].clear()
-            if action in SLOT_RUN_SUDO:
+            if action in SLOT_RUN_SUDO or (action == "identify" and stale_root_proxies()):
                 return self._send(200, start_privileged(tail, body, action, on_exit))
             ok = RUNNER.start(tail, on_exit=on_exit)
             return self._send(200, {"ok": ok, "reason": "" if ok else "busy"})
@@ -1849,6 +1918,13 @@ class Handler(BaseHTTPRequestHandler):
              "--target", b.get("target", "n56-ios13")]
         if "features" in b and b["stage"] in ("build", "boot", "patch-rootfs", "install", "all", "list"):
             a += ["--features", ",".join(b["features"])]
+        if b.get("jailbreak_mode") and b["stage"] in ("build", "boot", "patch-rootfs", "install", "all", "list"):
+            target = load_target(b.get("target", "n56-ios13"))
+            if "features" in b:
+                target["features"] = b["features"]
+            configure_jailbreak_mode(target, b["jailbreak_mode"])
+            require_backend(target, b["stage"], dry_run=bool(b.get("dry")))
+            a += ["--jailbreak-mode", b["jailbreak_mode"]]
         if b.get("dry"):
             a.append("--dry-run")
         if b.get("manual"):

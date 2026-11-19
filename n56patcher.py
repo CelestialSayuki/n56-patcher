@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""N56 第二系统构建与安装入口。
+"""N56 构建与安装入口。
 
 阶段：
+  init          补齐 donor 与 IPSW 派生输入（已有则跳过；all 会自动先跑）
   ramdisk       引导 SSH ramdisk（已在运行时直接沿用）
   extract-im4m  从设备 NOR 重提本机 IM4M（刷机后必做）
-  volumes       建第二系统的 System / Data 卷
+  volumes       建 System / Data 卷
   rootfs        清空目标 System 卷并写入系统镜像（需要 root）
   patch-rootfs  写入 overlay 补丁、初始化 Data、设置卷 role
   install       volumes + rootfs + patch-rootfs（需要 root）
@@ -25,10 +26,14 @@
   sudo python3 n56patcher.py all --slot 14                         # 按宗卷安装，目标随版本
   python3 n56patcher.py build --target n56-ios14 --with watch --without camera
 """
-import argparse
 import os
-import subprocess
 import sys
+
+sys.dont_write_bytecode = True                  # 仓库里不留 __pycache__（子进程同样）
+os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
+
+import argparse
+import subprocess
 
 REPO = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, REPO)
@@ -46,7 +51,7 @@ def build_parser():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description=__doc__)
     p.add_argument("stage", choices=[
-        "ramdisk", "extract-im4m", "volumes", "rootfs", "patch-rootfs",
+        "init", "ramdisk", "extract-im4m", "volumes", "rootfs", "patch-rootfs",
         "build", "boot", "install", "all", "list", "status"])
     from core.context import TARGETS_DIR
     targets = sorted(fn[:-3].replace("_", "-") for fn in os.listdir(TARGETS_DIR)
@@ -65,7 +70,9 @@ def build_parser():
                    help="逗号分隔的 patch ID，排除指定补丁")
     p.add_argument("--bootargs", default=None, help="覆盖 boot-args")
     p.add_argument("--data-protection", choices=["none", "encrypted"], default=None,
-                   help="第二系统 Data 保护模式（默认使用目标配置）")
+                   help="Data 保护模式（默认使用目标配置）")
+    p.add_argument("--jailbreak-mode", choices=["rootless", "rootful"], default=None,
+                   help="iOS15+ palera1n 布局，默认 rootless；rootful 后端未实现的目标拒绝实跑")
     p.add_argument("--n66-ipsw", default=None, help="目标版本的 iPhone 6s Plus IPSW")
     p.add_argument("--j96-ipsw", default=None, help="目标版本的 iPad mini 4 IPSW")
     p.add_argument("--system", type=int, default=None, help="独立 System 卷号")
@@ -162,7 +169,21 @@ def make_flow(args):
     if args.exclude is not None:
         ctx.t["exclude"] = list(dict.fromkeys(ctx.t.get("exclude", []) +
                                     [x.strip() for x in args.exclude.split(",") if x.strip()]))
+    from core.jailbreak_mode import configure, require_backend
+    try:
+        requested_mode = getattr(args, "jailbreak_mode", None)
+        if requested_mode == "rootless" and "rootless" in (args.without_features or "").split(","):
+            raise ValueError("--without rootless conflicts with --jailbreak-mode rootless")
+        configure(ctx.t, requested_mode)
+        require_backend(ctx.t, args.stage, dry_run=args.dry_run)
+    except ValueError as exc:
+        log.die(str(exc))
     selection = patchmod.select(ctx.t)
+    try:
+        require_backend(ctx.t, args.stage, dry_run=args.dry_run,
+                        palera1n_active=any(p.id == "kc.palera1n" for p in selection["kc"]))
+    except ValueError as exc:
+        log.die(str(exc))
     flow = Flow(ctx, selection, allow_manual=args.allow_manual,
                 identity_check=not args.no_identity_check)
     if args.system is not None or args.data is not None:
@@ -186,10 +207,14 @@ def main(argv=None):
 
     if args.stage == "list":
         log.log(f"目标 {ctx.t['name']}  features={ctx.t.get('features')}")
+        from core.jailbreak_mode import palera1n_enabled, selected_mode
+        if palera1n_enabled(ctx.t) and selected_mode(ctx.t):
+            log.log(f"palera1n jailbreak mode={selected_mode(ctx.t)}")
         print(patchmod.summary(selection))
         return 0
 
     dispatch = {
+        "init": flow.init,
         "ramdisk": flow.ramdisk,
         "extract-im4m": flow.extract_im4m,
         "volumes": flow.volumes,
@@ -219,17 +244,22 @@ def main(argv=None):
 
 def _terminate_as_interrupt(signum, frame):
     # GUI 的「取消」发 SIGTERM。默认处理会直接退出、不跑 finally，留下占端口的 iproxy；
-    # 按 Ctrl-C 处理，让 flow.close() 照常收尾。
+    # 按 Ctrl-C 处理，让 flow.close() 照常收尾。并行 worker 被进程池结束时直接退出，不刷 traceback。
+    if os.getpid() != _MAIN_PID:
+        os._exit(1)
     raise KeyboardInterrupt
+
+
+_MAIN_PID = os.getpid()
 
 
 def _return_ownership(repo):
     """经 sudo 运行时，生成的文件归 root，之后不经 sudo 的阶段（GUI 的识别、build 等）就写不进去。
-    退出前把 build/、state/、ipsw/ 下的文件属主还给调用 sudo 的用户（不进入挂载点）。"""
+    退出前把 build/、state/、ipsw/、donors/ 下的文件属主还给调用 sudo 的用户（不进入挂载点）。"""
     uid, gid = os.environ.get("SUDO_UID"), os.environ.get("SUDO_GID")
     if os.geteuid() != 0 or not uid or not gid:
         return
-    for top in ("build", "state", "ipsw"):
+    for top in ("build", "state", "ipsw", "donors"):
         top = os.path.join(repo, top)
         if not os.path.isdir(top):
             continue

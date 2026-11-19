@@ -27,7 +27,23 @@ def exclude_built(submodule, rules):
         exclude.write_text(current + "\n" + rules)
 
 
-def setup():
+def ensure_donors(checkra1n=True):
+    """补齐 donors/ 与 Python 依赖：已存在的跳过。dualra1n 还没拉下来时先跑完整 setup。
+    checkra1n=False：目标用不到 checkra1n（iOS 15 rootless），不下载。"""
+    apfs14 = REPO / "donors/projects/dualra1n-bin/apfsios14"
+    if not apfs14.exists():
+        source = REPO / "tools/dualra1n/other/apfsios14"
+        if not source.exists():
+            return setup(checkra1n)
+        shutil.copytree(source, apfs14, symlinks=True)
+    if checkra1n:
+        fetch_checkra1n()
+    if not (REPO / "tools/bin/pydeps").exists():
+        run(sys.executable, "-m", "pip", "install", "-q", "--target", "tools/bin/pydeps",
+            "-r", str(REPO / "requirements.txt"))
+
+
+def setup(checkra1n=True):
     modules = configparser.ConfigParser()
     modules.read(REPO / ".gitmodules")
     for name in ("SSHRD_Script", "img4lib", "devicetree-parse", "DyldExtractor", "gaster"):
@@ -66,13 +82,7 @@ def setup():
         exclude_built(gaster, "/gaster\n")
         shutil.copy2(gaster / "gaster", target)
 
-    apfs14 = REPO / "donors/projects/dualra1n-bin/apfsios14"
-    if not apfs14.exists():
-        shutil.copytree(dualra1n / "other/apfsios14", apfs14, symlinks=True)
-    fetch_checkra1n()
-
-    run(sys.executable, "-m", "pip", "install", "-q", "--upgrade", "--target", "tools/bin/pydeps",
-        "-r", str(REPO / "requirements.txt"))
+    ensure_donors(checkra1n)
     print("工具已就绪：tools/SSHRD_Script/Darwin、tools/dualra1n/binaries/Darwin、tools/img4lib/img4、donors/")
 
 

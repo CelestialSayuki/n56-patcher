@@ -3,16 +3,18 @@ import os
 import subprocess
 import sys
 import json
+import hashlib
 from pathlib import Path
 
 from . import log
-from .context import Context, STATE_DIR
+from .context import Context, REPO, STATE_DIR
 from .ramdisk import Ramdisk
 from .apfs import Apfs
 from .tools import Tools, run
 from .trustcache import TrustCache
 from .installation import IndependentInstallation, bind_volumes, restore_layout
 from .volume_inventory import inventory, print_inventory, verify_legacy_targets
+from .jailbreak_mode import ios_major, selected_mode, manifest_mode, require_backend
 
 
 class Flow:
@@ -33,11 +35,51 @@ class Flow:
                 bind_volumes(ctx, ctx.t["mounts"]["system_b"], ctx.t["mounts"]["data_b"])
             ctx.installation = IndependentInstallation(ctx)
 
+    def _jailbreak_guard(self, stage):
+        try:
+            require_backend(self.ctx.t, stage, dry_run=self.ctx.dry_run,
+                            palera1n_active=any(p.id == "kc.palera1n" for p in self.sel.get("kc", ())))
+        except ValueError as exc:
+            log.die(str(exc))
+
     def close(self):
         if self.ctx.installation and self.ctx.installation.mounted:
             self.ctx.installation.close()
         self.ctx.close_source_mounts()
         self.rd.close()
+
+    # ============================ init ===============================
+    def init(self):
+        """进 ramdisk 前补齐：donor、IPSW 派生输入、SSH ramdisk、解密 iBSS/iBEC。已有的直接跳过。"""
+        if self.ctx.dry_run:
+            log.log("dry-run：跳过 donor 与派生输入准备。")
+            return
+        sys.path.insert(0, os.path.join(REPO, "tools"))
+        try:
+            import setup
+        finally:
+            sys.path.pop(0)
+        # checkra1n 只给 13/14 用；15 只有 rootful 借用它的 dropbear/bash
+        setup.ensure_donors(checkra1n=ios_major(self.ctx.t) < 15 or selected_mode(self.ctx.t) == "rootful")
+        self.ctx.ensure_derived()
+        if ios_major(self.ctx.t) >= 15:
+            # rootless/rootful 用到的固定上游包（bootstrap、Sileo…），已有且哈希对得上的跳过
+            from patches.ios15.impl.rootfs.rootless_bootstrap import artifacts
+            log.log("补齐 iOS 15 越狱上游包…")
+            artifacts.fetch()
+        self._ensure_sshramdisk()
+        self._ensure_iboot()
+        log.log("donor 与派生输入已就绪。")
+
+    SSHRAMDISK_FILES = ("iBSS", "iBEC", "ramdisk", "devicetree", "trustcache", "kernelcache")
+
+    def _ensure_sshramdisk(self):
+        """缺 SSH ramdisk 时用 SSHRD_Script 生成（脚本会读取机型并等待设备进入 DFU）。"""
+        rd = os.path.join(REPO, self.ctx.t["ramdisk_dir"])      # 不存在正是要生成的情况
+        if all(os.path.exists(os.path.join(rd, f"{name}.img4")) for name in self.SSHRAMDISK_FILES):
+            return
+        log.log("生成 iOS 12.5.8 SSH ramdisk（需要设备处于 DFU）…")
+        subprocess.run(["bash", "sshrd.sh", "12.5.8"], cwd=os.path.dirname(rd), check=True)
 
     # ============================ ramdisk ============================
     def ramdisk(self):
@@ -49,6 +91,7 @@ class Flow:
         if self.rd.ready():
             log.log("ramdisk 已在运行（SSH 已连通），跳过引导。")
             return
+        self.init()     # 进 ramdisk 之后就没有 DFU 了，需要 DFU 的准备全在这里做完
         log.log("进入 iOS12.5.8 SSH ramdisk…")
         self.rd.boot()
 
@@ -139,10 +182,12 @@ class Flow:
 
     # ============================ volumes ============================
     def volumes(self):
+        self._jailbreak_guard("volumes")
         if self.ctx.dry_run:
             log.log("dry-run：跳过创建卷。")
             return
         self._need_ramdisk()
+        self._clear_volume_checkpoints()
         if self.ctx.installation:
             try:
                 if self.ctx.slot:
@@ -165,7 +210,12 @@ class Flow:
 
     # ============================ rootfs =============================
     def rootfs(self):
+        self._jailbreak_guard("rootfs")
+        if self.ctx.t.get("version") == "ios15" and not self.ctx.dry_run:
+            from patches.ios15.impl.rootfs.system_policy import require_selection
+            require_selection(self.ctx)
         self._need_ramdisk()
+        self._clear_checkpoints()
         try:
             if self.ctx.installation and not self.ctx.dry_run:
                 self.ctx.installation.prepare()
@@ -179,10 +229,17 @@ class Flow:
 
     # ============================ patch-rootfs =======================
     def patch_rootfs(self):
+        self._jailbreak_guard("patch-rootfs")
+        if self.ctx.t.get("version") == "ios15" and not self.ctx.dry_run:
+            from patches.ios15.impl.rootfs.system_policy import require_selection
+            require_selection(self.ctx)
         self._need_ramdisk()
         try:
             if self.ctx.installation and not self.ctx.dry_run:
                 self.ctx.installation.prepare()
+                if self.ctx.t.get("version") == "ios15":
+                    from patches.ios15.impl.rootfs.system_policy import before_system_write
+                    before_system_write(self.ctx)
                 self.ctx.installation.mount_system()
             elif not self.ctx.dry_run:
                 verify_legacy_targets(self.ctx, self.rd)
@@ -193,29 +250,82 @@ class Flow:
             self.ctx.close_source_mounts()
 
     def install(self):
+        self._jailbreak_guard("install")
+        if self.ctx.t.get("version") == "ios15" and not self.ctx.dry_run:
+            from patches.ios15.impl.rootfs.system_policy import require_selection
+            require_selection(self.ctx)
         self.volumes()
         self.rootfs()
         self.patch_rootfs()
 
+    def _checkpoint_dir(self):
+        return self.ctx.wk(".checkpoints")
+
+    def _clear_checkpoints(self, only=None):
+        """清断点标记。only 为 None 时全清；否则只清列出的补丁 id。
+
+        System 卷没变时，s4 上已经完成的补丁不能因为 Data 重建而被重跑（非幂等的守卫会误判）。
+        """
+        path = self._checkpoint_dir()
+        if os.path.isdir(path):
+            for name in os.listdir(path):
+                if only is None or name in only:
+                    os.remove(os.path.join(path, name))
+
+    # Data 侧补丁：只依赖 Data 卷的内容（keybag、Data 初始化、角色）。
+    DATA_SIDE_PATCHES = ("rootfs.keybag_boot", "rootfs.finish", "rootfs.set_roles")
+
+    def _clear_volume_checkpoints(self):
+        """volumes 阶段的清标记范围：System 不存在（会新建）时全清；System 已存在时只清 Data 侧。"""
+        if self.ctx.t.get("version") != "ios15" or not self.ctx.installation:
+            self._clear_checkpoints()
+            return
+        from .installation import named_volume
+        names = self.ctx.t["volumes"]["names"]
+        system_present = named_volume(Apfs(self.ctx).volumes(), names["system"]) is not None
+        if system_present:
+            log.log("System 卷已存在：只清 Data 侧断点，System 侧已完成的补丁保持跳过。")
+            self._clear_checkpoints(only=self.DATA_SIDE_PATCHES)
+        else:
+            self._clear_checkpoints()
+
     def _run_patches(self, roles):
-        """跑 rootfs 层中指定 role 的 patch（按注册表已排好的顺序）。"""
-        ran = 0
+        """跑 rootfs 层中指定 role 的 patch（按注册表已排好的顺序）。
+
+        每个 patch 成功后写一个完成标记；同一 workdir 重跑时跳过已完成的 patch，
+        标记由 volumes / rootfs 阶段清空，避免设备被重建后误跳。
+        """
+        ran = skipped = 0
+        resumable = "stream" not in roles
+        ckpt = self._checkpoint_dir()
+        if not self.ctx.dry_run:
+            os.makedirs(ckpt, exist_ok=True)
         for p in self.sel.get("rootfs", []):
             if p.role not in roles:
                 continue
             if p.manual and not self.allow_manual:
                 log.warn(f"跳过 manual patch {p.id}（加 --allow-manual 才执行）；{p.note}")
                 continue
+            marker = os.path.join(ckpt, p.id)
+            marker_version = str(getattr(p, "checkpoint_version", ""))
+            if resumable and os.path.exists(marker) and not self.ctx.dry_run:
+                if Path(marker).read_text() == marker_version:
+                    log.log(f"✓ {p.id} 已完成（断点），跳过")
+                    skipped += 1
+                    continue
             log.log(f"→ {p.id}  ({p.note})")
             if self.ctx.dry_run:
                 continue
             p.apply(self.ctx)
+            if resumable:
+                Path(marker).write_text(marker_version)
             ran += 1
-        log.log(f"rootfs {roles} 完成，执行 {ran} 个 patch。")
+        log.log(f"rootfs {roles} 完成，执行 {ran} 个 patch，断点跳过 {skipped} 个。")
 
     # ============================ build ==============================
     def build(self):
         """构建五个启动组件 → workdir/boot_*.img4。"""
+        self._jailbreak_guard("build")
         if self.ctx.installation and not self.ctx.dry_run:
             bind_volumes(self.ctx, self.ctx.t["mounts"]["system_b"], self.ctx.t["mounts"]["data_b"])
         w = self.ctx.wk
@@ -235,6 +345,13 @@ class Flow:
                             data_protection=self.ctx.t.get("data_protection", "encrypted"),
                             patches=self.ctx.patch_reports,
                             selection={layer: [p.id for p in patches] for layer, patches in self.sel.items()})
+            if ios_major(self.ctx.t) >= 15:
+                manifest["jailbreak_mode"] = selected_mode(self.ctx.t)
+            if self.ctx.t.get("version") == "ios15":
+                manifest.update(build=self.ctx.t["build"],
+                    outputs={name + ".img4": hashlib.sha256(Path(w(name + ".img4")).read_bytes()).hexdigest()
+                             for name in ("boot_iBSS", "boot_iBEC", "boot_DT", "boot_TC", "boot_KC")},
+                    final_raw=self.ctx._ios15_final_kernel_artifact)
             Path(self.ctx.wk("boot.json")).write_text(json.dumps(manifest, indent=2) + "\n")
         self.ctx.close_source_mounts()
         return self.ctx.work
@@ -304,6 +421,9 @@ class Flow:
                 log.log(f"  kc transform: {p.id}")
                 raw = p.apply(self.ctx, raw)
         self._pack_kc(raw, out)
+        if self.ctx.t.get("version") == "ios15":
+            self.ctx._ios15_final_kernel_artifact = dict(path=str(raw),
+                sha256=hashlib.sha256(Path(raw).read_bytes()).hexdigest())
 
     def _pack_kc(self, raw, out):
         """raw 内核 → mkcomplzss → append_watchtower → img4 -R rkrn；roundtrip 校验。"""
@@ -327,6 +447,7 @@ class Flow:
 
     # ============================ boot ===============================
     def boot(self):
+        self._jailbreak_guard("boot")
         import time
         w = self.ctx.wk
         imgs = {n: w(f"boot_{n}.img4") for n in ("iBSS", "iBEC", "DT", "TC", "KC")}
@@ -370,7 +491,8 @@ class Flow:
                 and boot["mounts"] == self.ctx.t["mounts"]
                 and boot.get("data_protection", "encrypted") == self.ctx.t.get("data_protection", "encrypted")
                 and boot["bootargs"] == self.ctx.t["bootargs"]
-                and boot["selection"] == selection)
+                and boot["selection"] == selection
+                and (ios_major(self.ctx.t) < 15 or manifest_mode(boot) == selected_mode(self.ctx.t)))
 
     def _identity_guard(self):
         if not self.identity_check:
@@ -391,7 +513,7 @@ class Flow:
         """解密要求设备处于 DFU，进 ramdisk 后就无法补做，缺文件时必须在此之前完成。"""
         if self.ctx.dry_run:
             return
-        derived = [os.path.join(self.ctx.derived_root, self.ctx.t["derived"][key])
+        derived = [os.path.normpath(os.path.join(self.ctx.derived_root, self.ctx.t["derived"][key]))
                    for key in ("ibss_src", "ibec_dec")]
         if all(os.path.exists(path) for path in derived) and not self.sel.get("ibec"):
             return      # 已解密：不需要 DFU（设备可能已在 ramdisk 里，宗卷设置先于安装）
@@ -402,12 +524,23 @@ class Flow:
             patch.prepare(self.ctx)
 
     def all(self):
-        """从头端到端：解密 iBSS/iBEC → 进 ramdisk → 重提 IM4M → 安装 → 构建 → 启动。"""
-        self._ensure_iboot()
-        for name, run_stage in (("ramdisk", self.ramdisk), ("extract-im4m", self.extract_im4m),
-                                ("volumes", self.volumes), ("rootfs", self.rootfs),
-                                ("patch-rootfs", self.patch_rootfs), ("build", self.build),
-                                ("boot", self.boot)):
+        """从头端到端：init（donor/派生输入、解密 iBSS/iBEC）→ 进 ramdisk → 重提 IM4M → 安装 → 构建 → 启动。"""
+        self._jailbreak_guard("all")
+        if self.ctx.t.get("version") == "ios15" and not self.ctx.dry_run:
+            from patches.ios15.impl.rootfs.system_policy import require_selection
+            require_selection(self.ctx)
+        stages = [("init", self.init), ("ramdisk", self.ramdisk),
+                  ("extract-im4m", self.extract_im4m), ("volumes", self.volumes)]
+        # A new unsealed System15 must have a verified livefs-capable boot chain
+        # before its first file copy. Other versions retain their known order.
+        if self.ctx.t.get("version") == "ios15":
+            stages += [("build", self.build), ("rootfs", self.rootfs),
+                       ("patch-rootfs", self.patch_rootfs)]
+        else:
+            stages += [("rootfs", self.rootfs), ("patch-rootfs", self.patch_rootfs),
+                       ("build", self.build)]
+        stages.append(("boot", self.boot))
+        for name, run_stage in stages:
             log.stage(name)
             run_stage()
 

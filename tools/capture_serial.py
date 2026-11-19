@@ -15,7 +15,10 @@ try:
     while True:
         r, _, _ = select.select([fd], [], [], 0.2)
         if r:
-            chunk = os.read(fd, 4096)
+            try:
+                chunk = os.read(fd, 4096)
+            except BlockingIOError:
+                continue  # select 报可读但内核尚无数据（串口刚枚举时常见）
             if chunk:
                 out_f.write(chunk); out_f.flush()
 except KeyboardInterrupt: pass

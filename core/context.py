@@ -23,6 +23,7 @@ import zipfile
 from pathlib import Path
 
 from . import log
+from .host import tool_issue
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # n56-patcher/
 TARGETS_DIR = os.path.join(REPO, "targets")
@@ -60,16 +61,14 @@ class Context:
 
         src = os.environ.get("N56_DONORS", self.t.get("source_root", "donors"))
         self.source_root = src if os.path.isabs(src) else os.path.join(REPO, src)
-        self.source_root = os.path.normpath(self.source_root)
-        if not os.path.isdir(self.source_root):
-            log.die(f"donor 目录不存在: {self.source_root}")
+        self.source_root = os.path.normpath(self.source_root)   # 缺失时由 init 阶段补齐
 
         self.derived_root = os.path.join(REPO, self.t.get("derived_root", DERIVED_DIR))
 
         default_work = self.t.get("workdir") or os.path.join(
             "build", f"{self.t['name']}-{time.strftime('%Y%m%d-%H%M%S')}")
         self.work = workdir or os.path.join(REPO, default_work)
-        self.work = os.path.abspath(self.work)
+        self.work = os.path.realpath(self.work)  # mount 输出使用真实路径
         os.makedirs(self.work, exist_ok=True)
         self._ssh = None   # 由 core.ramdisk 建立会话后注入
         self._source_mounts = {}
@@ -104,13 +103,16 @@ class Context:
         rel = self.t["tools"].get(key)
         if rel is None:
             log.die(f"目标清单未声明工具: {key}")
-        if isinstance(rel, (list, tuple)):
-            for candidate in rel:
-                path = os.path.join(REPO, candidate)
-                if os.path.exists(path):
-                    return path
-            log.die(f"缺少工具 {key}: {', '.join(rel)}")
-        return self.local(rel)
+        candidates = rel if isinstance(rel, (list, tuple)) else [rel]
+        problems = []
+        for candidate in candidates:
+            path = os.path.join(REPO, candidate)
+            issue = tool_issue(path)
+            if issue is None:
+                return path
+            problems.append(f"{candidate}: {issue}")
+        log.die(f"工具 {key} 不可用：\n" + "\n".join(problems) +
+                "\n请运行 tools/bootstrap.sh 或用 Python 3.10+ 执行 tools/setup.py --host-only")
 
     def local(self, rel):
         """仓库内源码或工具路径。"""
@@ -136,7 +138,7 @@ class Context:
         rel = self.t["derived"].get(key)
         if rel is None:
             log.die(f"目标清单未声明派生输入: {key}")
-        path = os.path.join(self.derived_root, rel)
+        path = os.path.normpath(os.path.join(self.derived_root, rel))
         if key in ("ibss_src", "ibec_dec"):
             if not os.path.exists(path):
                 self._decrypt_iboot()
@@ -294,7 +296,8 @@ class Context:
                 subprocess.run(["hdiutil", "detach", mountpoint], capture_output=True)
             log.die(f"{kind} rootfs 未以 owners 模式挂载")
         version_path = os.path.join(mountpoint, "System/Library/CoreServices/SystemVersion.plist")
-        version = plistlib.load(open(version_path, "rb"))
+        with open(version_path, "rb") as stream:
+            version = plistlib.load(stream)
         actual = version.get("ProductBuildVersion")
         expected = self.t.get("source_profiles", {}).get(kind, {}).get("build")
         if expected and actual != expected:

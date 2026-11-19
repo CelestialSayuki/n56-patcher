@@ -2,9 +2,21 @@
 from pathlib import Path
 import struct
 
-from capstone import Cs, CS_ARCH_ARM64, CS_MODE_ARM
+import numpy as np
 from runtime_libraries import commands, segments, read_uleb, read_sleb, bindings, align, ReadExports
 from runtime_rebase import uleb
+
+
+def adrp_target(address, opcode):
+    page = (((opcode >> 5) & 0x7ffff) << 2) | ((opcode >> 29) & 3)
+    return (address & ~0xfff) + ((page - (1 << 21) if page & (1 << 20) else page) << 12)
+
+
+def adrps(data, start, size, vm):
+    """Every ADRP word in [start, start+size): what capstone skipdata disassembly visits."""
+    words = np.frombuffer(bytes(data[start:start + size // 4 * 4]), '<u4')
+    for index in np.flatnonzero((words & 0x9f000000) == 0x90000000).tolist():
+        yield vm + index * 4, int(words[index])
 
 
 def export_trie(exports):
@@ -220,9 +232,6 @@ def compact(source, destination):
             struct.pack_into('<i', data, position, adjusted)
             counters[counter] += 1
 
-    decoder = Cs(CS_ARCH_ARM64, CS_MODE_ARM)
-    decoder.detail = True
-    decoder.skipdata = True
     for segment in old:
         for section in segment['sections']:
             start = segment['file'] + section['vm'] - segment['vm']
@@ -231,15 +240,12 @@ def compact(source, destination):
                 continue
             name = section['name']
             if name in ('__text', '__stubs', '__stub_helper'):
-                for instruction in decoder.disasm(data[start:start + size], section['vm']):
-                    if instruction.mnemonic != 'adrp':
-                        continue
-                    target = instruction.operands[1].imm
+                for address, opcode in adrps(data, start, size, section['vm']):
+                    target = adrp_target(address, opcode)
                     if owner(target) is None or move(target) == target:
                         continue
-                    position = start + instruction.address - section['vm']
-                    opcode = struct.unpack_from('<I', data, position)[0]
-                    delta = (move(target) >> 12) - (move(instruction.address) >> 12)
+                    position = start + address - section['vm']
+                    delta = (move(target) >> 12) - (move(address) >> 12)
                     if not -(1 << 20) <= delta < (1 << 20):
                         raise ValueError('ADRP target exceeds its signed page range')
                     opcode = (opcode & ~0x60ffffe0) | ((delta & 3) << 29) | (((delta >> 2) & 0x7ffff) << 5)

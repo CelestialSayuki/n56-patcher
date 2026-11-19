@@ -96,11 +96,14 @@ class Kernel:
 
     def slide_slots(self):
         blob = self.info['_PrelinkLinkKASLROffsets']
-        words = struct.unpack('<' + 'I' * (len(blob) // 4), blob)
-        if words[0] != len(words) - 1:
-            raise ValueError('KASLR count mismatch')
         base = next(s['vm'] for s in self.segs if s['name'] == '__PRELINK_TEXT')
-        return [base + off for off in words[1:]]
+        cached = getattr(self, '_slide_cache', None)
+        if cached is None or cached[0] is not blob or cached[1] != base:
+            words = struct.unpack('<' + 'I' * (len(blob) // 4), blob)
+            if words[0] != len(words) - 1:
+                raise ValueError('KASLR count mismatch')
+            cached = self._slide_cache = (blob, base, [base + off for off in words[1:]])
+        return list(cached[2])
 
     def claims(self):
         out = []

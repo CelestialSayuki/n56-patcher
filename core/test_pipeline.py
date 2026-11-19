@@ -2,12 +2,13 @@
 import plistlib
 import struct
 import tempfile
+from pathlib import Path
 from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
 from core import log
-from core.context import load_target
+from core.context import Context, load_target
 from core.installation import IndependentInstallation, bind_volumes
 from core.patch import select
 from core.apfs import Apfs, NAME_OFF, ROLE_OFF, FS_FLAGS_OFF
@@ -73,11 +74,67 @@ def version(number, build):
 
 
 class PipelineTests(unittest.TestCase):
+    def test_updated_overlay_replaces_stale_checkpoint(self):
+        from core.flow import Flow
+        calls = []
+        overlay = SimpleNamespace(id="rootfs.companion", role="overlay", manual=False,
+                                  note="companion", checkpoint_version=3,
+                                  apply=lambda ctx: calls.append(ctx))
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            marker = root / ".checkpoints/rootfs.companion"
+            marker.parent.mkdir()
+            marker.touch()
+            flow = Flow.__new__(Flow)
+            flow.ctx = SimpleNamespace(dry_run=False, wk=lambda path: str(root / path))
+            flow.sel = {"rootfs": [overlay]}
+            flow.allow_manual = False
+            flow._run_patches(["overlay"])
+            self.assertEqual(len(calls), 1)
+            self.assertEqual(marker.read_text(), "3")
+            flow._run_patches(["overlay"])
+            self.assertEqual(len(calls), 1)
+            overlay.checkpoint_version = 4
+            flow._run_patches(["overlay"])
+            self.assertEqual(len(calls), 2)
+            self.assertEqual(marker.read_text(), "4")
+
+    def test_ios15_explicit_dt_paths_require_kernel_volume_selector(self):
+        target = load_target("n56-ios15")
+        # Several full-default features (paleinfo, ssv) also require kc.boot_volumes; use the
+        # minimal feature set so the DT-path error is what surfaces.
+        target["features"] = ["core", "touch"]
+        target["kc_patches"] = []
+        ids = [p.id for p in select(target)["kc"]]
+        self.assertIn("kc.boot_volumes", ids)
+        target["exclude"] = ["kc.boot_volumes"]
+        with self.assertRaises(log.Die) as error:
+            select(target)
+        self.assertIn("dt.boot_volumes", error.exception.message)
+
+    def test_new_target_reuses_iboot_cache_before_its_directory_exists(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            cached = root / "common/iBSS.patched"
+            cached.parent.mkdir()
+            cached.write_bytes(b"cached iboot")
+            target = load_target("n56-ios15")
+            target["derived_root"] = str(root / "new-target")
+            target["derived"]["ibss_src"] = "../common/iBSS.patched"
+            ctx = Context(target, workdir=str(root / "work"))
+            with patch.object(ctx, "_decrypt_iboot", side_effect=lambda: self.fail("已有缓存应直接复用")):
+                self.assertEqual(Path(ctx.derived("ibss_src")), cached)
+
     def test_target_switch_keeps_versioned_patches_separate(self):
-        for name in ("n56-ios13", "n56-ios14", "n56-ios13"):
-            target = load_target(name)
-            audio = next(p for p in select(target)["kc"] if p.id == "kc.audio")
-            self.assertIn(f"patches.{target['version']}.", type(audio).__module__)
+        for name, patch_id in (("n56-ios13", "kc.audio"), ("n56-ios15", "kc.mt_n56"),
+                               ("n56-ios14", "kc.audio"), ("n56-ios15", "kc.mt_n56"),
+                               ("n56-ios13", "kc.audio")):
+            try:
+                target = load_target(name)
+            except log.Die as exc:
+                self.fail(exc.message)
+            selected = next(p for p in select(target)["kc"] if p.id == patch_id)
+            self.assertIn(f"patches.{target['version']}.", type(selected).__module__)
 
     def test_checkra1n_installs_cydia_after_bootstrap(self):
         # 刷机后一次跑通：越狱功能必须连同 Cydia 一起装，不能靠开机后手工补。
@@ -88,14 +145,15 @@ class PipelineTests(unittest.TestCase):
             self.assertLess(ids.index("rootfs.cydia"), ids.index("rootfs.finish"), name)
 
     def test_slice_bindings_have_no_default_and_accept_dual_boot(self):
-        ctx = SimpleNamespace(t=load_target("n56-ios14"))
-        self.assertIsNone(ctx.t["root_part"])
-        for system, data in ((None, None), (2, 5), (4, 4), (4, 101)):
-            with self.subTest(system=system, data=data), self.assertRaises(log.Die):
-                bind_volumes(ctx, system, data)
-        bind_volumes(ctx, 4, 5)
-        self.assertEqual(ctx.t["root_part"], 4)
-        self.assertIn("rd=disk0s1s4", ctx.t["bootargs"])
+        for name in ("n56-ios14", "n56-ios15"):
+            ctx = SimpleNamespace(t=load_target(name))
+            self.assertIsNone(ctx.t["root_part"])
+            for system, data in ((None, None), (2, 5), (4, 4), (4, 101)):
+                with self.subTest(target=name, system=system, data=data), self.assertRaises(log.Die):
+                    bind_volumes(ctx, system, data)
+            bind_volumes(ctx, 4, 5)
+            self.assertEqual(ctx.t["root_part"], 4)
+            self.assertIn("rd=disk0s1s4", ctx.t["bootargs"])
 
     def test_append_after_highest_slot_and_resume_existing_volumes(self):
         cases = (
@@ -117,7 +175,7 @@ class PipelineTests(unittest.TestCase):
                 target["data_protection"] = "none"
                 ctx = SimpleNamespace(t=target, ssh=session,
                                       wk=lambda name: directory + "/" + name)
-                def append(name, encrypted=False):
+                def append(name, encrypted=False, index=None):
                     index = max(v[0] for v in current) + 1
                     created = volume(index, name, encrypted=encrypted)
                     current.append(created)

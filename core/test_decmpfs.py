@@ -46,7 +46,7 @@ class DecmpfsTests(unittest.TestCase):
             f.write(os.urandom(64))
         os.symlink("sub/big.txt", os.path.join(src, "link"))
         self.root = os.path.join(self.tmp, "root")
-        # ditto 在 APFS 上生成真实的透明压缩文件（主机上是 LZVN，类型 8）。
+        # ditto 生成真实透明压缩文件：Intel 可用内联 LZVN (7)，ARM 可用资源分支 (8)。
         subprocess.run(["ditto", "--hfsCompression", src, self.root], check=True)
         os.chmod(os.path.join(self.root, "sub/big.txt"), 0o640)
 
@@ -88,7 +88,11 @@ class DecmpfsTests(unittest.TestCase):
         self.assertEqual(record["sec"], int(st.st_mtime))
         self.assertEqual(record["header"][:4], b"fpmc")
         self.assertEqual(struct.unpack_from("<Q", record["header"], 8)[0], len(self.text))
-        self.assertTrue(record["fork"])
+        # The stream preserves the actual fork, including an empty fork for
+        # inline compression. Do not assume ditto chooses type 8 on every Mac.
+        expected_fork = decmpfs._xattr(os.path.join(self.root, "sub/big.txt"),
+                                      decmpfs.RESOURCE_FORK) or b""
+        self.assertEqual(record["fork"], expected_fork)
         self.assertEqual(record["sha"], hashlib.sha256(self.text).digest())
 
     def test_disable_switch(self):

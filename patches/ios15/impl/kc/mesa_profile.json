@@ -1,0 +1,690 @@
+{
+  "build": "19H422",
+  "windows": {
+    "mesa__TEXT_EXEC": {
+      "address": "0xfffffff006896000",
+      "size": 118668,
+      "sha256": "6d1824ad16cc445f6d834e5521a40c97a69b7f85446c81a09fd88393ea0cccb1",
+      "owner": "com.apple.driver.AppleMesaSEPDriver"
+    },
+    "mesa__DATA_CONST": {
+      "address": "0xfffffff006f77ac0",
+      "size": 8120,
+      "sha256": "5fc2c491c195d5792ffd66bb982eb1a2514b28ad16813011a3bba00170b7a3dd",
+      "owner": "com.apple.driver.AppleMesaSEPDriver"
+    },
+    "gt_constructor": {
+      "address": "0xfffffff006887ec4",
+      "size": 276,
+      "sha256": "3920d5ebda6a29c3c636dbf097b14be0570f632c13d3b2d1e057ffa890f03d88",
+      "owner": "com.apple.iokit.AppleSEPGenericTransfer"
+    },
+    "gt_endpoint": {
+      "address": "0xfffffff006888b50",
+      "size": 620,
+      "sha256": "50ead003066de17f94f88e521a7e825fa5266230ffb4206596bca13d314fab9e",
+      "owner": "com.apple.iokit.AppleSEPGenericTransfer"
+    },
+    "gt_receive": {
+      "address": "0xfffffff006888dbc",
+      "size": 456,
+      "sha256": "77927009d04e97c4ce5f1e99696e9a698a35b03b31d3c45d80170b42107cb2e8",
+      "owner": "com.apple.iokit.AppleSEPGenericTransfer"
+    },
+    "gt_transact": {
+      "address": "0xfffffff006889160",
+      "size": 256,
+      "sha256": "cab90940de11995f8931c5267439f33a1b9ec951a6492dd36e3c498f5b3fe5be",
+      "owner": "com.apple.iokit.AppleSEPGenericTransfer"
+    },
+    "gt_iomd": {
+      "address": "0xfffffff0068895f4",
+      "size": 572,
+      "sha256": "6baf0f6ad462e961dcbc2f522a7b9824062a27b6f36a0adbddf49adddd53ecd0",
+      "owner": "com.apple.iokit.AppleSEPGenericTransfer"
+    },
+    "gt_lock": {
+      "address": "0xfffffff00688a1fc",
+      "size": 332,
+      "sha256": "fddd394ce203453d1ba4fdba75b29de3a57caab1c754c0b40407bf1dbe6276c5",
+      "owner": "com.apple.iokit.AppleSEPGenericTransfer"
+    },
+    "gt_event": {
+      "address": "0xfffffff00688a5cc",
+      "size": 140,
+      "sha256": "fde0a92fa23a759ef95f87377d87bd4237a6807230dfdf12812f21f1dbfc7c0f",
+      "owner": "com.apple.iokit.AppleSEPGenericTransfer"
+    },
+    "gt_send": {
+      "address": "0xfffffff006888f84",
+      "size": 160,
+      "sha256": "6c79dd01ae6afd12af887f0c46136c44723c997e0d0a17bd8cc6a156351eb80b",
+      "owner": "com.apple.iokit.AppleSEPGenericTransfer"
+    },
+    "mesa_alloc": {
+      "address": "0xfffffff0076d66c8",
+      "size": 48,
+      "sha256": "fc90e744bba21be8f50a7daff48cf16632b6e22770935c50f8f0730ae53b0e94",
+      "owner": null
+    },
+    "mesa_free": {
+      "address": "0xfffffff0076d671c",
+      "size": 48,
+      "sha256": "85c1339b2694f88877fa6b9bc4c6e45d1bd52eb6fcb9fe953a29e764e428bda6",
+      "owner": null
+    },
+    "mesa_copy": {
+      "address": "0xfffffff007128890",
+      "size": 48,
+      "sha256": "95100ac5c7e5a1551dfeaaeee88603a1c78dc2bb3a96113cfa214debc97ef6a8",
+      "owner": null
+    },
+    "mesa_zero": {
+      "address": "0xfffffff007128ac0",
+      "size": 48,
+      "sha256": "a360e80a3f4ed48d4aec375931f7e30f905d79f9eae2ebef3fd3d84718335b77",
+      "owner": null
+    },
+    "mesa_log": {
+      "address": "0xfffffff0076d6958",
+      "size": 48,
+      "sha256": "f2ca1726606d8ab0a9b2d409ccab1cdb1c4058ba721c10b80c7c9a66a7efdf7d",
+      "owner": null
+    },
+    "mesa_send_message_import": {
+      "address": "0xfffffff0068b2ddc",
+      "size": 12,
+      "sha256": "b67355f218076955706f27cfe998ce8df5fad12668202be294d5cb66e9e90a84",
+      "owner": "com.apple.driver.AppleMesaSEPDriver"
+    }
+  },
+  "primitives": {
+    "mesa_get_endpoint": "0xfffffff006888b50",
+    "mesa_lock": "0xfffffff00688a1fc",
+    "mesa_unlock": "0xfffffff00688a2d0",
+    "mesa_wait": "0xfffffff00688a5cc",
+    "mesa_wake": "0xfffffff00688a640",
+    "mesa_alloc": "0xfffffff0076d66c8",
+    "mesa_free": "0xfffffff0076d671c",
+    "mesa_copy": "0xfffffff007128890",
+    "mesa_zero": "0xfffffff007128ac0",
+    "mesa_log": "0xfffffff0076d6958"
+  },
+  "fields": {
+    "event": 16,
+    "max_size": 24,
+    "tag": 28,
+    "endpoint": 40,
+    "lock": 56,
+    "input": 80,
+    "input_size": 88,
+    "output": 104,
+    "output_size": 112,
+    "state": 128,
+    "owner": 184
+  },
+  "vtable": {
+    "send": 232,
+    "notify": 16,
+    "iomd_size": 176,
+    "iomd_write": 208
+  },
+  "native": {
+    "build": "16H88",
+    "bundle": "com.apple.driver.AppleMesaSEPDriver",
+    "windows": {
+      "enroll": {
+        "address": "0xfffffff0086022c8",
+        "size": 208,
+        "sha256": "e46a648aef969e747c4f78ee07c4b6926d69f5c7bb36edd032048a996376714b"
+      },
+      "match": {
+        "address": "0xfffffff0086027ac",
+        "size": 120,
+        "sha256": "a902098355424b96beae95312d944926a0dd932218ceaaa54c6e0aed8d07f669"
+      },
+      "reply": {
+        "address": "0xfffffff0086093cc",
+        "size": 352,
+        "sha256": "fc8d558db985f28eec6996441161d136d85a908ae02bb53ec89eb2db86703420"
+      },
+      "cookie_query": {
+        "address": "0xfffffff00860d978",
+        "size": 64,
+        "sha256": "918a2e8da2b20b46f1f1ebd922fc14e6308d724ce73449a0dbea0a13458b7bb8"
+      },
+      "startup_calibration_info": {
+        "address": "0xfffffff008603eac",
+        "size": 188,
+        "sha256": "f7f9969940bfb69b7bd855560e82c79890bfd54623ec00e8061b31baa402e642"
+      },
+      "native_subcommand": {
+        "address": "0xfffffff008603664",
+        "size": 256,
+        "sha256": "33307ba1334db38f18c72c6af7af0e06da483c5e353c822d45622d45f822d31e"
+      },
+      "session_union_20": {
+        "address": "0xfffffff0086026b4",
+        "size": 164,
+        "sha256": "982821c76d6e6d3e60b862d94435ca4c049cb111c2dd00f1adcd326a14ae4137"
+      },
+      "short_session_union": {
+        "address": "0xfffffff008602798",
+        "size": 140,
+        "sha256": "bd2decfbb90d9f2d52f9e894143dafc7018f5e238b2110ba8e0fcb9a1818f5bd"
+      },
+      "legacy_cookie_u16_parameter": {
+        "address": "0xfffffff008601a98",
+        "size": 256,
+        "sha256": "05213a38c59d630245bb77546c6979ec5791621b1f809d7bd8722efabe6f8afe"
+      },
+      "notification_dispatch": {
+        "address": "0xfffffff008608aa4",
+        "size": 300,
+        "sha256": "0a87fbcbfd61923ea1d12104ea2c9d4f939e0328e33217f1680d3dcf77d91e5a"
+      },
+      "drop_token_context_parameter": {
+        "address": "0xfffffff0086078d4",
+        "size": 32,
+        "sha256": "3703a00afb67eeec13465d6afbaf182d85e9e4965498732de27702cb3db04b28"
+      },
+      "send_message_fields": {
+        "address": "0xfffffff008608104",
+        "size": 80,
+        "sha256": "713377f7394b56c058e3e0b81abbef3160d3ae7bdf7d9f1cf67206736f4c5ce1"
+      },
+      "drop_token_expiry_2": {
+        "address": "0xfffffff008607b50",
+        "size": 32,
+        "sha256": "1d98966b78b042740a00e5ccd044d758b8600cc5a25cf1d0143dece0222a2300"
+      },
+      "drop_token_expiry_3": {
+        "address": "0xfffffff008607db8",
+        "size": 32,
+        "sha256": "4a0219c624fbd00adffe3b50585a1bf447486eb2552344a51fe2305e916c1cd0"
+      }
+    }
+  },
+  "protocol": {
+    "startup": {
+      "operation": "0x73",
+      "input": "u32 GT version = 1, 4 bytes; no output/flags",
+      "handling": "early return 0, same as iOS 14 HEAD (device-verified); no wire message is sent",
+      "reason": "native12 has no initSbioCommunication handshake; 0x73 is an iOS 14+ native step, so the 12-based SEP bridge does not issue it"
+    },
+    "enroll": {
+      "operation": "0x03",
+      "input_bytes": 68,
+      "wire_type": "0x04",
+      "wire_bytes": 48,
+      "conversion": "Inactive +30=0 skips16 identity bytes; canonical default domain {u32 tag1, zero16} is also represented by native12 unqualified enroll30. Named/nondefault active selectors remain UNSUPPORTED before send.",
+      "fields": {
+        "flags": "+00:u32",
+        "userID": "+04:u32",
+        "auth_type": "+08:u32",
+        "auth_length": "+0c:u32",
+        "auth_token": "+10..2f:32 bytes",
+        "active_semantics": "14/15 validate exact20 against enumerated template-domain/set identities and use the selector in capacity/domain selection. Do not infer that these16 bytes are an authentication token or a raw keybag UUID.",
+        "inactive_semantics": "Both consumers substitute NULL and skip identity comparison when +30=0, irrespective of +34..43",
+        "normal_AP_producer": "libBKDM1 performEnrollCommand: initializes all44 to zero and fills only prefix30; getCommProtocolVersion clamps a successful negotiation to >=2, so normal15 uses v2 with inactive selector",
+        "v2_template_domain_selector": "+30..43:20 bytes; u32 presence/type tag +16-byte domain identity; default constructor explicitly makes {1,zero16}",
+        "canonical_default": "15 creator24e7c writes tag1 and calls4cd8 to zero16; class matcher24cfc accepts default class1. Native12 only has the legacy/default unqualified template model, so this explicit default also projects to enroll30.",
+        "policy": "Reject any other nonzero tag or tag1 with a named/nonzero identity; never silently discard a named template domain."
+      },
+      "normal_applicability": "After successful AP userclient getCommProtocolVersion, libBKDM1 clamps schema version to>=2 and emits v2 even on a legacy SEP bridge. This AP schema version is NOT the separate GT init version1. Its selector remains all-zero."
+    },
+    "match": {
+      "operation": "0x25",
+      "input_bytes": 68,
+      "wire_type": "0x2b",
+      "wire_bytes": 44,
+      "conversion": "short-session union: input+8 contiguous 0x2c; ACM type/length/data at input+c/10/14"
+    },
+    "session": {
+      "operation": "0x27",
+      "input_bytes": 60,
+      "wire_type": "0x2d",
+      "wire_bytes": 60,
+      "conversion": "12/15 already pass full input+8: 20-byte session + 40-byte ACM, byte-for-byte"
+    },
+    "cookie": {
+      "setters": [
+        "0x4a",
+        "0x4c",
+        "0x4e",
+        "0x51",
+        "0x52",
+        "0x77"
+      ],
+      "getters": [
+        "0x49",
+        "0x4b",
+        "0x4d",
+        "0x4f",
+        "0x53",
+        "0x76"
+      ],
+      "query": "query flag or 0x45/0x46/0x78 -> native type 0x4b",
+      "subtypes": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "native_acceptance": "DETERMINED from decrypted n56-12 dispatch: types4b/4c/4d all pointdd38 -> status22 reply; no supported native SeaCookie family, not merely unknown firmware acceptance. Native12 AP includes hardware-gated modern sensor paths; packet-role translation does not enable them on N56.",
+      "pre_dispatch_proof": "15aea accepts only16/17/18; other mailbox types call1394c reset then return0 via15d3c/15d54, so4b/4c/4d really reachdd38/error22, not an unexamined early handler."
+    },
+    "notify": {
+      "mapping": {
+        "0x0e": 1,
+        "0x3e": 2,
+        "0x26": 3
+      },
+      "conversion": "change only type byte; endpoint/parameter/length bits and real callback status preserved",
+      "evidence": "native12 dispatch tests only 0e,26,3e outside replies; 15 consumer tests only 1,2,3. Other types are not translated/acknowledged.",
+      "unhandled_gt_v2": "UNSUPPORTED without Mesa-local state access; handled high32 retains callback low32 status"
+    },
+    "target_evidence": {
+      "init_arg": {
+        "address": "0xfffffff0068b1d60",
+        "size": 52,
+        "sha256": "74b2d162a699827beedff69054038028dd99daba651eef463c2c7a9c30e52b14"
+      },
+      "enroll_v1_producer": {
+        "address": "0xfffffff00689c0f8",
+        "size": 64,
+        "sha256": "36bf46e149ab25c1d9e320e96267a3c9cc018d748706bd4d73c09dac1f61b92e"
+      },
+      "enroll_v2_producer": {
+        "address": "0xfffffff00689d9b0",
+        "size": 40,
+        "sha256": "a9afd04d79eaaa2cb3746d38a81ac8a14c217ac98a4669bc72718ee24a488ebf"
+      },
+      "session_union_20": {
+        "address": "0xfffffff00689ff24",
+        "size": 156,
+        "sha256": "2690522404a77b3abfc2b4e4e71c6f0780b8004eda02cce3e63807f6356148e3"
+      },
+      "short_session_union": {
+        "address": "0xfffffff0068a0018",
+        "size": 136,
+        "sha256": "e5efc3edcf38f3a372403954dc3742ad0244c6395ed462505a7c3aabf658e5a5"
+      },
+      "cookie_set_table": {
+        "address": "0xfffffff00584e0e0",
+        "size": 28,
+        "sha256": "c57922d6c18d507e8995eaf1dfb78ffe06b03580b55c49c68cfc19a596ce4142",
+        "encoding": "data"
+      },
+      "cookie_query_table": {
+        "address": "0xfffffff00584e0fc",
+        "size": 28,
+        "sha256": "6928b2374af50e3b488a0431d51640bef782a8f51e5f07361fab68e2f2f0a060",
+        "encoding": "data"
+      },
+      "cookie_new_roles": {
+        "address": "0xfffffff0068aa89c",
+        "size": 116,
+        "sha256": "ba7b5927ce9c94a882e7973cd1a02a7e21246547ecdca08a75467dac731197f9"
+      },
+      "enroll_wire_caller": {
+        "address": "0xfffffff00689fb74",
+        "size": 76,
+        "sha256": "bfdf206c20dcdd0706ae5bf8b63362ba4d3cc8dcf2f918401f34d5841fc20205"
+      },
+      "notification_consumer": {
+        "address": "0xfffffff0068a52d4",
+        "size": 368,
+        "sha256": "d45fceec8773f8f599cdd0934ef5b6585a5efe1b7c072a6ba7f682aad7460ba3"
+      },
+      "provisioning_7e_sensor_branch": {
+        "address": "0xfffffff0068a9258",
+        "size": 100,
+        "sha256": "a98575d144a5a8c3c2e444f5d34038b8084d6c97d653b9dd4daad3370b021a44"
+      },
+      "provisioning_7e_request_reply": {
+        "address": "0xfffffff0068a92d0",
+        "size": 72,
+        "sha256": "23d9a4daaabaee8d839d8a7793bba9eb66360757e34e4e03cf3f4f14cb98639d"
+      },
+      "send_message_26": {
+        "address": "0xfffffff0068a78ac",
+        "size": 40,
+        "sha256": "3056a714d7d05e315aee3d77860bd79cb334dee8f17c2c5a856b1ff4cb7ab9b6"
+      },
+      "send_message_72": {
+        "address": "0xfffffff0068a7930",
+        "size": 40,
+        "sha256": "d020a13d4419ea5f7f94933a93452b905884b002075724c7e917714488981486"
+      },
+      "cookie_drop_token_precondition": {
+        "address": "0xfffffff0068aa37c",
+        "size": 52,
+        "sha256": "b1b453a96b8b58a3e7262ccc56bae73beaf1c29d9faad729f49db07a57c7f72f"
+      },
+      "gt_send_message_fields": {
+        "address": "0xfffffff0068890dc",
+        "size": 44,
+        "sha256": "8ce5e2ab897ca94ad483da4618b0bd05b9b8934027169fe181e70e7f2d8e6ab6"
+      },
+      "token_context_vtable": {
+        "address": "0xfffffff006f789e0",
+        "size": 16,
+        "sha256": "8ee51b110adbc3b7ce1ba04062cb34646c623eef4fcfc67cdeda23718e448fa4",
+        "encoding": "data"
+      },
+      "token_expiry_id_1": {
+        "address": "0xfffffff00688c064",
+        "size": 24,
+        "sha256": "d8743739e6380eb02624b67ab2e79833f58880d2905fd104bfa23db7441a329a"
+      },
+      "token_expiry_id_2": {
+        "address": "0xfffffff00688c2f4",
+        "size": 24,
+        "sha256": "5adc5de6154df8eb490a492139614954708e66f629c97f3afe8ade2857b43d12"
+      },
+      "token_expiry_id_3": {
+        "address": "0xfffffff00688c564",
+        "size": 24,
+        "sha256": "5adc5de6154df8eb490a492139614954708e66f629c97f3afe8ade2857b43d12"
+      },
+      "drop_token_front_command39": {
+        "address": "0xfffffff00689d2b8",
+        "size": 24,
+        "sha256": "0bb61c6cc7355a4624069faa513c73970f029448b7faf5782b37f63af1601cf5"
+      },
+      "drop_unlock_base_context_loop": {
+        "address": "0xfffffff00688e198",
+        "size": 48,
+        "sha256": "d7b7155d11b6240fb071aecc06683c745b67af3896d67065acd60f1327d931a4"
+      },
+      "token_nonblocking_lock": {
+        "address": "0xfffffff00688a1fc",
+        "size": 192,
+        "sha256": "590898b817ba96bfec0f2ed351047d104cb54a93137deb0e1c3e02b3165dfc8c"
+      },
+      "token_unlock": {
+        "address": "0xfffffff00688a2d0",
+        "size": 56,
+        "sha256": "f531a99c7dfef6e3400bea5aba33a0a1e12b6bcb82398ff960120e3c9d2a12e5"
+      }
+    },
+    "comparison14": {
+      "build": "18H17",
+      "windows": {
+        "enroll_v1_producer": {
+          "address": "0xfffffff00695ee30",
+          "size": 80,
+          "sha256": "3693e104eec720f1afbe495c5771ea1487a839c43929c82c83c3ad07389c96f8"
+        },
+        "enroll_v2_producer": {
+          "address": "0xfffffff0069608d0",
+          "size": 64,
+          "sha256": "127859d870dd72af9ba897a2f77367d0d142cacad9344fad9a4985c77bb43cc9"
+        },
+        "enroll_wire_caller": {
+          "address": "0xfffffff0069629dc",
+          "size": 64,
+          "sha256": "a0b3e197681111fbeb608ff33abae5c09664b4e590787982b0ddd35eb32ad65a"
+        }
+      },
+      "conclusion": "14 already copies the full 0x44 for v2; historical bridge truncation is not evidence of native12 semantics"
+    },
+    "one_way": {
+      "import_address": "0xfffffff0068b2ddc",
+      "signature": "i32 (GT *object,u32 operation,u32 parameter,u32 data)",
+      "conversion": "0x26/0x72 -> native12 type0x2c, signed16 parameter=data, data/length=0; actual endpoint enqueue status returned, not a fabricated SEP completion",
+      "data_semantics": "IOBiometricFamily context ID at context+14 (u32), NOT SeaCookie messageType; native12 callers load context+0 as signed16",
+      "limits": "parameter must0; data must losslessly sign-extend signed16; ffffffff is all-context sentinel, positive0000ffff is rejected",
+      "operations": {
+        "0x26": {
+          "modern_consumer": "j96-15 SBIO1f25c: context lookup532b8, clear token53438, publish policy533cc; -1 -> all54f44",
+          "native_consumer": "n56-12 SBIOdcc4/de1e: lookupa4d6, clearb40c, publish real0e notificationb1c6; -1 -> allb3b6"
+        },
+        "0x72": {
+          "AP_caller": "IOBiometricFamily expiry handlers688c064/c2f4/c564 -> virtual5d0 at Mesa vtable6f78418 ->68a7930",
+          "modern_consumer": "j96-15 1f288: same context lookup; 533b0 clears unlock token plus retained-biometric flag+a8; policy flags bit200 reflects this extra modern state",
+          "native_equivalent": "All three native12 equivalent expiry handlers6078d4/7b50/7db8 use type2c. Legacy combined token model clears token[88..a7]/length+a8 and publishes policy without any modern200 retained-state bit.",
+          "compatibility": "legacy projection revokes all native token state; no retained-biometric200 state is synthesized"
+        }
+      },
+      "response": "Native12 valid revoke branches directly to fdc2 epilogue, bypassing reply emitterfd98; updated policy is a genuine type0e notification. No GT transaction/wait, no synthetic ACK.",
+      "correction": "Earlier SeaCookie pre-call attribution was WRONG: actual Mesa vtable728 points68aa144 (policy setter), not68a7930. The real 72 callers are IOBiometricFamily expiry callbacks, which N56 can execute.",
+      "serialization": "Existing object+38 GT context lock, proved mesa_lock(lock,0) (deadline-now) and balanced unlock; busy/missing lock -> actual error, NO enqueue. Protects native12 nonchunk parser resetting its chunk state; Mesa never interprets +80..af or clears quarantine. Unlike transact_wire clients, this no-reply send owns the lock directly."
+    },
+    "unmapped_operations": {
+      "real_new_caller": {
+        "0x7e": {
+          "caller": "0xfffffff0068a92fc",
+          "condition": "provisionNavajo: sensor-class enum object+1f4 ==1, then raw device identity object+1e0 ==6e; +1e0 is NOT the sensor-class enum",
+          "input": "u32 from stack x29-38; 4 bytes",
+          "reply": "non-null response of exactly 0x4a at 68a9310",
+          "policy": "UNSUPPORTED; native12 has no established 0x4a body equivalent",
+          "applicability": "conditional provisioning path, not generic enrollment; do not force a new raw device identity for N56. This task does not infer a runtime N56 device code from an enum name."
+        }
+      },
+      "reserved_or_unproved": [
+        "0x11",
+        "0x12",
+        "0x13",
+        "0x1d",
+        "0x20",
+        "0x26",
+        "0x34",
+        "0x35",
+        "0x3f",
+        "0x40",
+        "0x47",
+        "0x50",
+        "0x62",
+        "0x70",
+        "0x71",
+        "0x74",
+        "0x75"
+      ],
+      "policy": "missing/opaque modern operations stay errors; no fabricated response or zero-fill conversion"
+    },
+    "firmware_evidence": {
+      "n56-12": {
+        "app_sha256": "0ecfeea5fe0fdcb4642dd95e905ac5a1063e154d43d575b78a6f6269893307ad",
+        "mapping": "provided loader VA -> segment fileoff; zero-sized LINKEDIT not read",
+        "windows": {
+          "mailbox_dispatch": {
+            "va": "0xc5a4",
+            "size": 128,
+            "sha256": "5703d9672bfcdd576d0f758e6ef8e774a647cdb1e5d9edd7cc97a667aaa93916"
+          },
+          "chunk_pre_dispatch_type_gate": {
+            "va": "0x15aea",
+            "size": 48,
+            "sha256": "d3319792d77710a6cc898e8f9aa70fdaf327e1899fbf41df1e977c7b49bbde13"
+          },
+          "nonchunk_reset_and_fallthrough": {
+            "va": "0x15d3c",
+            "size": 40,
+            "sha256": "925dfaef13192fd5fd0972c63a482dc563dd372a8c5c33fb2fe75429bc96b20d"
+          },
+          "enroll_prefix_fields": {
+            "va": "0xcfbe",
+            "size": 220,
+            "sha256": "ab41e200ee436f13381c0c0d1c6fbf018f52479918691e3dab0c9fa22f6110b4"
+          },
+          "enroll_auth_consumption": {
+            "va": "0xe2e6",
+            "size": 110,
+            "sha256": "ed3ecd5e6ff5ab1d1c4eda2c6eaa8b9c35ed57053f944f11a953ca51ea9d7d2f"
+          },
+          "revoke_id_or_all": {
+            "va": "0xdcc4",
+            "size": 18,
+            "sha256": "a5faa26c0e14853a135bfc0c9893cec21f1ebc637b92878b226ca673b7717ab9"
+          },
+          "revoke_one_no_reply": {
+            "va": "0xde1e",
+            "size": 34,
+            "sha256": "9b1bf8ff8e68f9af7c0e3567e002d5d32622efff0a839f44020ff529d6d3603d"
+          },
+          "revoke_all": {
+            "va": "0xb3b6",
+            "size": 86,
+            "sha256": "0edf3b93a74a4d6c2c74372f3b79555d722fd6c6c1c6af1d87c4878b8e52856e"
+          },
+          "clear_native_token": {
+            "va": "0xb40c",
+            "size": 62,
+            "sha256": "7a2e2c94c7761a19bba1797d7e235ed8582865ed70a9f60998258c04677212e0"
+          },
+          "publish_real_policy_notification": {
+            "va": "0xb1c6",
+            "size": 220,
+            "sha256": "6d19d0997b055bf64728ceddea0fcfe4bb05ec28fe8a0a60e213e5671fb41eae"
+          },
+          "invalid_cookie_family": {
+            "va": "0xdd38",
+            "size": 6,
+            "sha256": "e672bb64f86d6c14b33f993dbb7d01dc3127892d0365613850df754dc11adc67"
+          },
+          "reply_vs_no_reply_epilogues": {
+            "va": "0xfd98",
+            "size": 70,
+            "sha256": "11f0178b7d1f91afe658ae0bb4959980c224215b2f179e63203fb6f4788ecbae"
+          }
+        }
+      },
+      "j96-14": {
+        "app_sha256": "7885653e66f53d2572a94c680dfece810e56aa3d30311bd4794d49ecd8b304e4",
+        "mapping": "provided loader VA -> segment fileoff; zero-sized LINKEDIT not read",
+        "windows": {
+          "revoke_26_vs_72": {
+            "va": "0x24e68",
+            "size": 92,
+            "sha256": "85ed3d705f995baa68d1ba5a59daf13354e59f326b1eab9c84667f4aa49b3d3b"
+          },
+          "enroll_keybag_selector": {
+            "va": "0x26380",
+            "size": 404,
+            "sha256": "90ebe371ad00407fba7069158f13d936198fa2a7cc2f0cac8e3a2bba3eb08b40"
+          },
+          "validate_selector": {
+            "va": "0x29f60",
+            "size": 84,
+            "sha256": "c9553ac413040b60b7bab5630e858a1f10af4bac40bf8894c807d0bfae9dd84e"
+          },
+          "domain_capacity_selection": {
+            "va": "0x59e14",
+            "size": 212,
+            "sha256": "26e0ac486ebf22b5da0439ee209f8871a68acbb462f1491e7c398bd59ec32b6f"
+          },
+          "clear_biometric_retention": {
+            "va": "0x58aa0",
+            "size": 32,
+            "sha256": "f9c1bba2f7ed8ed3cf2cdab51b96030d59a898d298e5e7902266462eedbf4733"
+          }
+        }
+      },
+      "j96-15": {
+        "app_sha256": "18059e935b541d0a309a58475c1f01e1596b888905065f848c1e5bd88b19eb47",
+        "mapping": "provided loader VA -> segment fileoff; zero-sized LINKEDIT not read",
+        "windows": {
+          "revoke_26_vs_72": {
+            "va": "0x1f25c",
+            "size": 92,
+            "sha256": "bb5ba21f535ab0f2cee462d924e77bbde392f1f46aa7cb2ea3c8fc951892287d"
+          },
+          "enroll_keybag_selector": {
+            "va": "0x1f75e",
+            "size": 376,
+            "sha256": "315a653ccfe76e4936e9df23f0431e7a78d14a4e0a85104de0ada4de79e7a903"
+          },
+          "enroll_auth_after_selection": {
+            "va": "0x23152",
+            "size": 276,
+            "sha256": "be292ab838d527a2404b2d3014b2cc22355f43f65ab145a4151792609c244b7c"
+          },
+          "validate_selector": {
+            "va": "0x24960",
+            "size": 84,
+            "sha256": "d4b5447c13c0c36ade40206f9be330d0b43b6cd75b6bb5de9d5771dd265ab2ba"
+          },
+          "selector_match_20_bytes": {
+            "va": "0x54e64",
+            "size": 26,
+            "sha256": "063eef7f9d66b2ec098a0eec030be6a30dc829301fa7e59b45d749aa306a2d49"
+          },
+          "canonical_default_selector_constructor": {
+            "va": "0x24e7c",
+            "size": 34,
+            "sha256": "b6a2914e43b3fb8add3381ab01b4e4d55374bf738959acd0bd44e9c10460574f"
+          },
+          "default_identity_zero16": {
+            "va": "0x4cd8",
+            "size": 10,
+            "sha256": "9c946e1208f5492a14a7827b156c5a68bf34395141596578a85c9b100de24150"
+          },
+          "legacy_default_class_match": {
+            "va": "0x24cfc",
+            "size": 28,
+            "sha256": "b5066d4f026e3d32bc5b8fd60145896864acd14f66c61691eab5e01e04eb9a75"
+          },
+          "domain_capacity_selection": {
+            "va": "0x547d4",
+            "size": 212,
+            "sha256": "631adf60eabbca15d232094d3113c4eb0b751d69bfc695b165549f5fa4153619"
+          },
+          "clear_unlock_token": {
+            "va": "0x53438",
+            "size": 54,
+            "sha256": "a2fc05cd9589cdf41140d72bfe14d0d8f40cab838b1836fa6a5eb20eac9c27ba"
+          },
+          "clear_biometric_retention": {
+            "va": "0x533b0",
+            "size": 28,
+            "sha256": "c84b7918d71149f236274fb64ded75e565d4d269cdea1acd491636642ff0baed"
+          },
+          "policy_retention_flag_200": {
+            "va": "0x54f0a",
+            "size": 34,
+            "sha256": "0f3185e32b1f464d53e111d3d27397d495159ed1ca80e5bab3efc2e72ac30586"
+          },
+          "revoke_all_unlock": {
+            "va": "0x54f44",
+            "size": 100,
+            "sha256": "f852adf547a6afe06ce504271684fc0fde236a2321b8d7f32b389009d1035a6d"
+          },
+          "revoke_all_biometric": {
+            "va": "0x54fb0",
+            "size": 100,
+            "sha256": "79d22282b302f992b3c296f0709f77230aa213103a2ed308c47f514df69ec325"
+          }
+        }
+      }
+    },
+    "status_categories": {
+      "implemented_static": [
+        "inactive or canonical-default enroll-v2 selector; nonzero inactive16 storage and explicit tag1/zero16 are both supported",
+        "26/72 native combined token revocation with real enqueue status and policy notifications",
+        "existing calibration-info/session/prefix wire conversions"
+      ],
+      "missing_conversion": [
+        "named/nondefault20-byte enroll template-domain selection (not raw keybag bytes)",
+        "7e sensor6e provisioning proof body",
+        "unmapped modern operations/flags"
+      ],
+      "known_native_unsupported": [
+        "SeaCookie mailbox4b/4c/4d -> actual native12 status22"
+      ],
+      "runtime_only": [
+        "device boot and workloop/endpoint delivery",
+        "provisioning/keybag/calibration validity",
+        "actual enrollment/match and failure-path exercise"
+      ]
+    }
+  }
+}

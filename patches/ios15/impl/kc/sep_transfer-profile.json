@@ -1,0 +1,1632 @@
+{
+  "build": "19H422",
+  "generic": {
+    "owner": "com.apple.iokit.AppleSEPGenericTransfer",
+    "text_exec": {
+      "address": "0xfffffff006887000",
+      "size": 14616,
+      "ios14_size": 8428
+    },
+    "functions": {
+      "init": "0xfffffff006887ec4",
+      "get_endpoint": "0xfffffff006888b50",
+      "receive": "0xfffffff006888dbc",
+      "raw_send": "0xfffffff006888f84",
+      "transact": "0xfffffff006889160",
+      "transact_to_iomd": "0xfffffff0068895f4",
+      "lock": "0xfffffff00688a1fc",
+      "unlock": "0xfffffff00688a2d0",
+      "wait": "0xfffffff00688a5cc",
+      "wake": "0xfffffff00688a640"
+    },
+    "fields": {
+      "response_condition": 16,
+      "max_transact_size_u32": 24,
+      "endpoint_tag_u32": 28,
+      "buffer_request_u32": 32,
+      "endpoint": 40,
+      "endpoint_lock": 48,
+      "transaction_lock": 56,
+      "command_gate": 64,
+      "input_memory": 72,
+      "input_buffer": 80,
+      "input_length_u64": 88,
+      "output_memory": 96,
+      "output_buffer": 104,
+      "output_length_u64": 112,
+      "transfer": 128,
+      "transfer_size": 56,
+      "command_u32": 164,
+      "status_u32": 168,
+      "flags_u32": 172,
+      "state_u32": 176,
+      "context_owner": 184,
+      "memory_tag": 192,
+      "message_handler": 200,
+      "client_service": 208
+    },
+    "ios14": {
+      "transfer_size": 48,
+      "context_owner": 176,
+      "message_handler": 184,
+      "client_service": 192
+    },
+    "vtable": {
+      "endpoint_send": 232,
+      "endpoint_start": 176,
+      "endpoint_enabled": 192,
+      "endpoint_input": 256,
+      "endpoint_output": 264
+    },
+    "gt_packet_header_size": 28,
+    "gt_requests": [
+      252,
+      253,
+      254
+    ],
+    "warning": "The 14 +0xb0 owner pointer is the 15 transfer state word. Do not reuse 14 state clear/owner offsets."
+  },
+  "protocols": {
+    "art": {
+      "services": [
+        "arts",
+        "artr"
+      ],
+      "endpoints": {
+        "arts": 2,
+        "artr": 3
+      },
+      "buffer_size": 16384,
+      "mailbox_size": 8,
+      "mailbox_fields": {
+        "endpoint_byte": 0,
+        "tag_byte": 1,
+        "opcode_and_response_byte": 2,
+        "reserved_byte": 3,
+        "value_u32": 4
+      },
+      "ios15_encoding": "internal logical opcode << 1; same eight-byte wire header",
+      "ios12_encoding": "internal logical opcode << 1, then clear bit0 before send (not an unshifted enum)",
+      "response_mask": 1,
+      "checked_logical_opcodes": [
+        0,
+        1,
+        2,
+        3,
+        20,
+        21,
+        30,
+        40
+      ],
+      "body_status": "MANIFEST/LOAD/persist parser + xART0/1/5/6/7/14 now run through actual AP call chains; native durable backend/replies/errors retained; crypto/capability/device validation not claimed",
+      "matched_empty_request_commands": {
+        "0x14": {
+          "logical_opcode": 20,
+          "wire_opcode": 40,
+          "request_body_size": 0,
+          "inline_value": 0,
+          "service": "artr",
+          "endpoint": 3,
+          "reply": "native status/data decoding retained; never synthesized",
+          "evidence": {
+            "12": {
+              "address": "0xfffffff0082472c4",
+              "size": 16,
+              "bytes": "81028052020080d2030080d220faff97",
+              "sha256": "b73ed89434f33ff400973b2e3a57c0fecd595da8ed422ce750aa163bfc4d49c4"
+            },
+            "14": {
+              "address": "0xfffffff0064330e8",
+              "size": 16,
+              "bytes": "81028052020080d2030080d2f0f9ff97",
+              "sha256": "4fd13e4dce008e2d2ba468103b4d8303f049f86ed9cc5894f7ad77aebdf91025"
+            },
+            "15": {
+              "address": "0xfffffff006326e58",
+              "size": 16,
+              "bytes": "81028052020080d2030080d2c0f9ff97",
+              "sha256": "2e50a8efa043edde9eb215ad46e21f1bb26a9db034042331fbb5bac735794ba5"
+            }
+          }
+        },
+        "0x15": {
+          "logical_opcode": 21,
+          "wire_opcode": 42,
+          "request_body_size": 0,
+          "inline_value": 0,
+          "service": "artr",
+          "endpoint": 3,
+          "reply": "native status/data decoding retained; never synthesized",
+          "evidence": {
+            "12": {
+              "address": "0xfffffff0082474b8",
+              "size": 16,
+              "bytes": "a1028052020080d2030080d2a3f9ff97",
+              "sha256": "734a3798a8a26063d188055646f1b0bd5fe86f1bb65c7b7a61067112d492c3c0"
+            },
+            "14": {
+              "address": "0xfffffff0064331a8",
+              "size": 16,
+              "bytes": "a1028052020080d2030080d2c0f9ff97",
+              "sha256": "2c6a5a40e02aecf23e95934fb90208acb9eb15143829e6183a109b3000aba3d7"
+            },
+            "15": {
+              "address": "0xfffffff006326f18",
+              "size": 16,
+              "bytes": "a1028052020080d2030080d290f9ff97",
+              "sha256": "2cdc15b324b7d210dec4809f8d1f0418e94a5f033e14d237230895773d8186d6"
+            }
+          }
+        },
+        "0x1e": {
+          "logical_opcode": 30,
+          "wire_opcode": 60,
+          "request_body_size": 0,
+          "inline_value": 0,
+          "service": "artr",
+          "endpoint": 3,
+          "reply": "native status/data decoding retained; never synthesized",
+          "evidence": {
+            "12": {
+              "address": "0xfffffff008247514",
+              "size": 16,
+              "bytes": "e10f1f32e3230091020080d28cf9ff97",
+              "sha256": "86bf40c9d1f38205fe4fe22ebba00d10937cc870430b15ec1025c9fff6aa2e2a"
+            },
+            "14": {
+              "address": "0xfffffff006433270",
+              "size": 12,
+              "bytes": "c1038052020080d28ff9ff97",
+              "sha256": "07366365e43681b7b4551e4606e7cebbf0a43f56d2616d9747d513ba0bd6c2ad"
+            },
+            "15": {
+              "address": "0xfffffff006326fe0",
+              "size": 12,
+              "bytes": "c1038052020080d25ff9ff97",
+              "sha256": "ac47bffa35f6524a169b1bf036736651564dd559c06a95cabcbaf2ecaaa045e1"
+            }
+          }
+        },
+        "0x28": {
+          "logical_opcode": 40,
+          "wire_opcode": 80,
+          "request_body_size": 0,
+          "inline_value": 0,
+          "service": "artr",
+          "endpoint": 3,
+          "reply": "native status/data decoding retained; never synthesized",
+          "evidence": {
+            "12": {
+              "address": "0xfffffff0082475a0",
+              "size": 28,
+              "bytes": "01058052020080d2030080d2fd7b42a9f44f41a9ffc3009166f9ff17",
+              "sha256": "7985f6edf42e247c0399626fbb8d93075306375d3e8ab51248bdbb9b2e2a015b"
+            },
+            "14": {
+              "address": "0xfffffff006433304",
+              "size": 28,
+              "bytes": "01058052020080d2030080d2fd7b42a9f44f41a9ffc3009166f9ff17",
+              "sha256": "7985f6edf42e247c0399626fbb8d93075306375d3e8ab51248bdbb9b2e2a015b"
+            },
+            "15": {
+              "address": "0xfffffff006327074",
+              "size": 28,
+              "bytes": "01058052020080d2030080d2fd7b42a9f44f41a9ffc3009136f9ff17",
+              "sha256": "d81c9b1d546a8a8fe95ee4808bf0d11f54a62284238b0944dc83f3431b84b96b"
+            }
+          }
+        }
+      }
+    },
+    "acm": {
+      "service": "scrd",
+      "endpoint": 10,
+      "request": 1,
+      "app_buffer_size": 4096,
+      "mailbox_size": 8,
+      "command_header_size": 8,
+      "command_magic": "0x53435244",
+      "command_header_fields": {
+        "magic_u32": 0,
+        "version_byte": 5,
+        "command_byte": 4,
+        "flags_byte": 6,
+        "reserved_byte": 7
+      },
+      "context_create": {
+        "command": 1,
+        "payload_size": 0,
+        "reply_size": 17,
+        "handle_size": 16,
+        "extra_reply_bytes": 1
+      },
+      "expanded_context_create": {
+        "command": 36,
+        "payload_size": 0,
+        "reply_size": 21
+      },
+      "fallback_error": -3,
+      "scrd_response_prefix": false,
+      "body_status": "live SCRD BuildCommand uses command@4/version@5; cmd5/6 credential bodies and cmd18 handle16/reply5 matched to actual 12/14/15 receivers; cmd37 chooses entire native legacy path",
+      "context_delete": {
+        "command": 2,
+        "flags": 0,
+        "payload_size": 16,
+        "reply_size": 0,
+        "native15_handle_container_size": 20,
+        "wire_handle_size": 16,
+        "status": "wire-identical in 12/14/15; native error path and cleanup preserved, no patch needed"
+      },
+      "remove_credentials_by_type_and_scope": {
+        "command": 9,
+        "payload_size": 24,
+        "reply_size": 0,
+        "flags": 0,
+        "fields": {
+          "handle_offset": 0,
+          "handle_size": 16,
+          "type_u32_offset": 16,
+          "scope_u32_offset": 20
+        },
+        "status": "same wire fields in 12/14/15; 14/15 extra AP callback-context argument is not part of payload; native SEP type/scope errors remain authoritative"
+      }
+    }
+  },
+  "guards": {
+    "generic_init": {
+      "address": "0xfffffff006887ec4",
+      "size": 672,
+      "owner": "com.apple.iokit.AppleSEPGenericTransfer",
+      "sha256": "1cb3ae32fe4a6d75f01c924c705cf1559457e529a610aa730d938b6f20a3c30f"
+    },
+    "generic_get_endpoint": {
+      "address": "0xfffffff006888b50",
+      "size": 612,
+      "owner": "com.apple.iokit.AppleSEPGenericTransfer",
+      "sha256": "f175f9627cc97488facdd7481e69d47b6ce9c96b4de54b0564546393ee6bafce"
+    },
+    "generic_receive": {
+      "address": "0xfffffff006888dbc",
+      "size": 456,
+      "owner": "com.apple.iokit.AppleSEPGenericTransfer",
+      "sha256": "77927009d04e97c4ce5f1e99696e9a698a35b03b31d3c45d80170b42107cb2e8"
+    },
+    "generic_raw_send": {
+      "address": "0xfffffff006888f84",
+      "size": 476,
+      "owner": "com.apple.iokit.AppleSEPGenericTransfer",
+      "sha256": "ca73fadf422138ef00ebcd717d8ac0af770a10a7256e87f5391af94f803d9894"
+    },
+    "generic_transact": {
+      "address": "0xfffffff006889160",
+      "size": 1172,
+      "owner": "com.apple.iokit.AppleSEPGenericTransfer",
+      "sha256": "d34e257e215dfbf95b4c425b13d24c64002ef5fa9fb3956c1f4323bd85cd0ccc"
+    },
+    "acm_context_create": {
+      "address": "0xfffffff0068f5c80",
+      "size": 968,
+      "owner": "com.apple.driver.AppleSEPCredentialManager",
+      "sha256": "ba2e59d139d7162012658f0b9fb980c3010ff36e5fba48be0cf09713794caa6c"
+    },
+    "acm_command_header": {
+      "address": "0xfffffff0068f5af8",
+      "size": 120,
+      "owner": "com.apple.driver.AppleSEPCredentialManager",
+      "sha256": "e790bc5a6094da5710163576b1706d95d91003ecc8e5de1527551fa504cd99bc"
+    },
+    "art_requests_send": {
+      "address": "0xfffffff006325628",
+      "size": 532,
+      "owner": "com.apple.driver.AppleSEPManager",
+      "sha256": "4e947df308a8c222927df712fed0b1b9084db4c040da287e23b1c22c93cfcd9f"
+    },
+    "art_storage_send": {
+      "address": "0xfffffff006326764",
+      "size": 484,
+      "owner": "com.apple.driver.AppleSEPManager",
+      "sha256": "5c5a514e08ad437d740a440d18c445fd2c28e5018c42b05c69e8009fc3aa4627"
+    },
+    "art_requests_input_buffer": {
+      "address": "0xfffffff0063253bc",
+      "size": 152,
+      "owner": "com.apple.driver.AppleSEPManager",
+      "sha256": "6a064014f3eb55ccb5f99a8cfbafc9e7185d0977b5cc09dd4d6ad595cb564cbe"
+    },
+    "art_requests_output_buffer": {
+      "address": "0xfffffff006325454",
+      "size": 156,
+      "owner": "com.apple.driver.AppleSEPManager",
+      "sha256": "84bc9ed0a6f772494ac14ed135b350d43be3495f1079e624e0c3874c4768aeae"
+    },
+    "runtime_sep_transfer_get_endpoint": {
+      "address": "0xfffffff006888b50",
+      "size": 32,
+      "sha256": "e860764834d07d9544ee3b9a61dd1b1d87d7bec72bc2a81ed636460584f8319a",
+      "owner": "com.apple.iokit.AppleSEPGenericTransfer"
+    },
+    "runtime_sep_transfer_lock": {
+      "address": "0xfffffff00688a1fc",
+      "size": 32,
+      "sha256": "f3149dff43066f3a9cac1c3aa6e95e0b7a2b698b30ba71c8d583b0f7c2484419",
+      "owner": "com.apple.iokit.AppleSEPGenericTransfer"
+    },
+    "runtime_sep_transfer_unlock": {
+      "address": "0xfffffff00688a2d0",
+      "size": 32,
+      "sha256": "8090e0a2e4edb0b35b3eed4d39f6ae8593073c22f4bd15acdde4eb3b9683b0af",
+      "owner": "com.apple.iokit.AppleSEPGenericTransfer"
+    },
+    "runtime_sep_transfer_wait": {
+      "address": "0xfffffff00688a5cc",
+      "size": 32,
+      "sha256": "a10ee6f90057d3db1073d9bf34c8ecc51849ae20eac414e857b1d4e3fa47fd03",
+      "owner": "com.apple.iokit.AppleSEPGenericTransfer"
+    },
+    "runtime_sep_transfer_wake": {
+      "address": "0xfffffff00688a640",
+      "size": 32,
+      "sha256": "45ae1d0a38f5bfbeafb7d9e69fc60b5bc57cee6492f23c20fe0e6588477b2534",
+      "owner": "com.apple.iokit.AppleSEPGenericTransfer"
+    },
+    "runtime_sep_transfer_alloc": {
+      "address": "0xfffffff0076d66c8",
+      "size": 32,
+      "sha256": "211c0913cd162072f73cdc00d7392c1cb56be0d92819ff42b52e55debaa89a12"
+    },
+    "runtime_sep_transfer_free": {
+      "address": "0xfffffff0076d671c",
+      "size": 32,
+      "sha256": "b67683acba2ba02b63f7613aa2383f6f4edb4d7748b17ba7001e6c040852f8e5"
+    },
+    "runtime_sep_transfer_copy": {
+      "address": "0xfffffff007128890",
+      "size": 32,
+      "sha256": "ffb53170005760c62da7d49a685da1ee22cfc89f49aa75b92949ebc087d8f7fa"
+    },
+    "runtime_sep_transfer_zero": {
+      "address": "0xfffffff007128ac0",
+      "size": 32,
+      "sha256": "b21a7b49ace511c4ee73fb97b8e9f9d8b2167963da64b0d482d9150cafdb42f8"
+    },
+    "body_art_manifest_copy_send": {
+      "address": "0xfffffff006326278",
+      "size": 120,
+      "sha256": "27e5741a12eb41d0bed26094047f436b3c71df9cfbeb612a18b9efae07d5df27",
+      "owner": "com.apple.driver.AppleSEPManager"
+    },
+    "body_art_load_send": {
+      "address": "0xfffffff006326384",
+      "size": 124,
+      "sha256": "b60a81eb64a11efab7b8a4385ccee07dd2e2071c3ef45fea8a477fbd373cdb48",
+      "owner": "com.apple.driver.AppleSEPManager"
+    },
+    "body_art_storage_header": {
+      "address": "0xfffffff0063267ec",
+      "size": 68,
+      "sha256": "28a64fc995bb4739faf2c88242f58b3b05ecefa2528695dc04d878eeea12e3a1",
+      "owner": "com.apple.driver.AppleSEPManager"
+    },
+    "body_art_persist_parse": {
+      "address": "0xfffffff006326ac0",
+      "size": 28,
+      "sha256": "195785d326fa1a3e60c2abef566207b99294ec77822958f0522074e92f432f18",
+      "owner": "com.apple.driver.AppleSEPManager"
+    },
+    "body_art_record_length": {
+      "address": "0xfffffff00632efe8",
+      "size": 84,
+      "sha256": "0c28ae16f2b22d38acd2c0063267042cd6bc768b4a419f62fda3179310578cd7",
+      "owner": "com.apple.driver.AppleSEPManager"
+    },
+    "body_art_persist_call": {
+      "address": "0xfffffff006326ae0",
+      "size": 84,
+      "sha256": "235d19c65a50282989f92de328f7becc4456881c49781d502976210f6c563c2c",
+      "owner": "com.apple.driver.AppleSEPManager"
+    },
+    "body_art_nvram_set_sync": {
+      "address": "0xfffffff006327b58",
+      "size": 160,
+      "sha256": "87b5f49d194944601913866dccb6169e00b5afd55a0dd2b711d2224dc810710a",
+      "owner": "com.apple.driver.AppleSEPManager"
+    },
+    "body_art_storage_unsolicited_ack": {
+      "address": "0xfffffff006325f10",
+      "size": 84,
+      "sha256": "efabfdc3e3d04a0b6569a63bfb2eb4bee498d4f6c3008854d223b0dfc6a555ec",
+      "owner": "com.apple.driver.AppleSEPManager"
+    },
+    "body_acm5_serialize_handle_credential_scope": {
+      "address": "0xfffffff0068d9f48",
+      "size": 80,
+      "sha256": "3b45e76a37ca9ebe575ffd8ce20b69d3d8a62ddb9eee140ebe916febb7ce5a15",
+      "owner": "com.apple.driver.AppleSEPCredentialManager"
+    },
+    "body_acm_credential_type_and_length": {
+      "address": "0xfffffff0068d9310",
+      "size": 72,
+      "sha256": "091a1be3b8c6c5a32dee5153ee129cbb5512f08d5e323a0b7b862be21eb090d8",
+      "owner": "com.apple.driver.AppleSEPCredentialManager"
+    },
+    "body_acm5_call_status": {
+      "address": "0xfffffff0068f6738",
+      "size": 40,
+      "sha256": "da2eb5838319684e1056d9941fa7c103b0522a3a77b7357e52bf18a6ed292daa",
+      "owner": "com.apple.driver.AppleSEPCredentialManager"
+    },
+    "body_acm6_unmatched_caller": {
+      "address": "0xfffffff0068f6c10",
+      "size": 68,
+      "sha256": "8561a60b3949d56a3fdc9145fb4c76841f7e506bd36242bfc86b7641e045d5aa",
+      "owner": "com.apple.driver.AppleSEPCredentialManager"
+    },
+    "body_acm18_legacy_external_form_caller": {
+      "address": "0xfffffff0068f621c",
+      "size": 64,
+      "sha256": "a970ed6ea52f30ac3da8a1e6ad798ea27959031694c7649a215002e750cc577e",
+      "owner": "com.apple.driver.AppleSEPCredentialManager"
+    },
+    "body_xart_dispatch": {
+      "address": "0xfffffff00631e82c",
+      "size": 224,
+      "sha256": "b09f5b6b3225aac6dc83fc4d706ea62f48a8777246a38d0b8afb1bae1fc34236",
+      "owner": "com.apple.driver.AppleSEPManager"
+    },
+    "body_xart_save_length": {
+      "address": "0xfffffff00631ea08",
+      "size": 56,
+      "sha256": "5c9e897d2507c8ae216d1c241a18bddf8141da24b89884159abf063eb4c3a1ff",
+      "owner": "com.apple.driver.AppleSEPManager"
+    },
+    "body_xart_fetch_locker_length": {
+      "address": "0xfffffff00631ea6c",
+      "size": 40,
+      "sha256": "65c8dd9ea72b4461a41c2ce2da1f2a6a63fd912ceecb22a858691d7ee04eeb63",
+      "owner": "com.apple.driver.AppleSEPManager"
+    },
+    "body_xart_save_locker_length": {
+      "address": "0xfffffff00631ee40",
+      "size": 88,
+      "sha256": "d00fe9d9243ef6203ce854362d9a028fcbff2fdb201b5141f8c918b394eae81a",
+      "owner": "com.apple.driver.AppleSEPManager"
+    },
+    "body_xart_policy14": {
+      "address": "0xfffffff00631eca8",
+      "size": 148,
+      "sha256": "0e94b3997c1f91c4aa2160baa869af417789cfb3657dce159edf47d44219add9",
+      "owner": "com.apple.driver.AppleSEPManager"
+    },
+    "body_xart_reply_status": {
+      "address": "0xfffffff00631ee90",
+      "size": 40,
+      "sha256": "f06b31016bebabba40030fa9ac043408dc71b20af16a59be9a28c2b18df76fe1",
+      "owner": "com.apple.driver.AppleSEPManager"
+    },
+    "body_xart_delete7": {
+      "address": "0xfffffff00631ebbc",
+      "size": 100,
+      "sha256": "a9f3dc7b426f49c98955b4f5a6d4731c0c07f622d3dc3077e2ed8b250e6abc6d",
+      "owner": "com.apple.driver.AppleSEPManager"
+    },
+    "body_xart_crc_check": {
+      "address": "0xfffffff00631ee24",
+      "size": 20,
+      "sha256": "9f53ebebeab5ad6362eb2004d084f5e705d36aafae89655982fe528f328e5a24",
+      "owner": "com.apple.driver.AppleSEPManager"
+    },
+    "live_acm_builder": {
+      "address": "0xfffffff0068f5a84",
+      "size": 508,
+      "sha256": "4f55c3e8f31f60fd11b8303fb15f45fa085b6be143fafa0c551bc55b7dcb4647",
+      "owner": "com.apple.driver.AppleSEPCredentialManager"
+    },
+    "live_xart_receiver": {
+      "address": "0xfffffff00631e7fc",
+      "size": 1824,
+      "sha256": "dfc5f252f0e89cf3e49e5941908b66b3c79a5981c2cdb8edf8d61a8e6db431c1",
+      "owner": "com.apple.driver.AppleSEPManager"
+    },
+    "live_art_connected": {
+      "address": "0xfffffff0063261fc",
+      "size": 776,
+      "sha256": "ca5f1209d4ece0b29c1106a1f54176ea828c01911b56855db2efabd71c8bf44d",
+      "owner": "com.apple.driver.AppleSEPManager"
+    },
+    "live_art_persist": {
+      "address": "0xfffffff006326aa0",
+      "size": 264,
+      "sha256": "5a17c05c392e39701a26e6306ad1a7418491cd36fb1b89dcf04205511aeea793",
+      "owner": "com.apple.driver.AppleSEPManager"
+    },
+    "live_acm_external_form_select": {
+      "address": "0xfffffff0068f60ac",
+      "size": 36,
+      "sha256": "9c5a4c0f192ab9e39834820964fa98d7d2163fdde0eddee79c3502d934e0cc70",
+      "owner": "com.apple.driver.AppleSEPCredentialManager"
+    }
+  },
+  "shared_runtime": {
+    "api_version": 2,
+    "primitives": {
+      "sep_transfer_get_endpoint": "0xfffffff006888b50",
+      "sep_transfer_lock": "0xfffffff00688a1fc",
+      "sep_transfer_unlock": "0xfffffff00688a2d0",
+      "sep_transfer_wait": "0xfffffff00688a5cc",
+      "sep_transfer_wake": "0xfffffff00688a640",
+      "sep_transfer_alloc": "0xfffffff0076d66c8",
+      "sep_transfer_free": "0xfffffff0076d671c",
+      "sep_transfer_copy": "0xfffffff007128890",
+      "sep_transfer_zero": "0xfffffff007128ac0"
+    },
+    "state_size": 48,
+    "state_offset": 128,
+    "owner_marker": 176,
+    "quarantine_offset": 180,
+    "context_owner": 184,
+    "owner_magic": "0x32544753",
+    "handled_bit": 32,
+    "descriptor": {
+      "type_bits": [
+        0,
+        7
+      ],
+      "parameter_bits": [
+        8,
+        23
+      ],
+      "subchannel_bit": 24,
+      "tagged_generic_entry_bit": 31,
+      "reserved_bits": [
+        25,
+        30
+      ],
+      "flags": 0
+    },
+    "chunk": 4096,
+    "max_transfer": 307200,
+    "first_request_header": 6,
+    "first_reply_header": 8,
+    "wire_types": {
+      "first": 22,
+      "continuation": 23,
+      "credit": 24
+    },
+    "sequence": "request continuation sequence increments; reply continues without resetting",
+    "receiver_entry_owned_by": "Mesa; helper dispatch only",
+    "compiler_flags": [
+      "-mcpu=generic",
+      "-march=armv8-a",
+      "-mno-outline-atomics"
+    ],
+    "compiled_isa_guard": "no LSE, RCpc or PAC; inline LL/SC acquire/release allowed on A8"
+  },
+  "body_helpers": {
+    "api_version": 2,
+    "header": "sep_transfer_bodies.h",
+    "installation": "live native caller/receiver wiring plus exact-v1 entry forwarders; native persistence and actual SEP errors unchanged",
+    "native_record_length": "0xfffffff00632efe8",
+    "sep_ready": false,
+    "art_storage": {
+      "commands": {
+        "1": "ART_LOAD, exact opaque OOL",
+        "2": "NO_ART, explicitly empty ONLY",
+        "3": "MANIFEST, exact opaque DER/IMG4"
+      },
+      "buffer_size": 16384,
+      "maximum_body": 16383,
+      "inline_value": 0,
+      "wire": "ARTS 8B opcode<<1 + separate OOL, no GT header",
+      "persistence": "Native ART parser returns bounded record length; helper rejects trailing bytes, borrows full record. Native persistence/NVRAM write+FORCESYNC and receiver bool->ACK unchanged."
+    },
+    "acm5": {
+      "command": [
+        5,
+        6
+      ],
+      "payload": "handle16 + serialized credential(header32 + length@header+28 data) + scope32",
+      "credential_header_offset": 16,
+      "credential_data_length_u32_offset": 44,
+      "scope_offset": "48 + credential_data_length",
+      "minimum_payload": 52,
+      "maximum_full_request": 4096,
+      "common_types": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        12
+      ],
+      "type_evidence": {
+        "12": "native serializer type-1 <=11 (types1..12)",
+        "14": "mask0x7f7fe and type<=18",
+        "15": "mask0xff7fe and type<=19"
+      },
+      "response": "zero payload; native SCRD/LibCall error/status unchanged, no completion synthesis",
+      "header": "SCRD magic@0, command@4, version@5, flags@6, reserved@7"
+    },
+    "xart": {
+      "matched_commands": {
+        "1": "save raw xART, length0..0x7fef, exact bytes",
+        "5": "fetch locker, UUID16",
+        "6": "save locker, UUID16 + data, total16..0x8000",
+        "0": "fetch: no input OOL; incoming length bounds output capacity; native response flag1/UUID16/data",
+        "7": "delete: UUID16 only; native remove-variable/remove-record/error path retained",
+        "14": "no input OOL; native protected-data-access/sepfw-loaded policy + deferred message; NOT a SEP12 opcode substitute"
+      },
+      "header": {
+        "endpoint": 0,
+        "tag": 1,
+        "command_or_reply_status": 2,
+        "length_u16_unaligned": 3,
+        "flags": 5,
+        "crc_u16": 6
+      },
+      "flags": "only bit0 SEP/user selector matched; extra bits rejected, never stripped",
+      "endpoint": "caller supplies REAL xART endpoint; no fixed endpoint guessed or published",
+      "persistence": "Live receiver forwards to the original gigalocker/NVRAM path; no disk rewrite or generated success. User-space seputil creates/opens host-UUID.gl and keybagd retains KeybagxART/4-or-32-byte references.",
+      "crc": "CRC16 at +6 is preserved, including mismatches. Native receiver comparison@15:0xfffffff00631ee24 and actual status remain authoritative.",
+      "platform_scope": "generic compatibility code only; N56/A8 has no xART hardware DT node and native seputil skips xART init with return0/supported=false"
+    },
+    "exports": {
+      "sep_transfer_acm_body": "i32(command, payload, length, out, capacity, written)",
+      "sep_transfer_art_storage_body": "i32(opcode, OOL, length, out, capacity, written)",
+      "sep_transfer_xart_body": "i32(header8, OOL, length, out_header8, out, capacity, written)",
+      "sep_transfer_art_record_view": "i32(record, exact_extent_excluding_sentinel, view, size)"
+    },
+    "evidence": {
+      "12": {
+        "art_manifest_copy_send": {
+          "address": "0xfffffff0082466d8",
+          "size": 80,
+          "bytes": "60ea40f9e10315aae20316aa8babd097603a40f982faff97a0c31db8a887ffd008b10191e80300f9a087ffd000080891a3d7ea97e1070032a29300d1e00313aace00009440030034c85a80520800bc72",
+          "sha256": "121dafa42b1180e6e497406ed08c163f356b9bf453456526eb446f9b02cc928a"
+        },
+        "art_load_send": {
+          "address": "0xfffffff0082468c0",
+          "size": 120,
+          "bytes": "a0c31db8a887ffd008b10191e80300f9a087ffd0000c16912fd7ea97e1030032a29300d1e00313aa5a000094f40300aa00030034c85a80520800bc729f02086b01020054a087ffd00098169110000014a887ffd008b10191e80300f9a087ffd000181b911cd7ea97e1031f32e00313aa020080d247000094",
+          "sha256": "f248a3f1f7143c6eeab47a3141c2ef63a99fb67788d18e603d0d4260ac189ac8"
+        },
+        "art_persist_parse": {
+          "address": "0xfffffff008247184",
+          "size": 24,
+          "bytes": "e00301aae10302aa38070094e10300aae00314aa9dcee997",
+          "sha256": "ba0639d95e18a99e447c92003036e2989b42e2fbf084520661e5f1572c05b6ab"
+        },
+        "art_nvram_set_sync": {
+          "address": "0xfffffff0082471b8",
+          "size": 64,
+          "bytes": "c80240f9085940f9e00316aae10317aae20314aa00013fd6f50300aae80240f9081540f9e00317aa00013fd695040034c80240f908e942f9e00316aa00013fd6",
+          "sha256": "d1ea9feb02494cd0599b98cd0bbe6747d891b27d09b6ab2fcfb912b066ed42af"
+        },
+        "art_storage_header": {
+          "address": "0xfffffff008246c84",
+          "size": 24,
+          "bytes": "bf831d782800403915791f53b5a31d38bfb31d38bfc31db8",
+          "sha256": "0a0b20338eaf5b76b12833459c927d2171d6fadff6374165175931cd43c370c9"
+        },
+        "art_record_length": {
+          "address": "0xfffffff008248e6c",
+          "size": 84,
+          "bytes": "ff0301d1f44f02a9fd7b03a9fdc30091e50301aaf30300aae0230091e1030091e2630091e3430091e40313aab6ffff97080013cb1f0000f1e003889afd7b43a9f44f42a9ff030191c0035fd6ffc301d1fc6f01a9",
+          "sha256": "966720fa83cdb5ff2e7e5183c38bce69de771a390fddad30ba02ef786b046975"
+        },
+        "acm5_serialize_handle_credential_scope": {
+          "address": "0xfffffff0086248c4",
+          "size": 92,
+          "bytes": "970000b4e002c03da002803d05000014e2031c3201008052e00315aa9833c197880240f9084100d1e81700f9a1420091e2a30091e00316aafefeff97f30300aaa0080035e81740f9a902088baac35cb82a1100b908510091880200f9",
+          "sha256": "05e58b59510b5c2e6e0621152b8b559e8cdb9defe41f7b057d2013984e8e8050"
+        },
+        "acm_credential_type_and_length": {
+          "address": "0xfffffff008624540",
+          "size": 52,
+          "bytes": "a80240b9080500511f2d007168010054a81e40b902810091e00316aae10315aaec33c19713008052a81e40b908810091880200f9",
+          "sha256": "14ec929af0f3973c5f89578b63b2de6adf23fb3bfee4b64a35fc961436a7917d"
+        },
+        "acm5_call_status": {
+          "address": "0xfffffff00862f33c",
+          "size": 40,
+          "bytes": "e41740f9a100805202008052000080d2e30314aa050080d2060080d2a0023fd6a00c0035f51740f9",
+          "sha256": "73baa9d272ee3866aaa91b6663ae9274de15b6558440e1a594bb5182e16d6d37"
+        },
+        "xart_dispatch": {
+          "address": "0xfffffff00824133c",
+          "size": 160,
+          "bytes": "680a40391f1d0071c8010054890700101f2003d52a79a8b84901098b20011fd6e00314aae10313aac9feff9780030037e00314aae10313aa39feff9718000014896240b9e92300a9a087ffb000e4159182ecea97c8028052680a00397f3200780f000014e00314aae10313aa29ffff970b000014e00314aae10313aa6cfcff97070000140200805202000014e2030032e00314aae10313aa52fdff97880240f9",
+          "sha256": "208f5891dd13fa7ad755979d92b52bddc22a97b78d9f3015b2fa98fccac69b8d"
+        },
+        "xart_save_length": {
+          "address": "0xfffffff0082405c8",
+          "size": 16,
+          "bytes": "68324078097d04533ffd1f71c3010054",
+          "sha256": "db635b7879ed44d956143d76918af26d036ab9a718b0f126e68d4f6a7aac0a7c"
+        },
+        "xart_save_flag_and_write": {
+          "address": "0xfffffff00824075c",
+          "size": 32,
+          "bytes": "e11b40f96816403903010012e4ff0091e20315aa5ad6ff971fd00431c0fbff54",
+          "sha256": "5fa97d87c7f3f0ed079051716bae5085154cabea01f6c509fc517e4edb598ca5"
+        },
+        "xart_locker_length": {
+          "address": "0xfffffff008240980",
+          "size": 20,
+          "bytes": "68324078094100512afe8f523f010a6bc3010054",
+          "sha256": "f2e9cdbb693d5f0a2a10b6396a998398b1eebe996af9fece8279bf4e4306b246"
+        },
+        "xart_save_locker_data": {
+          "address": "0xfffffff008240a90",
+          "size": 108,
+          "bytes": "00e80e91f5e9d197df1200b907000014d81200b9c0520091a8e240f901410091e20318aa97c2d097bb87ffb07b5f0791b887ff90182b3e91f90300325a178052bc87ffb09cf3119114000014a087ffb0000815910c00001445d6ff971fd00431e000005480060034e00300f9",
+          "sha256": "803d884adeca8dea40f359f87c6bcc41fc149ad3868d81764be268280e07d1f7"
+        },
+        "art_storage_unsolicited_ack": {
+          "address": "0xfffffff0082460fc",
+          "size": 84,
+          "bytes": "550040f9f51700f9086040b91f01356b21020054f30300aa08dc40f9080300b495048037a85e11531f29007101070054a87e50d308010032e8ab0039618a5ba9e00313aaca030094e0070034ffaf00393f000014",
+          "sha256": "108575e81f5f07ea5fcdda690241e5b41d21ba65956e95d384eddb7e22c34713"
+        }
+      },
+      "14": {
+        "art_manifest_copy_send": {
+          "address": "0xfffffff00643252c",
+          "size": 120,
+          "bytes": "e11340f9a10400b4e20f40f95f1040f1e8100054606640f9401100b46862433928110035686a40f91f0102ebe91000542800805268620339274a0094603a40f98ef9ff97a0c31db828adfff008853091e80300f920adfff000343291b6480094a29300d1e00313aa61008052d7000094600c00357f620339",
+          "sha256": "31c6327a4784ccc76daec8acae624469fdd28ffaa41393c65a054e4981b67772"
+        },
+        "art_load_send": {
+          "address": "0xfffffff006432658",
+          "size": 100,
+          "bytes": "605640f9080040f9085140f900013fd6e203002ae00314aae10315aae3490094603a40f94af9ff97a0c31db828adfff008853091e80300f920adfff00094359172480094a29300d1e00313aa2100805293000094400300357f620339683a40f908e14439",
+          "sha256": "2e6887d55a330879d2d8d1406e9b5970af38708d3922c8bd25c35613f6dfe530"
+        },
+        "art_persist_parse": {
+          "address": "0xfffffff006432d4c",
+          "size": 24,
+          "bytes": "e00301aae10302aa201f0094e10300aae00314aa4d470094",
+          "sha256": "7fe48091738a51f9d465b44ff0dd205cffe9a2766f28439f6a3f4840c53469a7"
+        },
+        "art_record_length": {
+          "address": "0xfffffff00643a9d4",
+          "size": 84,
+          "bytes": "ff0301d1f44f02a9fd7b03a9fdc30091e50301aaf30300aae0230091e1030091e2630091e3430091e40313aa10ffff97080013cb1f0000f1e003889afd7b43a9f44f42a9ff030191c0035fd6ff8301d1f65703a9",
+          "sha256": "ba06208af31fbb71915191d189624d5a8c3611166dbe9eaaa7a1b9f8fcea52d8"
+        },
+        "acm5_serialize_handle_credential_scope": {
+          "address": "0xfffffff00698f558",
+          "size": 92,
+          "bytes": "970000b4e002c03da002803d05000014e00315aa010080520202805207750094880240f9084100d1e81700f9a1420091e2a30091e00316aaddfcff97f30300aaa0080035e81740f90901158baac35cb82a1100b908510091880200f9",
+          "sha256": "68300798f4fabed8fe48d3c4c2c5ae9de715dd8c3a41015abdbebf1aea15c18e"
+        },
+        "acm_credential_type_and_length": {
+          "address": "0xfffffff00698e950",
+          "size": 72,
+          "bytes": "a80240b91f490071c8020054290080522821c81ac9ff9e52e900a0721f01096a00020054a81e40b902810091e00316aae10315aa0078009413008052a81e40b908810091880200f9",
+          "sha256": "119555b77a400561ec87aa990013ded21e36a380dab152525ee1b8bf3058ae3e"
+        },
+        "acm5_call_status": {
+          "address": "0xfffffff0069a7fd0",
+          "size": 40,
+          "bytes": "e00316aaa100805202008052e30314aa050080d2060080d2a0023fd6000b0035f51740f9e00314aa",
+          "sha256": "8e153e468ef20d565d11dafc209e3be17b71c4fffa0f3319c5bdce367d20614d"
+        },
+        "xart_dispatch": {
+          "address": "0xfffffff00642aec8",
+          "size": 52,
+          "bytes": "680a403977adff90f7fe20911f390071e8140054b50240b289adffb029011a918a0000102b6968384a090b8b40011fd628a800d0",
+          "sha256": "2c178685ec4a9ff1fc6149f5996e3d8af9ed75efecf8ea38fe0c159ffd0e0460"
+        },
+        "xart_save_length": {
+          "address": "0xfffffff00642b194",
+          "size": 56,
+          "bytes": "69324078e90e00b48a6240f9e8ff9f528badff906b411a914c1540380d3d08538c010dca6c796c788821084a290500f141ffff546c000014",
+          "sha256": "0778d5d5aeba43ab6217c1522cec6e8ea50792c090cde75e0b1e46e8f2839e50"
+        },
+        "art_storage_unsolicited_ack": {
+          "address": "0xfffffff0064321d4",
+          "size": 84,
+          "bytes": "550040f9f50700f9086040b91f01356b21020054f30300aa015840f9a10900b475028037a85e11531f290071e1040054a87e50d308010032e82b0039625e40f9e00313aa92020094c0050034ff2f00392e000014",
+          "sha256": "6875b8cb13babee0b24bee7a7c80d76ba2b84f053d588e12f5179201b5df9d8a"
+        }
+      },
+      "15": {
+        "art_manifest_copy_send": {
+          "address": "0xfffffff006326278",
+          "size": 120,
+          "bytes": "e11b40f9a10400b4e21740f95f1040f168110054606a40f9401200b46882433928120035686e40f91f0102ebe91100542800805268820339a0560094603a40f92ff9ff97a0c31db8889fff9008292591e80300f9809fff9000d8269126550094a29300d1e00313aa61008052e3000094600c00357f820339",
+          "sha256": "27e5741a12eb41d0bed26094047f436b3c71df9cfbeb612a18b9efae07d5df27"
+        },
+        "art_load_send": {
+          "address": "0xfffffff006326384",
+          "size": 124,
+          "bytes": "2800805268820339746a40f9605a40f9080040f9086d40f900013fd6f50300aa605a40f9080040f9085140f900013fd6e203002ae00314aae10315aa5c560094603a40f9ebf8ff97a0c31db8889fff9008292591e80300f9809fff9000702a91e2540094a29300d1e00313aa210080529f000094400300357f820339",
+          "sha256": "b60a81eb64a11efab7b8a4385ccee07dd2e2071c3ef45fea8a477fbd373cdb48"
+        },
+        "art_storage_header": {
+          "address": "0xfffffff0063267ec",
+          "size": 68,
+          "bytes": "a97a1f530ae140394a050011ea670039e96b0039e90f40f909c103f8e9630091091500f916810039680240f9087540f9e1630091e00313aa020080d22300805200013fd6",
+          "sha256": "28a64fc995bb4739faf2c88242f58b3b05ecefa2528695dc04d878eeea12e3a1"
+        },
+        "art_persist_parse": {
+          "address": "0xfffffff006326ac0",
+          "size": 28,
+          "bytes": "e00301aae10302aa48210094e10300aae00314aabc530094000300b4",
+          "sha256": "195785d326fa1a3e60c2abef566207b99294ec77822958f0522074e92f432f18"
+        },
+        "art_record_length": {
+          "address": "0xfffffff00632efe8",
+          "size": 84,
+          "bytes": "ff0301d1f44f02a9fd7b03a9fdc30091e50301aaf30300aaff7f01a9ff7f00a9e0230091e1030091e2630091e3430091e40313aa08ffff97080013cb1f0000f1e003889afd7b43a9f44f42a9ff030191c0035fd6",
+          "sha256": "0c28ae16f2b22d38acd2c0063267042cd6bc768b4a419f62fda3179310578cd7"
+        },
+        "art_persist_call": {
+          "address": "0xfffffff006326ae0",
+          "size": 84,
+          "bytes": "a87a40f9005940f9695c00b029f940f9e90b00f9899fffd020e944fde00f00fd090000b029e12c91aa5c00b04ac10b91e92b02a9e85303a9e143009165530094c0010034880240f9081540f9e00314aa00013fd6",
+          "sha256": "235d19c65a50282989f92de328f7becc4456881c49781d502976210f6c563c2c"
+        },
+        "art_nvram_set_sync": {
+          "address": "0xfffffff006327b58",
+          "size": 160,
+          "bytes": "131040f9e00313aa84ffff97801640f9944f0094400600b4f60300aa614e40f90000009000303191220080529b500094f7b400b0ff021639e10316aa9d50009440018052094f0094e8025639a8ffff34c80240f9081540f9e00316aa00013fd6e8b400b008055639a8030034569fffd0d6862091e00316aa8f4f0094f50300aa604e40f9080040f9086540f9e10316aae20315aa00013fd6b50000b4a80240f9",
+          "sha256": "87b5f49d194944601913866dccb6169e00b5afd55a0dd2b711d2224dc810710a"
+        },
+        "art_storage_unsolicited_ack": {
+          "address": "0xfffffff006325f10",
+          "size": 84,
+          "bytes": "550040f9f50700f9086040b91f01356b21020054f30300aa015c40f9210a00b475028037a85e11531f29007141050054a87e50d308010032e82b0039626240f9e00313aaa002009440060034ff2f003932000014",
+          "sha256": "efabfdc3e3d04a0b6569a63bfb2eb4bee498d4f6c3008854d223b0dfc6a555ec"
+        },
+        "acm5_serialize_handle_credential_scope": {
+          "address": "0xfffffff0068d9f48",
+          "size": 80,
+          "bytes": "970000b4e002c03d8002803d020000149f7e00a9680240f9084100d1e81700f981420091e2a30091e00315aad4fcff97f60300aa200a0035e81740f90901148baac35cb82a1100b908510091680200f9",
+          "sha256": "3b45e76a37ca9ebe575ffd8ce20b69d3d8a62ddb9eee140ebe916febb7ce5a15"
+        },
+        "acm_credential_type_and_length": {
+          "address": "0xfffffff0068d9310",
+          "size": 72,
+          "bytes": "a80240b91f4d0071c8020054290080522821c81ac9ff9e52e901a0721f01096a00020054a81e40b902810091e00316aae10315aa4c93009413008052a81e40b908810091880200f9",
+          "sha256": "091a1be3b8c6c5a32dee5153ee129cbb5512f08d5e323a0b7b862be21eb090d8"
+        },
+        "acm5_call_status": {
+          "address": "0xfffffff0068f6738",
+          "size": 40,
+          "bytes": "e41740f9e00316aaa100805202008052e30314aa050080d2060080d2a0023fd6600c0035f51740f9",
+          "sha256": "da2eb5838319684e1056d9941fa7c103b0522a3a77b7357e52bf18a6ed292daa"
+        },
+        "acm6_unmatched_caller": {
+          "address": "0xfffffff0068f6c10",
+          "size": 68,
+          "bytes": "e4a30091e00319aae10318aae20313aae30314aaf58dff97f30300aa400d0035e41740f9e00316aac100805202008052e30314aa050080d2060080d2a0023fd6600c0035",
+          "sha256": "8561a60b3949d56a3fdc9145fb4c76841f7e506bd36242bfc86b7641e045d5aa"
+        },
+        "acm18_legacy_external_form_caller": {
+          "address": "0xfffffff0068f621c",
+          "size": 64,
+          "bytes": "a8008052e81700f9e5c30091e6a30091e00316aa4102805202008052e30314aa04028052a0023fd6c00a0035e81740f91f1500f1610c0054e83340b968030034",
+          "sha256": "a970ed6ea52f30ac3da8a1e6ad798ea27959031694c7649a215002e750cc577e"
+        },
+        "xart_dispatch": {
+          "address": "0xfffffff00631e82c",
+          "size": 224,
+          "bytes": "36144039f50300aaa80e4c3888010035880240f9089140f9e00314aa00013fd6080040f9088140f9e10315aa4200805200013fd688024339c8feff34b54301d140e5054fa0039b3c57158052b7031c38a04301d12102805202008052230280522f75009448559552e87f0079f7f70039e8f301b2e81b00f9b85c00b018f342f9080340b91f791c7240010054610a40396206403963164039880080524841b07200011d32040080d2050080d204750094680a4039b79fffb0f7ae00911f390071a80a0054b50240b2c99fffd029011f918a0000102b6968384a090b8b40011fd6",
+          "sha256": "b09f5b6b3225aac6dc83fc4d706ea62f48a8777246a38d0b8afb1bae1fc34236"
+        },
+        "xart_save_length": {
+          "address": "0xfffffff00631ea08",
+          "size": 56,
+          "bytes": "69324078091b00b48a6a40f9e8ff9f52cb9fffd06b411f914c1540380d3d08538c010dca6c796c788821084a290500f141ffff54cd000014",
+          "sha256": "5c9e897d2507c8ae216d1c241a18bddf8141da24b89884159abf063eb4c3a1ff"
+        },
+        "xart_fetch_locker_length": {
+          "address": "0xfffffff00631ea6c",
+          "size": 40,
+          "bytes": "683240781f41007101250054df020072680080520805881aa8031b38816a40f9e00315aaf3740094",
+          "sha256": "65c8dd9ea72b4461a41c2ce2da1f2a6a63fd912ceecb22a858691d7ee04eeb63"
+        },
+        "xart_save_locker_length": {
+          "address": "0xfffffff00631ee40",
+          "size": 88,
+          "bytes": "a8070034683240780841005129fe8f523f21286b29070054df020072680080520805881aa8031b38816a40f9e00315aafb730094886a40f90241009168324078034100d120b500b000403d91a14301d172f1ff97600a0039",
+          "sha256": "d00fe9d9243ef6203ce854362d9a028fcbff2fdb201b5141f8c918b394eae81a"
+        },
+        "xart_policy14": {
+          "address": "0xfffffff00631eca8",
+          "size": 148,
+          "bytes": "a09fffb00068109158030094f50300aaa09fffb0006c129154030094f60300aa802640f9a85c00b008e142f9020140f9080040f9089940f9a19fffb0219809916300805200013fd67f0a003975160039360d003428b500b008e17c391f0000f10019407aa40a407a600c005428b500b008e53c91690240f9097100f82900805209010039080340b91f791c72e00c005480008052",
+          "sha256": "0e94b3997c1f91c4aa2160baa869af417789cfb3657dce159edf47d44219add9"
+        },
+        "xart_reply_status": {
+          "address": "0xfffffff00631ee90",
+          "size": 40,
+          "bytes": "72f1ff97600a00397f320078880240f9087540f9e00314aae10313aa020080d22300805200013fd6",
+          "sha256": "f06b31016bebabba40030fa9ac043408dc71b20af16a59be9a28c2b18df76fe1"
+        },
+        "xart_delete7": {
+          "address": "0xfffffff00631ebbc",
+          "size": 100,
+          "bytes": "e8f30132e82f00b928b500b008217d39681a0034683240780841005129fe8f523f21286be9190054df020072680080520805881aa8031b38816a40f9e00315aa987400947f0a003920b500b000403d91a14301d1e2b30091030080d2e9efff9720180035",
+          "sha256": "a9f3dc7b426f49c98955b4f5a6d4731c0c07f622d3dc3077e2ed8b250e6abc6d"
+        },
+        "xart_crc_check": {
+          "address": "0xfffffff00631ee24",
+          "size": 20,
+          "bytes": "611a0091e0fb009142008052bd730094e0070035",
+          "sha256": "9f53ebebeab5ad6362eb2004d084f5e705d36aafae89655982fe528f328e5a24"
+        },
+        "acm_unmapped_cmd_0x3": {
+          "address": "0xfffffff0068f6f98",
+          "size": 48,
+          "bytes": "e42b40f9e6230191e00315aa6100805202008052e30313aae50314aac0023fd6e0150035e82740f91f0d00f109160054",
+          "sha256": "260072090d46c9bf83526f0731296b5cf8af275795e0cc8242157fbf92c69c95"
+        },
+        "acm_unmapped_cmd_0x1a": {
+          "address": "0xfffffff0068f7534",
+          "size": 48,
+          "bytes": "e20317aacf1a0094e00316aa4103805202008052e3031baae4031aaae50314aae60313aaa0023fd6f30300aa9f030091",
+          "sha256": "1c8eecbbc75753e383f387443a5aeb2c163a4e1d78ec5b78908e756c9bb28ca2"
+        },
+        "acm_unmapped_cmd_0x1c": {
+          "address": "0xfffffff0068f8e30",
+          "size": 48,
+          "bytes": "cb130094b30300b4e00314aa8103805202008052030080d2040080d2050080d2060080d260023fd6f30300aa60040035",
+          "sha256": "b47c90ceda9b7b2e153a315a4dd24904d621333c9481d1495d7d32c93f6f2970"
+        },
+        "acm_unmapped_cmd_0x21": {
+          "address": "0xfffffff0068f8fec",
+          "size": 48,
+          "bytes": "e10a0054e3c30091e00317aa210480520200805204038052e50315aae60314aac0023fd6f30300aaa00b003548018052",
+          "sha256": "99ab136878b1a11d61978fca1df94d6fbe065e9693199907089c6c8230d737ad"
+        },
+        "acm_unmapped_cmd_0x1b": {
+          "address": "0xfffffff0068f926c",
+          "size": 48,
+          "bytes": "01090054e3e30091e00317aa610380520200805204018052e50315aae60314aac0023fd6f30300aac009003548018052",
+          "sha256": "8f5efabd1a998330d812f955a985b98981bf74aab605b291b583990e1fd8a0fd"
+        },
+        "acm_unmapped_cmd_0x19": {
+          "address": "0xfffffff0068f9ac0",
+          "size": 48,
+          "bytes": "f30400b4e3b30091e00316aa210380520200805284008052e50314aae60313aaa0023fd6f30300aaa005003548018052",
+          "sha256": "696eb9b15e309c580a21625d1b64158560ad7e56e16ec88de2696959048474d6"
+        },
+        "acm_unmapped_cmd_0x2c": {
+          "address": "0xfffffff0068f9d48",
+          "size": 48,
+          "bytes": "e20315aa8e100094e00314aa8105805202008052e3031aaae40319aa050080d2060080d260023fd6f30300aae0060035",
+          "sha256": "42641bc666414b80e8e6c7efd7df75f8f3984a788335799c8f4cb1bc9aef69b1"
+        },
+        "acm_unmapped_cmd_0x26": {
+          "address": "0xfffffff0068f9f4c",
+          "size": 48,
+          "bytes": "150500b4f30400b4e00316aac104805202008052030080d2040080d2e50315aae60313aa80023fd6f30300aaa0050035",
+          "sha256": "7b09c5ef290fb0f8bf10658920a6361036a0be5449340bc0bc8bc90cc07a592b"
+        },
+        "acm_unmapped_cmd_0x30": {
+          "address": "0xfffffff0068fa374",
+          "size": 48,
+          "bytes": "e5030191e6a30091e00317aa0106805202008052c4008252c0023fd6600a0035e81740f91f5d00f1090c0054e8034139",
+          "sha256": "c7d671c8277480b2b47e8b3c47369171b135b9bc8a43250c55bd194a0b4cfaea"
+        },
+        "acm_unmapped_cmd_0x31": {
+          "address": "0xfffffff0068fa6d4",
+          "size": 48,
+          "bytes": "e5e30091e6c30091e00316aa210680520200805284028052a0023fd6e0080035e11b40f93f1400f1a90a0054e8e34039",
+          "sha256": "b554e700ac3d895ffb266cc99cb8a8d4031186d9db0c05b2f182aaafa8a2955c"
+        },
+        "acm_unmapped_cmd_0x28": {
+          "address": "0xfffffff0068faa24",
+          "size": 48,
+          "bytes": "60110035e41740f9e00316aa0105805202008052e30315aa050080d2060080d280023fd6fb031caabc8b00f09c170291",
+          "sha256": "07c27474aac3c14606fcbbb691c51055f732b5ab20bc5d7df36d6aed3e6730fd"
+        },
+        "acm_unmapped_cmd_0x2a": {
+          "address": "0xfffffff0068fadac",
+          "size": 48,
+          "bytes": "60110035e41740f9e00316aa4105805202008052e30315aa050080d2060080d280023fd6fb031caabc8b00f09c170291",
+          "sha256": "757a56a5c0be5898e27d34467d88278f97ecd97f896bd5e098db86e1a34dd566"
+        },
+        "acm_unmapped_cmd_0x29": {
+          "address": "0xfffffff0068fb118",
+          "size": 48,
+          "bytes": "200f0035e41740f9e00318aa2105805202008052e30314aae50316aae60315aae0023fd6400e0035f51740f9e00314aa",
+          "sha256": "060cb064339369c828ac42c1d1ade72d098235ca0aa05f89555d35f563b58e98"
+        },
+        "acm_unmapped_cmd_0x2d": {
+          "address": "0xfffffff0068fb41c",
+          "size": 48,
+          "bytes": "e20315aa150b0094e00314aaa105805202008052e30318aae40317aa050080d2060080d260023fd6f30300aaa0090035",
+          "sha256": "dbec52455f200f6acdffd3354a2d53a67fdedeca4f4ca74e72a56983081c36cf"
+        },
+        "acm_unmapped_cmd_0x2e": {
+          "address": "0xfffffff0068fb6a0",
+          "size": 48,
+          "bytes": "e5c30091e6a30091e00315aac1058052020080520403805280023fd6c0060035e81740f91f2d00f169080054e83340b9",
+          "sha256": "049dc2668bb14f8394040f4849a336070d1fab096cc5be7f900f1a674e8c0423"
+        },
+        "acm_unmapped_cmd_0x11": {
+          "address": "0xfffffff0068fcc50",
+          "size": 48,
+          "bytes": "a58301d1a6a301d1e00315aa2102805202008052e30318aae40316aa80023fd620080035a88359f81f1100f1210a0054",
+          "sha256": "49040efcb29cfcbdde3f86b5ba688ebdb448a38a3a07a24db27c6b00c6a58b6b"
+        }
+      }
+    },
+    "xart_dispatch_tables": {
+      "12": {
+        "address": "0xfffffff008241438",
+        "size": 32,
+        "bytes": "24ffffff78ffffff44ffffff44ffffff44ffffff68ffffff88ffffff90ffffff",
+        "sha256": "3d4e9d3f4e0559043db2cc1ed4bf62fe352d775e2a3c988eb2c137c37927657c",
+        "base": "0xfffffff008241438",
+        "format": "i",
+        "targets": {
+          "0": "0xfffffff00824135c",
+          "1": "0xfffffff0082413b0",
+          "2": "0xfffffff00824137c",
+          "3": "0xfffffff00824137c",
+          "4": "0xfffffff00824137c",
+          "5": "0xfffffff0082413a0",
+          "6": "0xfffffff0082413c0",
+          "7": "0xfffffff0082413c8"
+        }
+      },
+      "14": {
+        "address": "0xfffffff0059db680",
+        "size": 15,
+        "bytes": "00a79f9f9f28b5c39f9f9f9f9f9f72",
+        "sha256": "64460d37c3318bfb998a70cc3d174f0eb43e1a07141244bc7d702c945b459eae",
+        "base": "0xfffffff00642aef8",
+        "format": "B",
+        "targets": {
+          "0": "0xfffffff00642aef8",
+          "1": "0xfffffff00642b194",
+          "2": "0xfffffff00642b174",
+          "3": "0xfffffff00642b174",
+          "4": "0xfffffff00642b174",
+          "5": "0xfffffff00642af98",
+          "6": "0xfffffff00642b1cc",
+          "7": "0xfffffff00642b204",
+          "8": "0xfffffff00642b174",
+          "9": "0xfffffff00642b174",
+          "10": "0xfffffff00642b174",
+          "11": "0xfffffff00642b174",
+          "12": "0xfffffff00642b174",
+          "13": "0xfffffff00642b174",
+          "14": "0xfffffff00642b0c0"
+        }
+      },
+      "15": {
+        "address": "0xfffffff0057187c0",
+        "size": 15,
+        "bytes": "003f4d4d4d559eac4d4d4d4d4d4de7",
+        "sha256": "4cf37cae521250b86fd0d46ec538659cec2fd4c80407ccb986f77f4c2089202e",
+        "base": "0xfffffff00631e90c",
+        "format": "B",
+        "targets": {
+          "0": "0xfffffff00631e90c",
+          "1": "0xfffffff00631ea08",
+          "2": "0xfffffff00631ea40",
+          "3": "0xfffffff00631ea40",
+          "4": "0xfffffff00631ea40",
+          "5": "0xfffffff00631ea60",
+          "6": "0xfffffff00631eb84",
+          "7": "0xfffffff00631ebbc",
+          "8": "0xfffffff00631ea40",
+          "9": "0xfffffff00631ea40",
+          "10": "0xfffffff00631ea40",
+          "11": "0xfffffff00631ea40",
+          "12": "0xfffffff00631ea40",
+          "13": "0xfffffff00631ea40",
+          "14": "0xfffffff00631eca8"
+        }
+      }
+    },
+    "unmapped": [
+      {
+        "protocol": "ACM",
+        "command": 5,
+        "fields": "credential type32@payload+16; dataLength32@+44; all other credential header fields opaque",
+        "calls": {
+          "12": "0xfffffff008624540",
+          "14": "0xfffffff00698e950",
+          "15": "0xfffffff0068d9310"
+        },
+        "reason": "types11 (not common),13..19 not mapped; no substitute credential"
+      },
+      {
+        "protocol": "ART",
+        "fields": "DER/IMG4 manifest content, signature, persisted ART record version/opaque fields",
+        "calls": {
+          "12": "manifest@0xfffffff008246718; persist@0xfffffff00824718c",
+          "14": "manifest@0xfffffff006432598; persist@0xfffffff006432d54",
+          "15": "manifest@0xfffffff0063262e4; persist@0xfffffff006326ac8"
+        },
+        "reason": "transport/copy layout matched, content not transcoded or accepted as SEP success; on-device manifest/persistence/wake still unvalidated"
+      },
+      {
+        "protocol": "ACM",
+        "commands": [
+          3,
+          26,
+          28,
+          33,
+          27,
+          25,
+          44,
+          38,
+          48,
+          49,
+          40,
+          42,
+          41,
+          45,
+          46,
+          17
+        ],
+        "fields": "LibCall ABI: w1 command, w2 flags, x3 request payload, x4 exact payload length, x5 reply pointer, x6 reply length pointer. Exact caller setup recorded below; opaque nested payload fields not guessed.",
+        "native15_callers": {
+          "0x3": {
+            "caller": "0xfffffff0068f6fa4",
+            "arguments": [
+              "0xfffffff0068f6f98: ldr x4, [sp, #0x50]",
+              "0xfffffff0068f6f9c: add x6, sp, #0x48",
+              "0xfffffff0068f6fa0: mov x0, x21",
+              "0xfffffff0068f6fa4: mov w1, #3",
+              "0xfffffff0068f6fa8: mov w2, #0",
+              "0xfffffff0068f6fac: mov x3, x19",
+              "0xfffffff0068f6fb0: mov x5, x20",
+              "0xfffffff0068f6fb4: blr x22",
+              "0xfffffff0068f6fb8: cbnz w0, #0xfffffff0068f7274",
+              "0xfffffff0068f6fbc: ldr x8, [sp, #0x48]",
+              "0xfffffff0068f6fc0: cmp x8, #3",
+              "0xfffffff0068f6fc4: b.ls #0xfffffff0068f7284"
+            ]
+          },
+          "0x1a": {
+            "caller": "0xfffffff0068f7540",
+            "arguments": [
+              "0xfffffff0068f7534: mov x2, x23",
+              "0xfffffff0068f7538: bl #0xfffffff0068fe074",
+              "0xfffffff0068f753c: mov x0, x22",
+              "0xfffffff0068f7540: mov w1, #0x1a",
+              "0xfffffff0068f7544: mov w2, #0",
+              "0xfffffff0068f7548: mov x3, x27",
+              "0xfffffff0068f754c: mov x4, x26",
+              "0xfffffff0068f7550: mov x5, x20",
+              "0xfffffff0068f7554: mov x6, x19",
+              "0xfffffff0068f7558: blr x21",
+              "0xfffffff0068f755c: mov x19, x0",
+              "0xfffffff0068f7560: mov sp, x28"
+            ]
+          },
+          "0x1c": {
+            "caller": "0xfffffff0068f8e3c",
+            "arguments": [
+              "0xfffffff0068f8e30: bl #0xfffffff0068fdd5c",
+              "0xfffffff0068f8e34: cbz x19, #0xfffffff0068f8ea8",
+              "0xfffffff0068f8e38: mov x0, x20",
+              "0xfffffff0068f8e3c: mov w1, #0x1c",
+              "0xfffffff0068f8e40: mov w2, #0",
+              "0xfffffff0068f8e44: mov x3, #0",
+              "0xfffffff0068f8e48: mov x4, #0",
+              "0xfffffff0068f8e4c: mov x5, #0",
+              "0xfffffff0068f8e50: mov x6, #0",
+              "0xfffffff0068f8e54: blr x19",
+              "0xfffffff0068f8e58: mov x19, x0",
+              "0xfffffff0068f8e5c: cbnz w0, #0xfffffff0068f8ee8"
+            ]
+          },
+          "0x21": {
+            "caller": "0xfffffff0068f8ff8",
+            "arguments": [
+              "0xfffffff0068f8fec: b.ne #0xfffffff0068f9148",
+              "0xfffffff0068f8ff0: add x3, sp, #0x30",
+              "0xfffffff0068f8ff4: mov x0, x23",
+              "0xfffffff0068f8ff8: mov w1, #0x21",
+              "0xfffffff0068f8ffc: mov w2, #0",
+              "0xfffffff0068f9000: mov w4, #0x18",
+              "0xfffffff0068f9004: mov x5, x21",
+              "0xfffffff0068f9008: mov x6, x20",
+              "0xfffffff0068f900c: blr x22",
+              "0xfffffff0068f9010: mov x19, x0",
+              "0xfffffff0068f9014: cbnz w0, #0xfffffff0068f9188",
+              "0xfffffff0068f9018: mov w8, #0xa"
+            ]
+          },
+          "0x1b": {
+            "caller": "0xfffffff0068f9278",
+            "arguments": [
+              "0xfffffff0068f926c: b.ne #0xfffffff0068f938c",
+              "0xfffffff0068f9270: add x3, sp, #0x38",
+              "0xfffffff0068f9274: mov x0, x23",
+              "0xfffffff0068f9278: mov w1, #0x1b",
+              "0xfffffff0068f927c: mov w2, #0",
+              "0xfffffff0068f9280: mov w4, #8",
+              "0xfffffff0068f9284: mov x5, x21",
+              "0xfffffff0068f9288: mov x6, x20",
+              "0xfffffff0068f928c: blr x22",
+              "0xfffffff0068f9290: mov x19, x0",
+              "0xfffffff0068f9294: cbnz w0, #0xfffffff0068f93cc",
+              "0xfffffff0068f9298: mov w8, #0xa"
+            ]
+          },
+          "0x19": {
+            "caller": "0xfffffff0068f9acc",
+            "arguments": [
+              "0xfffffff0068f9ac0: cbz x19, #0xfffffff0068f9b5c",
+              "0xfffffff0068f9ac4: add x3, sp, #0x2c",
+              "0xfffffff0068f9ac8: mov x0, x22",
+              "0xfffffff0068f9acc: mov w1, #0x19",
+              "0xfffffff0068f9ad0: mov w2, #0",
+              "0xfffffff0068f9ad4: mov w4, #4",
+              "0xfffffff0068f9ad8: mov x5, x20",
+              "0xfffffff0068f9adc: mov x6, x19",
+              "0xfffffff0068f9ae0: blr x21",
+              "0xfffffff0068f9ae4: mov x19, x0",
+              "0xfffffff0068f9ae8: cbnz w0, #0xfffffff0068f9b9c",
+              "0xfffffff0068f9aec: mov w8, #0xa"
+            ]
+          },
+          "0x2c": {
+            "caller": "0xfffffff0068f9d54",
+            "arguments": [
+              "0xfffffff0068f9d48: mov x2, x21",
+              "0xfffffff0068f9d4c: bl #0xfffffff0068fdf84",
+              "0xfffffff0068f9d50: mov x0, x20",
+              "0xfffffff0068f9d54: mov w1, #0x2c",
+              "0xfffffff0068f9d58: mov w2, #0",
+              "0xfffffff0068f9d5c: mov x3, x26",
+              "0xfffffff0068f9d60: mov x4, x25",
+              "0xfffffff0068f9d64: mov x5, #0",
+              "0xfffffff0068f9d68: mov x6, #0",
+              "0xfffffff0068f9d6c: blr x19",
+              "0xfffffff0068f9d70: mov x19, x0",
+              "0xfffffff0068f9d74: cbnz w0, #0xfffffff0068f9e50"
+            ]
+          },
+          "0x26": {
+            "caller": "0xfffffff0068f9f58",
+            "arguments": [
+              "0xfffffff0068f9f4c: cbz x21, #0xfffffff0068f9fec",
+              "0xfffffff0068f9f50: cbz x19, #0xfffffff0068f9fec",
+              "0xfffffff0068f9f54: mov x0, x22",
+              "0xfffffff0068f9f58: mov w1, #0x26",
+              "0xfffffff0068f9f5c: mov w2, #0",
+              "0xfffffff0068f9f60: mov x3, #0",
+              "0xfffffff0068f9f64: mov x4, #0",
+              "0xfffffff0068f9f68: mov x5, x21",
+              "0xfffffff0068f9f6c: mov x6, x19",
+              "0xfffffff0068f9f70: blr x20",
+              "0xfffffff0068f9f74: mov x19, x0",
+              "0xfffffff0068f9f78: cbnz w0, #0xfffffff0068fa02c"
+            ]
+          },
+          "0x30": {
+            "caller": "0xfffffff0068fa380",
+            "arguments": [
+              "0xfffffff0068fa374: add x5, sp, #0x40",
+              "0xfffffff0068fa378: add x6, sp, #0x28",
+              "0xfffffff0068fa37c: mov x0, x23",
+              "0xfffffff0068fa380: mov w1, #0x30",
+              "0xfffffff0068fa384: mov w2, #0",
+              "0xfffffff0068fa388: mov w4, #0x1006",
+              "0xfffffff0068fa38c: blr x22",
+              "0xfffffff0068fa390: cbnz w0, #0xfffffff0068fa4dc",
+              "0xfffffff0068fa394: ldr x8, [sp, #0x28]",
+              "0xfffffff0068fa398: cmp x8, #0x17",
+              "0xfffffff0068fa39c: b.ls #0xfffffff0068fa51c",
+              "0xfffffff0068fa3a0: ldrb w8, [sp, #0x40]"
+            ]
+          },
+          "0x31": {
+            "caller": "0xfffffff0068fa6e0",
+            "arguments": [
+              "0xfffffff0068fa6d4: add x5, sp, #0x38",
+              "0xfffffff0068fa6d8: add x6, sp, #0x30",
+              "0xfffffff0068fa6dc: mov x0, x22",
+              "0xfffffff0068fa6e0: mov w1, #0x31",
+              "0xfffffff0068fa6e4: mov w2, #0",
+              "0xfffffff0068fa6e8: mov w4, #0x14",
+              "0xfffffff0068fa6ec: blr x21",
+              "0xfffffff0068fa6f0: cbnz w0, #0xfffffff0068fa80c",
+              "0xfffffff0068fa6f4: ldr x1, [sp, #0x30]",
+              "0xfffffff0068fa6f8: cmp x1, #5",
+              "0xfffffff0068fa6fc: b.ls #0xfffffff0068fa850",
+              "0xfffffff0068fa700: ldrb w8, [sp, #0x38]"
+            ]
+          },
+          "0x28": {
+            "caller": "0xfffffff0068faa30",
+            "arguments": [
+              "0xfffffff0068faa24: cbnz w0, #0xfffffff0068fac50",
+              "0xfffffff0068faa28: ldr x4, [sp, #0x28]",
+              "0xfffffff0068faa2c: mov x0, x22",
+              "0xfffffff0068faa30: mov w1, #0x28",
+              "0xfffffff0068faa34: mov w2, #0",
+              "0xfffffff0068faa38: mov x3, x21",
+              "0xfffffff0068faa3c: mov x5, #0",
+              "0xfffffff0068faa40: mov x6, #0",
+              "0xfffffff0068faa44: blr x20",
+              "0xfffffff0068faa48: mov x27, x28",
+              "0xfffffff0068faa4c: adrp x28, #0xfffffff007a71000",
+              "0xfffffff0068faa50: add x28, x28, #0x85"
+            ]
+          },
+          "0x2a": {
+            "caller": "0xfffffff0068fadb8",
+            "arguments": [
+              "0xfffffff0068fadac: cbnz w0, #0xfffffff0068fafd8",
+              "0xfffffff0068fadb0: ldr x4, [sp, #0x28]",
+              "0xfffffff0068fadb4: mov x0, x22",
+              "0xfffffff0068fadb8: mov w1, #0x2a",
+              "0xfffffff0068fadbc: mov w2, #0",
+              "0xfffffff0068fadc0: mov x3, x21",
+              "0xfffffff0068fadc4: mov x5, #0",
+              "0xfffffff0068fadc8: mov x6, #0",
+              "0xfffffff0068fadcc: blr x20",
+              "0xfffffff0068fadd0: mov x27, x28",
+              "0xfffffff0068fadd4: adrp x28, #0xfffffff007a71000",
+              "0xfffffff0068fadd8: add x28, x28, #0x85"
+            ]
+          },
+          "0x29": {
+            "caller": "0xfffffff0068fb124",
+            "arguments": [
+              "0xfffffff0068fb118: cbnz w0, #0xfffffff0068fb2fc",
+              "0xfffffff0068fb11c: ldr x4, [sp, #0x28]",
+              "0xfffffff0068fb120: mov x0, x24",
+              "0xfffffff0068fb124: mov w1, #0x29",
+              "0xfffffff0068fb128: mov w2, #0",
+              "0xfffffff0068fb12c: mov x3, x20",
+              "0xfffffff0068fb130: mov x5, x22",
+              "0xfffffff0068fb134: mov x6, x21",
+              "0xfffffff0068fb138: blr x23",
+              "0xfffffff0068fb13c: cbnz w0, #0xfffffff0068fb304",
+              "0xfffffff0068fb140: ldr x21, [sp, #0x28]",
+              "0xfffffff0068fb144: mov x0, x20"
+            ]
+          },
+          "0x2d": {
+            "caller": "0xfffffff0068fb428",
+            "arguments": [
+              "0xfffffff0068fb41c: mov x2, x21",
+              "0xfffffff0068fb420: bl #0xfffffff0068fe074",
+              "0xfffffff0068fb424: mov x0, x20",
+              "0xfffffff0068fb428: mov w1, #0x2d",
+              "0xfffffff0068fb42c: mov w2, #0",
+              "0xfffffff0068fb430: mov x3, x24",
+              "0xfffffff0068fb434: mov x4, x23",
+              "0xfffffff0068fb438: mov x5, #0",
+              "0xfffffff0068fb43c: mov x6, #0",
+              "0xfffffff0068fb440: blr x19",
+              "0xfffffff0068fb444: mov x19, x0",
+              "0xfffffff0068fb448: cbnz w0, #0xfffffff0068fb57c"
+            ]
+          },
+          "0x2e": {
+            "caller": "0xfffffff0068fb6ac",
+            "arguments": [
+              "0xfffffff0068fb6a0: add x5, sp, #0x30",
+              "0xfffffff0068fb6a4: add x6, sp, #0x28",
+              "0xfffffff0068fb6a8: mov x0, x21",
+              "0xfffffff0068fb6ac: mov w1, #0x2e",
+              "0xfffffff0068fb6b0: mov w2, #0",
+              "0xfffffff0068fb6b4: mov w4, #0x18",
+              "0xfffffff0068fb6b8: blr x20",
+              "0xfffffff0068fb6bc: cbnz w0, #0xfffffff0068fb794",
+              "0xfffffff0068fb6c0: ldr x8, [sp, #0x28]",
+              "0xfffffff0068fb6c4: cmp x8, #0xb",
+              "0xfffffff0068fb6c8: b.ls #0xfffffff0068fb7d4",
+              "0xfffffff0068fb6cc: ldr w8, [sp, #0x30]"
+            ]
+          },
+          "0x11": {
+            "caller": "0xfffffff0068fcc5c",
+            "arguments": [
+              "0xfffffff0068fcc50: sub x5, x29, #0x60",
+              "0xfffffff0068fcc54: sub x6, x29, #0x68",
+              "0xfffffff0068fcc58: mov x0, x21",
+              "0xfffffff0068fcc5c: mov w1, #0x11",
+              "0xfffffff0068fcc60: mov w2, #0",
+              "0xfffffff0068fcc64: mov x3, x24",
+              "0xfffffff0068fcc68: mov x4, x22",
+              "0xfffffff0068fcc6c: blr x20",
+              "0xfffffff0068fcc70: cbnz w0, #0xfffffff0068fcd74",
+              "0xfffffff0068fcc74: ldur x8, [x29, #-0x68]",
+              "0xfffffff0068fcc78: cmp x8, #4",
+              "0xfffffff0068fcc7c: b.ne #0xfffffff0068fcdc0"
+            ]
+          }
+        },
+        "reason": "no native12 equivalent caller/receiver payload evidence in the scoped credential comparison; these commands are not rewritten, acknowledged, truncated or claimed firmware-ready"
+      }
+    ],
+    "buffer_contract": "ART/xART body exact in-place only; ACM output separate; written/view slots separate from buffers",
+    "unmatched_handling": "A preparation error is NOT a SEP completion/error reply. Unmatched commands/flags/types must retain the original native request/error path. No body helper is hooked into or replaces that path.",
+    "acm_external_form": {
+      "request_command": 18,
+      "payload_size": 16,
+      "response_size": 5,
+      "ap15_expanded_command": 37,
+      "ap15_expanded_reply_size": 9,
+      "conversion": "whole native legacy branch at 0xfffffff0068f60bc -> 0xfffffff0068f621c; no command-number-only or fabricated reply conversion"
+    }
+  },
+  "live_hooks": {
+    "api_version": 1,
+    "points": {
+      "acm_builder": {
+        "address": "0xfffffff0068f5a84",
+        "bytes": "ff4302d1",
+        "target": "sep_transfer_acm_build_live",
+        "link": false
+      },
+      "art_manifest_copy": {
+        "address": "0xfffffff0063262b0",
+        "bytes": "a0560094",
+        "target": "sep_transfer_art_manifest_copy_live",
+        "link": true
+      },
+      "art_load_copy": {
+        "address": "0xfffffff0063263c0",
+        "bytes": "5c560094",
+        "target": "sep_transfer_art_load_copy_live",
+        "link": true
+      },
+      "art_persist_record": {
+        "address": "0xfffffff006326ac8",
+        "bytes": "48210094",
+        "target": "sep_transfer_art_persist_length_live",
+        "link": true
+      },
+      "xart_receiver": {
+        "address": "0xfffffff00631e7fc",
+        "bytes": "ff4303d1",
+        "target": "sep_transfer_xart_receive_live",
+        "link": false,
+        "required_for_n56": false,
+        "activation": "only a genuinely published native xART service; not created by legacy fixed publisher"
+      },
+      "acm_external_form_legacy": {
+        "address": "0xfffffff0068f60bc",
+        "bytes": "170b0034",
+        "target": "0xfffffff0068f621c",
+        "link": false
+      }
+    },
+    "native": {
+      "sep_transfer_live_native_copy": "0xfffffff00633bd30",
+      "sep_transfer_art_native_record_length": "0xfffffff00632efe8"
+    },
+    "semantics": "native allocation/body/error/persistence remains authoritative; helpers are now in actual builder/OOL-copy/persist-parse/xART receive call chains; no helper return becomes SEP completion"
+  },
+  "target_applicability": {
+    "target": "N56",
+    "soc": "A8",
+    "build": "19H422",
+    "xart": {
+      "classification": "platform-not-applicable",
+      "required": false,
+      "hardware_node": "IODeviceTree:/arm-io/sep/iop-sep-nub/xART",
+      "node_present": false,
+      "probe_return": 0,
+      "probe_out_supported": false,
+      "xart_initializer_return": 0,
+      "whole_program_success_inferred": false,
+      "publish_xarm_xars": false,
+      "create_fake_dt_xart": false,
+      "gigalocker_migration_required_for_target": false,
+      "commands_0_7_14_required_for_target": false,
+      "generic_abi_and_inactive_hooks_retained": true
+    },
+    "evidence": "live-chain/evidence/sep_transfer.n56-xart-applicability.json",
+    "dt": {
+      "native12_n56": {
+        "source": "ipsw/cache/derived/ios15-19H422/n56/DeviceTree.jsonc",
+        "sha256": "7f262386db8c0ef213168c95ea55aee827e154a2931d232e1d6fc6646ceef419",
+        "xart_node_present": false,
+        "sep_nub_present": true,
+        "note": "exact hardware-node path; same-named filesystem/volume nodes do not satisfy this check"
+      },
+      "stock15_j96_a8": {
+        "source": "ipsw/cache/derived/ios15-19H422/j96/DeviceTree.jsonc",
+        "sha256": "6f81b34c61bb27aab3ea708f0ba7baf26568a8649fc902c2f0f3ee9a6377a41d",
+        "xart_node_present": false,
+        "sep_nub_present": true,
+        "note": "exact hardware-node path; same-named filesystem/volume nodes do not satisfy this check"
+      },
+      "current15_n56": {
+        "source": "dt.base output in the build workdir (DeviceTree.jsonc); recorded evidence, not read at build time",
+        "sha256": "9558354fe3e027dbea63a917ce42c4f6bc45c18aa927bf99d9addf33520b216c",
+        "xart_node_present": false,
+        "sep_nub_present": true,
+        "note": "exact hardware-node path; same-named filesystem/volume nodes do not satisfy this check"
+      },
+      "stock15_n66_a9_control": {
+        "source": "ipsw/cache/derived/ios15-19H422/n66/DeviceTree.jsonc",
+        "sha256": "89fafd29b7924b5ab3010ec1cb2730d6602b1efd358e2eb252b2a6cadaed03e1",
+        "xart_node_present": true,
+        "sep_nub_present": true,
+        "note": "exact hardware-node path; same-named filesystem/volume nodes do not satisfy this check"
+      }
+    },
+    "nil_path": {
+      "lookup": {
+        "call": "0x10000a914",
+        "function": "IORegistryEntryFromPath",
+        "path": "IODeviceTree:/arm-io/sep/iop-sep-nub/xART",
+        "result": "IO_OBJECT_NULL / 0"
+      },
+      "probe": {
+        "entry": "0x10000a8e8",
+        "null_node_branch": "0x10000a91c -> 0x10000a928",
+        "out_supported_store": "0x10000a92c/930/934: cmp handle0, cset ne, strb false",
+        "return_code": 0,
+        "return_kind": "probe succeeded, supported=false; NOT a SEP success reply"
+      },
+      "initializer": {
+        "call_probe": "0x10000981c",
+        "supported_false_branch": "0x100009828 -> 0x100009948",
+        "log": "xART is not supported on platform, skipping initialization",
+        "set_result_zero": "0x100009960",
+        "return_result": "0x10000997c -> 0x100009994",
+        "return_code": 0,
+        "effect": "native xART initializer skip/success; whole program can still fail later non-xART checks"
+      },
+      "bypassed": [
+        "gethostuuid/.gl path generation",
+        "stat/preallocation/ftruncate",
+        "IOConnectCallMethod selector44",
+        "gigalocker initialization"
+      ],
+      "not_this_path": "NULL bool* argument yields22/EINVAL at0x10000a988; missing DT node does NOT return22"
+    },
+    "publisher": {
+      "published_count": 5,
+      "tags": [
+        "log",
+        "artr",
+        "arts",
+        "scrd",
+        "sse"
+      ],
+      "sks_endpoint_separate": 18,
+      "xarm_xars_published": false,
+      "device_tree_xart_created": false,
+      "sbio_separate_owner": "Mesa; not an xART DT node"
+    },
+    "removed_from_target_pending": [
+      "xarm/xars publication",
+      "xART0/7/14 runtime requirement",
+      "xART/gigalocker .gl initialization and disk-schema migration"
+    ],
+    "generic_non_n56_notes": [
+      {
+        "protocol": "xART",
+        "scope": "capability/durability rather than missing header mapping",
+        "fields": "native xarm/xars service advertisement; IODeviceTree xART presence; host-UUID .gl header/CRC/records and genuine legacy disk migration",
+        "calls": {
+          "consumer": "seputil@0x1000097c4/0x10000a8e8/0x10000acfc",
+          "manager": "_setGigalockerAvailable@0xfffffff006324ca4; checkInMaster@0xfffffff006324df4; master caller@0xfffffff00631e684"
+        },
+        "reason": "no forced advertisement, platform skip, empty success, CRC repair or disk-schema migration. Live body routing alone is not firmware/persistence readiness."
+      }
+    ],
+    "must_reassess_if": "future target/publisher/DT adds a real xART hardware node or xarm/xars advertisement",
+    "not_exempted": [
+      "ARTS/ARTR manifest and NVRAM persistence",
+      "SCRD/ACM native errors",
+      "SKS/systembag/Data provisioning",
+      "on-device boot/wake/failure roundtrip"
+    ]
+  }
+}

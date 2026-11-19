@@ -9,10 +9,11 @@
 ![Device](https://img.shields.io/badge/Device-iPhone%206%20Plus-0A84FF?style=flat-square&logo=apple&logoColor=white)
 ![iOS](https://img.shields.io/badge/iOS-13.7%20(17H35)-5E5CE6?style=flat-square)
 ![iOS](https://img.shields.io/badge/iOS-14.8%20(18H17)-5E5CE6?style=flat-square)
+![iOS](https://img.shields.io/badge/iOS-15.8.8%20(19H422)-5E5CE6?style=flat-square)
 ![Host](https://img.shields.io/badge/Host-macOS%20%2B%20Xcode-30363D?style=flat-square)
 ![Language](https://img.shields.io/badge/Python-3-3776AB?style=flat-square&logo=python&logoColor=white)
 
-[Quick start](#quick-start) · [iOS 14.8](#ios-148) · [Features](#features) · [Advanced usage](#advanced-usage) · [Author](#author) · [Support the project](#support-the-project)
+[Quick start](#quick-start) · [iOS 14.8](#ios-148) · [iOS 15.8.8](#ios-1588-in-progress) · [Features](#features) · [Advanced usage](#advanced-usage) · [Author](#author) · [Support the project](#support-the-project)
 
 </div>
 
@@ -22,7 +23,7 @@ By default, the tool rebuilds the KC from a clean J96 kernel and also generates 
 
 The project has been run end to end. The final boot bundle includes the hardware adaptation, DataB decryption and checkra1n. Technical conclusions are in [docs/conclusions/13.md](docs/conclusions/13.md) (Chinese). Touch ID is connected through the iOS 12 SEP transport bridge.
 
-iOS 14.8 boots and is jailbroken, with all hardware and system features working. See [iOS 14.8](#ios-148).
+iOS 14.8 boots and is jailbroken, with all hardware and system features working. See [iOS 14.8](#ios-148). iOS 15.8.8 boots and activates; the remaining features are being verified one by one. See [iOS 15.8.8](#ios-1588-in-progress).
 
 > [!WARNING]
 > This tool creates volumes and writes system files on your device, so back up first. This project is not affiliated with Apple. It is provided as is, and you use it at your own risk.
@@ -114,6 +115,10 @@ sudo python3 n56patcher.py all --target n56-ios14
 Touch ID (`touchid`) is enabled by default. The kernel includes an iOS 12 SEP transport bridge with initialization, enrollment and matching protocol conversion, on both 13.7 and 14.8. The sensor must keep its factory pairing with the SEP: a device with a replaced sensor cannot enroll, the same as on native iOS 12.
 
 Storage on the 16 GB model is tight. Read the storage section of [docs/conclusions/14.md](docs/conclusions/14.md) (Chinese) before installing. That document also covers the current status, first boot and technical details.
+
+## iOS 15.8.8 (in progress)
+
+Target `n56-ios15`: J96 / N66 15.8.8 on separate System15 / Data15 volumes, jailbroken with palera1n rootless. Verified on device: boot, encrypted Data15, activation, Wi-Fi, audio, camera, Bluetooth, Health, the regulatory page in Settings, and rootless SSH. Baseband also works; Touch ID cannot be verified on this unit because its sensor was replaced. Build command, required IPSWs and status are in [docs/conclusions/15.md](docs/conclusions/15.md).
 
 ## Features
 

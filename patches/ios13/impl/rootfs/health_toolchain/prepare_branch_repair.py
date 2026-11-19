@@ -53,6 +53,9 @@ def fix_library(data, cache_base, resolver):
     return data, fixed, unresolved
 
 
+from parallel import map_libraries
+
+
 def main():
     OUT.mkdir(exist_ok=True)
     cache = CacheIndex(CACHE)
@@ -61,7 +64,7 @@ def main():
     raw = (V4 / 'trustcache.raw').read_bytes()
     results, payloads = {}, {}
     total_fixed = 0
-    for index, library in enumerate(manifest['cdhashes'], 1):
+    def one(library):
         relative = library.lstrip('/')
         source = V4 / 'libraries' / relative
         if not source.exists():
@@ -70,7 +73,6 @@ def main():
         assert image is not None, f'缓存缺少 {library}'
         data, fixed, unresolved = fix_library(source.read_bytes(), image.address, resolver)
         assert not unresolved, f'{library}: 未解析分支 {unresolved}'
-        total_fixed += fixed
         destination = OUT / 'libraries' / relative
         destination.parent.mkdir(parents=True, exist_ok=True)
         destination.write_bytes(data)
@@ -80,13 +82,16 @@ def main():
         check_layout(destination)
         signature = subprocess.run(['codesign', '-dvvvv', str(destination)], check=True,
                                    capture_output=True, text=True).stderr
-        digest = re.search(r'CandidateCDHash sha256=([0-9a-f]{40})', signature)[1]
+        return fixed, re.search(r'CandidateCDHash sha256=([0-9a-f]{40})', signature)[1]
+
+    libraries = list(manifest['cdhashes'])
+    for library, (fixed, digest) in zip(libraries, map_libraries(one, libraries)):
+        total_fixed += fixed
         manifest['cdhashes'][library] = digest
         raw = trust_cache(raw, bytes.fromhex(digest))
-        payloads[relative] = destination
+        payloads[library.lstrip('/')] = OUT / 'libraries' / library.lstrip('/')
         results[library] = fixed
-        if index % 10 == 0:
-            print(f'分支修复 {index}/{len(manifest["cdhashes"])}，累计 {total_fixed} 条。', flush=True)
+    print(f'分支修复 {len(libraries)}/{len(libraries)}，累计 {total_fixed} 条。', flush=True)
 
     for name in ('images', 'bin'):
         shutil.copytree(V4 / name, OUT / name, dirs_exist_ok=True)

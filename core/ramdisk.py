@@ -74,6 +74,7 @@ class Ramdisk:
         def img(name):
             return os.path.join(rd_dir, f"{name}.img4")
 
+        self._kill_stale_proxy()  # 密码在流程最前面一次问完
         self.dfu_ensure()
         self.device_ecid = self.read_ecid_dfu() or self.device_ecid
         self.pwn()
@@ -154,9 +155,11 @@ class Ramdisk:
         for pid in stale:
             try:
                 os.kill(pid, 15)
-                log.log(f"清掉上次中断留下的 iproxy（PID {pid}）")
-            except OSError as exc:
-                log.warn(f"上次留下的 iproxy（PID {pid}）无法结束：{exc}")
+            except ProcessLookupError:
+                continue  # 刚好已经退出
+            except PermissionError:
+                log.die(f"上次残留的 iproxy（PID {pid}）属于 root，需要管理员权限结束：请在网页端输入密码，或用 sudo 运行")
+            log.log(f"清掉上次中断留下的 iproxy（PID {pid}）")
         if stale:
             time.sleep(0.5)
 

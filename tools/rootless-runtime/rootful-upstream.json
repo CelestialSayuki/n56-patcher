@@ -1,0 +1,8 @@
+{
+  "repository": "https://github.com/palera1n/jbinit",
+  "commit": "df653b8a4cc30cdc3bcec65d4aff0ed7b598da22",
+  "path": "include/mount_args.h",
+  "sha256": "21bea5fa836a16d9b7921c1cf89fc6a377467bf774aa0e5427db69a2d246d52e",
+  "remount_reference": "src/payload/loader/remount.c",
+  "license": "MIT"
+}

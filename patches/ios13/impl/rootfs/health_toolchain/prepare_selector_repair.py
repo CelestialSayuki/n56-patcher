@@ -17,17 +17,19 @@ OUT = HERE / 'full/repair-v4'
 LIBRARY = 'System/Library/PrivateFrameworks/HealthExperience.framework/HealthExperience'
 
 
+from parallel import map_libraries
+
+
 def main():
     OUT.mkdir(exist_ok=True)
     manifest = json.loads((BASE / 'manifest.json').read_text())
     cache = CacheIndex('/Volumes/YukonH17H35.N66OS/System/Library/Caches/com.apple.dyld/dyld_shared_cache_arm64')
     raw = (BASE / 'trustcache.raw').read_bytes()
     payloads, repairs, unresolved = {}, {}, {}
-    for index, library in enumerate(manifest['cdhashes'], 1):
+    def one(library):
         relative = library.lstrip('/')
         data, patches, pending = restore((BASE / 'libraries' / relative).read_bytes(), cache, library)
-        if pending:
-            unresolved[library] = pending
+        digest = None
         if patches:
             destination = OUT / 'libraries' / relative
             destination.parent.mkdir(parents=True, exist_ok=True)
@@ -38,11 +40,17 @@ def main():
             signature = subprocess.run(['codesign', '-dvvvv', str(destination)], check=True,
                                        capture_output=True, text=True).stderr
             digest = re.search(r'CandidateCDHash sha256=([0-9a-f]{40})', signature)[1]
+        return patches, pending, digest
+
+    libraries = list(manifest['cdhashes'])
+    for library, (patches, pending, digest) in zip(libraries, map_libraries(one, libraries)):
+        if pending:
+            unresolved[library] = pending
+        if patches:
             manifest['cdhashes'][library] = digest
             raw = trust_cache(raw, bytes.fromhex(digest))
-            payloads[relative], repairs[library] = destination, patches
-        if index % 10 == 0:
-            print(f'选择子已处理 {index}/50。', flush=True)
+            payloads[library.lstrip('/')], repairs[library] = OUT / 'libraries' / library.lstrip('/'), patches
+    print(f'选择子已处理 {len(libraries)}/50。', flush=True)
     destination = OUT / 'libraries' / LIBRARY
     assert struct.unpack_from('<I', destination.read_bytes(), 0x107afc)[0] == 0xf9449b01
     (OUT / 'trustcache.raw').write_bytes(raw)

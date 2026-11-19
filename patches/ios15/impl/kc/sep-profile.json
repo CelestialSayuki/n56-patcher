@@ -1,0 +1,306 @@
+{
+  "build": "19H422",
+  "source_sha256": "68214a68523f4bb2dbb54432aaa7651b56d53c89a9f1b851e8c4120dcad64f3c",
+  "endpoint": {
+    "sks_init": {
+      "address": "0xfffffff0065eecfc",
+      "size": 988,
+      "owner": "com.apple.driver.AppleSEPKeyStore",
+      "sha256": "fbd8ed136ad8d8c3b5b26cc0ec45db66d71cefa4c88bcfaa272c1f780b8a245c"
+    },
+    "sks_enabled": {
+      "address": "0xfffffff0065eead4",
+      "size": 288,
+      "owner": "com.apple.driver.AppleSEPKeyStore",
+      "sha256": "c92e096f8c21b795224a8b23d2b01d4b51ac6271a93a5126b6e1ef95d33e71a9"
+    },
+    "sks_manager": {
+      "address": "0xfffffff0065eebf4",
+      "size": 264,
+      "owner": "com.apple.driver.AppleSEPKeyStore",
+      "sha256": "9d1efb25ae6e93d46b66f3dc221e1cb62ec793e84bd4121220e1a4b98b9e1297"
+    },
+    "sks_callback": {
+      "address": "0xfffffff0065ef0d8",
+      "size": 316,
+      "owner": "com.apple.driver.AppleSEPKeyStore",
+      "sha256": "4858ca9f754eb4792fe7616b5bffcfe794527e16a1be8f02ad343607d0782d0a"
+    },
+    "sks_protocol": {
+      "address": "0xfffffff0065ef214",
+      "size": 256,
+      "owner": "com.apple.driver.AppleSEPKeyStore",
+      "sha256": "8671f4a405a3ccdb81414832018e71071407ef39dd2463dd7987f2472f3a7921"
+    },
+    "sks_input_alloc_failed": {
+      "address": "0xfffffff006612588",
+      "size": 24,
+      "owner": "com.apple.driver.AppleSEPKeyStore",
+      "sha256": "acd20354758c76498572332e78faa78a8336e3e61e9cf67d56a938d49e710226"
+    },
+    "sks_input_bind_failed": {
+      "address": "0xfffffff006612604",
+      "size": 24,
+      "owner": "com.apple.driver.AppleSEPKeyStore",
+      "sha256": "0401beea5eededa3b95a88b77e80ca88b66697d717a6b734088b117e552bdc0c"
+    },
+    "sks_output_alloc_failed": {
+      "address": "0xfffffff0066125b0",
+      "size": 24,
+      "owner": "com.apple.driver.AppleSEPKeyStore",
+      "sha256": "60d23534b2ce8b0a50d1db2ac8eefb5f66a5130042532f70acabb0a1b271b529"
+    },
+    "sks_output_bind_failed": {
+      "address": "0xfffffff0066125d8",
+      "size": 24,
+      "owner": "com.apple.driver.AppleSEPKeyStore",
+      "sha256": "3966243861479c81a039a2faec3b0b8b0c84e96e5dbc6879284230aadb557b05"
+    },
+    "manager_wake": {
+      "address": "0xfffffff006322630",
+      "size": 304,
+      "owner": "com.apple.driver.AppleSEPManager",
+      "sha256": "0de79554e3b723fdbb552b43e86fc850a227442a6d0ebcec94e975a7377b371c"
+    },
+    "manager_irq": {
+      "address": "0xfffffff006320910",
+      "size": 368,
+      "owner": "com.apple.driver.AppleSEPManager",
+      "sha256": "06fd3a6c956fc09bab6e90722c7941a54de3c5503e8abe34fc758356518d0a65"
+    },
+    "manager_services": {
+      "address": "0xfffffff006320444",
+      "size": 92,
+      "owner": "com.apple.driver.AppleSEPManager",
+      "sha256": "b06ff96f71641ab29aba19082c68c9359e79f75951bae70bc0b44c052934816f"
+    },
+    "service_factory": {
+      "address": "0xfffffff006308224",
+      "size": 152,
+      "owner": "com.apple.driver.AppleSEPManager",
+      "sha256": "8d65a03e04852f345a05123339a3dae939bb0e5c417f2463b4bec08514812038"
+    },
+    "service_descriptor_accessors": {
+      "address": "0xfffffff006308438",
+      "size": 264,
+      "owner": "com.apple.driver.AppleSEPManager",
+      "sha256": "77e0235493a3afd4285690136af5d99d6b67fae3368a6ddafdd623df48f3239a"
+    },
+    "sep_assert_wait": {
+      "address": "0xfffffff00633bb2c",
+      "size": 12,
+      "owner": "com.apple.driver.AppleSEPManager",
+      "sha256": "5ec585abd5b01a23e22af0cfc6ba820bf021fc2525a91457219a80afd5a22efc"
+    },
+    "sep_thread_block": {
+      "address": "0xfffffff00633bde4",
+      "size": 12,
+      "owner": "com.apple.driver.AppleSEPManager",
+      "sha256": "11acc41975617ee45bb06ba0a0e611a5f3415f7b8a5d78f11956b89bd2dadb36"
+    },
+    "sep_thread_wakeup": {
+      "address": "0xfffffff00633be2c",
+      "size": 12,
+      "owner": "com.apple.driver.AppleSEPManager",
+      "sha256": "9f6af226855603f7dd94271dc4add4dde4d9a9c3cf31b0bad72772c7cb1e2406"
+    },
+    "log_stub": {
+      "address": "0xfffffff00633b76c",
+      "size": 12,
+      "owner": "com.apple.driver.AppleSEPManager",
+      "sha256": "3519dcd0dc1ceb580566406e28ea2a0522e57de7ac3b8233b6a93987722cef4d"
+    },
+    "transport_mmio_and_mailbox": {
+      "address": "0xfffffff005c0f6f8",
+      "size": 152,
+      "owner": "com.apple.driver.AppleA7IOP",
+      "sha256": "e0e29f5fec6583afb9fd9a4bed3062b4161b4bf291d0125f37006cffda54af50"
+    }
+  },
+  "rpc": {
+    "media_create": {
+      "address": "0xfffffff0065fe4ac",
+      "size": 128,
+      "owner": "com.apple.driver.AppleSEPKeyStore",
+      "sha256": "a79c767dc13565f7a6ec043d65539b2561020b986a80acf561024fad2bbc8d91"
+    },
+    "media_unwrap": {
+      "address": "0xfffffff0065fe96c",
+      "size": 128,
+      "owner": "com.apple.driver.AppleSEPKeyStore",
+      "sha256": "6dfa8d8c502b35f17694c9881fd23f815056927343ee5597559accf0656b7d15"
+    },
+    "file_op": {
+      "address": "0xfffffff0065f966c",
+      "size": 128,
+      "owner": "com.apple.driver.AppleSEPKeyStore",
+      "sha256": "66226afae484ff1fb07b68e98bc28ba79c2af1f1f7415d291c7e3d93f1bca11d"
+    },
+    "file_wrap": {
+      "address": "0xfffffff0065fa2ec",
+      "size": 128,
+      "owner": "com.apple.driver.AppleSEPKeyStore",
+      "sha256": "159fc59f3fe3e0c2aea48816cbd7f05f361542e0e99a65ddd3bec3e062e43b4a"
+    },
+    "file_unwrap": {
+      "address": "0xfffffff0065fa8d8",
+      "size": 128,
+      "owner": "com.apple.driver.AppleSEPKeyStore",
+      "sha256": "64b248b8b3c4bd8d35e30d9b1c1e0330f8bed1be87b2d6a09fe68f9f0203601f"
+    },
+    "media_create_v1": {
+      "address": "0xfffffff0065fe704",
+      "size": 128,
+      "owner": "com.apple.driver.AppleSEPKeyStore",
+      "sha256": "1b1ce829d6d2aad5e443d0348ac7cf3c145a5a4b0162e8250a5dc6542454d3b6"
+    },
+    "media_unwrap_v1": {
+      "address": "0xfffffff0065feb60",
+      "size": 128,
+      "owner": "com.apple.driver.AppleSEPKeyStore",
+      "sha256": "9dddce6d4433bffbdb7da80912267c7603b88148e28877e7b099fc75a3b27142"
+    },
+    "file_op_v1": {
+      "address": "0xfffffff0065f9898",
+      "size": 128,
+      "owner": "com.apple.driver.AppleSEPKeyStore",
+      "sha256": "5f8ed4b92df0750eac13da9f7d09fcfe057f9d442eb74c2c4f04f527a24c1b9c"
+    },
+    "file_wrap_v1": {
+      "address": "0xfffffff0065fa4bc",
+      "size": 128,
+      "owner": "com.apple.driver.AppleSEPKeyStore",
+      "sha256": "e46f968eb206dd7e2b398a60ee42cc7281197340edbf274fd33fc384cad2d834"
+    },
+    "file_unwrap_v1": {
+      "address": "0xfffffff0065fab9c",
+      "size": 128,
+      "owner": "com.apple.driver.AppleSEPKeyStore",
+      "sha256": "a1b0124236ea4472ba5cc29c60d765970ea7b220d02e366a2ae136e1579ce97e"
+    },
+    "file_op_v2": {
+      "address": "0xfffffff0065f9ac8",
+      "size": 128,
+      "owner": "com.apple.driver.AppleSEPKeyStore",
+      "sha256": "505db6ee960e47ed3f6b5ba6f3fe6adc6325d8b775ec0339afe919632293bf04"
+    },
+    "file_wrap_v2": {
+      "address": "0xfffffff0065fa6a8",
+      "size": 128,
+      "owner": "com.apple.driver.AppleSEPKeyStore",
+      "sha256": "86671d9e098c49d93ec16005d215c68c698b360bf133b8a04886e554c8129394"
+    },
+    "file_unwrap_v2": {
+      "address": "0xfffffff0065fae6c",
+      "size": 128,
+      "owner": "com.apple.driver.AppleSEPKeyStore",
+      "sha256": "810dc4a7837842d9cc8281d1da5fe7d1be33e8e7648ae5cbce66f812dac55c44"
+    },
+    "wrap_v2_caller": {
+      "address": "0xfffffff0065eb728",
+      "size": 128,
+      "owner": "com.apple.driver.AppleSEPKeyStore",
+      "sha256": "1780b0045628548f4e18c05c7c62350a4a32a4bd61499d12b922db6b6116d2a1"
+    },
+    "newkey_v2_caller": {
+      "address": "0xfffffff0065eb97c",
+      "size": 128,
+      "owner": "com.apple.driver.AppleSEPKeyStore",
+      "sha256": "fab6a279bed2c3ddc49865525689b5fc2cba65f738e2d69a945061eeee6ce3ba"
+    },
+    "file_op_v1_caller_a": {
+      "address": "0xfffffff0065ebd08",
+      "size": 128,
+      "owner": "com.apple.driver.AppleSEPKeyStore",
+      "sha256": "9ac1fff2d00ee012292eb68936fc132fdf1ab65d1fcfedf924011424223b80c5"
+    },
+    "file_op_v1_caller_b": {
+      "address": "0xfffffff0065ebdac",
+      "size": 128,
+      "owner": "com.apple.driver.AppleSEPKeyStore",
+      "sha256": "443a2b1bc3068d0d510922dace5c7dee938ff1e5deae075b09ca89b202b9e7d6"
+    },
+    "file_op_v2_caller": {
+      "address": "0xfffffff0065ebe3c",
+      "size": 128,
+      "owner": "com.apple.driver.AppleSEPKeyStore",
+      "sha256": "c5747f65a62b3e27a25f52dff155b9ed1daf16d98d0d5790660a8589ffa94704"
+    },
+    "media_create_v1_caller": {
+      "address": "0xfffffff0065efeb4",
+      "size": 128,
+      "owner": "com.apple.driver.AppleSEPKeyStore",
+      "sha256": "745ce3edc7b6cdbffdbcc03f88e4bb2338c8f3fd70cc39543d4b50c01541569b"
+    },
+    "media_unwrap_v1_caller": {
+      "address": "0xfffffff0065eff74",
+      "size": 128,
+      "owner": "com.apple.driver.AppleSEPKeyStore",
+      "sha256": "2902ac187b183d447103d3e49c14c9232c42459f4d9722b3a125a9302087912e"
+    },
+    "newkey_v1_outputs": {
+      "address": "0xfffffff0065faca0",
+      "size": 120,
+      "owner": "com.apple.driver.AppleSEPKeyStore",
+      "sha256": "e22212dcf328d599f48450eb9507642d7ca8202df8936721c94cf0d9d5337b0a"
+    },
+    "newkey_v2_outputs": {
+      "address": "0xfffffff0065faf98",
+      "size": 200,
+      "owner": "com.apple.driver.AppleSEPKeyStore",
+      "sha256": "50be0f8b9de78b38f7cf01ba316be04d9a9a249608f947edbedb7de0c142c94e"
+    },
+    "newkey_v0_outputs": {
+      "address": "0xfffffff0065fa9e0",
+      "size": 256,
+      "owner": "com.apple.driver.AppleSEPKeyStore",
+      "sha256": "ec2e23d4db7922946ed2096219759bf93acd366da9c47621b4d106055c6815cc"
+    }
+  },
+  "credential": {
+    "perform_command": {
+      "address": "0xfffffff0068f2380",
+      "size": 44,
+      "owner": "com.apple.driver.AppleSEPCredentialManager",
+      "sha256": "d3a9bc416c7a631ebd71ed279dd7aa6a666e161424a7426bfe0c3c057173ee86"
+    },
+    "command_response": {
+      "address": "0xfffffff0068f273c",
+      "size": 544,
+      "owner": "com.apple.driver.AppleSEPCredentialManager",
+      "sha256": "14785e881f46b99a645a6eaeebb10e081d6977cb0fe37c85dde5c06a17d6ebf2"
+    },
+    "response_request_gate": {
+      "address": "0xfffffff0068f29f8",
+      "size": 116,
+      "owner": "com.apple.driver.AppleSEPCredentialManager",
+      "sha256": "d28f7cb25d59dcdb3fc871dc6474ab6ec874d13e62ef0774f23608bf33189277"
+    },
+    "recv_buffer": {
+      "address": "0xfffffff0068f443c",
+      "size": 68,
+      "owner": "com.apple.driver.AppleSEPCredentialManager",
+      "sha256": "b73a947f4acafee1e4ccca84c86dd46b10857b3b0164fdf7c642762764a64c02"
+    },
+    "send_buffer": {
+      "address": "0xfffffff0068f449c",
+      "size": 64,
+      "owner": "com.apple.driver.AppleSEPCredentialManager",
+      "sha256": "773099894536f8aa668c2455a22166281cf8283d8dfe322de0657c3a2cdb3cb3"
+    }
+  },
+  "sse": {
+    "recv_buffer": {
+      "address": "0xfffffff006340d2c",
+      "size": 68,
+      "owner": "com.apple.driver.AppleSSE",
+      "sha256": "05d16ab916ccfe3ecd36de760bab1e7d9ed45a926189f66bbcdec410ff579ac5"
+    },
+    "send_buffer": {
+      "address": "0xfffffff006340d84",
+      "size": 68,
+      "owner": "com.apple.driver.AppleSSE",
+      "sha256": "6e877bd901abd30e346c313696926fe6dad79c9aee89221322233f6d8fe1d9c6"
+    }
+  }
+}

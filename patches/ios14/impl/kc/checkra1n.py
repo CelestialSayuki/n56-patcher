@@ -7,11 +7,13 @@
 import json
 import os
 import platform
+import sys
 import struct
 from pathlib import Path
 
 from core.context import REPO
 from core.tools import run
+from core.host import architecture_issue, tool_issue
 
 
 def apply_profile(ctx, stock, generic):
@@ -22,7 +24,12 @@ def apply_profile(ctx, stock, generic):
     返回   : 合并后的 KC 路径。
     """
     source = Path(REPO) / "tools/checkra1n-kpf/checkra1n/kpf-test"
-    run(["make", "-C", str(source), "kpf-test.macos",
+    binary = source / "kpf-test.macos"
+    # KPF's JIT/no-JIT choice follows this Python's CPU, so Rosetta compatibility
+    # alone is not sufficient here: rebuild a genuinely matching host binary.
+    force = ["-B"] if tool_issue(binary) or architecture_issue(binary) else []
+    run(["make", *force, "-C", str(source), "kpf-test.macos",
+         f"HOST_ARCH={platform.machine()}", f"PYTHON={sys.executable}",
          "CFLAGS=-Wno-error=unused-but-set-variable"])
     output = ctx.wk("kc.checkra1n.raw")
     env = dict(os.environ, N56_KPF_OUTPUT=output, N56_KPF_GENERIC=str(generic))
