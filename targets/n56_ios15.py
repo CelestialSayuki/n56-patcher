@@ -55,7 +55,7 @@ TARGET = {
     "patches": ["dt.boot_volumes"],
     "exclude": [],
     # Full default set. rootless/rootful are exclusive and selected by jailbreak_mode.
-    # Nothing in this list has been device-validated; see docs/conclusions/15.md.
+    # Device-validated; see docs/conclusions/15.md.
     "features": ["core", "touch", "pmu", "ans", "sep", "camera", "ui", "charging",
                  "chestnut", "wifi", "vibration", "bluetooth", "baseband", "motion",
                  "companion", "watch", "touchid", "audio", "palera1n", "ssv", "paleinfo", "rootless"],

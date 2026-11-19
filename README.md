@@ -2,7 +2,7 @@
 
 # n56-patcher
 
-**iPhone 6 Plus（N56AP / iPhone7,1）的 iOS 13.7 / 14.8 构建与安装工具**
+**iPhone 6 Plus（N56AP / iPhone7,1）的其他系统构建与安装工具**
 
 简体中文 · [English](README.en.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md)
 
@@ -13,7 +13,7 @@
 ![Host](https://img.shields.io/badge/Host-macOS%20%2B%20Xcode-30363D?style=flat-square)
 ![Language](https://img.shields.io/badge/Python-3-3776AB?style=flat-square&logo=python&logoColor=white)
 
-[快速开始](#快速开始) · [iOS 14.8](#ios-148) · [iOS 15.8.8](#ios-1588进行中) · [功能](#功能) · [进阶用法](#进阶用法) · [作者](#作者) · [支持项目](#支持项目)
+[快速开始](#快速开始) · [iOS 14.8](#ios-148) · [iOS 15.8.8](#ios-1588) · [功能](#功能) · [进阶用法](#进阶用法) · [作者](#作者) · [支持项目](#支持项目)
 
 </div>
 
@@ -23,7 +23,7 @@
 
 iOS 13.7 已跑通，启动包包含硬件适配、DataB 解密和 checkra1n。从零开始执行 `all` 可一次完成全部安装步骤。参见 [13.7 技术结论](docs/conclusions/13.md) 和 [源码结构](docs/patch-layout.md)。Touch ID 已接入 iOS 12 SEP 收发桥。
 
-iOS 14.8 已能进系统并越狱，硬件与系统功能均已可用，见 [iOS 14.8](#ios-148)。iOS 15.8.8 已能进系统并完成激活，其余功能逐项验收中，见 [iOS 15.8.8](#ios-1588进行中)。
+iOS 14.8 已能进系统并越狱，硬件与系统功能均已可用，见 [iOS 14.8](#ios-148)。iOS 15.8.8 同样已能进系统并越狱（palera1n rootless），硬件与系统功能均已可用，见 [iOS 15.8.8](#ios-1588)。
 
 > [!WARNING]
 > 本工具会在设备上创建卷并写入系统，操作前请自行备份。本项目与 Apple 无关，按现状提供，风险由使用者自行承担。
@@ -118,13 +118,30 @@ sudo .venv/bin/python n56patcher.py all --target n56-ios14
 | --- |
 | 触屏、显示、Wi-Fi、蓝牙、基带、音频、震动、传感器、相机、健康、激活与 iCloud、越狱、Touch ID、NFC/Apple Pay、Apple Watch 配对、iCloud 备份（需加密 Data） |
 
-Touch ID（功能 `touchid`）默认开启，内核已接入 iOS 12 SEP 收发桥，包含初始化、录入和匹配的协议转换，13.7 与 14.8 均已接入。指纹模块需与 SEP 原厂配对，换过模块的机器和原生 iOS 12 一样无法录入。
+Touch ID（功能 `touchid`）默认开启，内核已接入 iOS 12 SEP 收发桥，包含初始化、录入和匹配的协议转换。指纹模块需与 SEP 原厂配对，换过模块的机器和原生 iOS 12 一样无法录入。
 
 16 GB 机型空间很紧，装之前请先看 [docs/conclusions/14.md](docs/conclusions/14.md) 的“空间”一节。现状、首次开机和技术细节都在这份文档里。
 
-## iOS 15.8.8（进行中）
+## iOS 15.8.8
 
-目标 `n56-ios15`：J96 / N66 15.8.8，装在独立的 System15 / Data15 卷上，越狱用 palera1n rootless。已上机验证进系统、加密 Data15、激活、Wi-Fi、音频、相机、蓝牙、健康、设置里的监管资料和 rootless SSH、基带；Touch ID 因本机传感器换过无法验证。构建命令、所需 IPSW 和现状见 [docs/conclusions/15.md](docs/conclusions/15.md)。
+目标 `n56-ios15`：J96 15.8.8 内核与系统镜像、N66 15.8.8 驱动和 iPhone 资源，装在独立的 System15 / Data15 卷上，Data15 默认加密，越狱用 palera1n rootless（可选 rootful）。`ipsw/` 里另外放：
+
+```text
+ipsw/iPhone_5.5_15.8.8_19H422_Restore.ipsw           # N66
+ipsw/iPad_64bit_TouchID_15.8.8_19H422_Restore.ipsw   # J96
+```
+
+先执行一次 `python3 -m patches.ios15.impl.rootfs.rootless_bootstrap` 下载越狱用的上游包。刷回 iOS 12.5.8 后，设备进 DFU，执行一次即可装完，网页界面里选目标 `n56-ios15`、阶段“端到端”效果相同：
+
+```sh
+sudo python3 n56patcher.py all --target n56-ios15
+```
+
+| 已可用 |
+| --- |
+| 触屏、显示、Wi-Fi、蓝牙、基带、音频、震动、充电、传感器、相机、健康、激活与 iCloud、iCloud 备份、NFC/Apple Pay、Apple Watch 配对、越狱（rootless/rootful、Sileo、SSH） |
+
+Touch ID 收发桥已接入；本机传感器换过，无法验证。现状和技术细节见 [docs/conclusions/15.md](docs/conclusions/15.md)。
 
 ## 功能
 
@@ -249,7 +266,7 @@ sudo python3 n56patcher.py install \
 
 如果这个项目帮到了你，欢迎[打赏支持](DONATE.md) 🥺
 
-说句心里话：为了把 iOS 13、14 一点一点跑起来，这个项目到现在光 AI 就用掉了 **1500 多美元额度** 的 token……如果它帮你省了时间，请我喝杯奶茶也好，一块两块都是莫大的鼓励 🥺🙏
+说句心里话：为了把新系统一点一点跑起来，这个项目到现在光 AI 就用掉了 **1500 多美元额度** 的 token……如果它帮你省了时间，请我喝杯奶茶也好，一块两块都是莫大的鼓励 🥺🙏
 
 ## 许可证
 

@@ -2,7 +2,7 @@
 
 # n56-patcher
 
-**Build and install tool for running iOS 13.7 / 14.8 as a second system on iPhone 6 Plus (N56AP / iPhone7,1)**
+**Build and install tool for running other iOS versions on iPhone 6 Plus (N56AP / iPhone7,1)**
 
 [简体中文](README.md) · English · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md)
 
@@ -13,7 +13,7 @@
 ![Host](https://img.shields.io/badge/Host-macOS%20%2B%20Xcode-30363D?style=flat-square)
 ![Language](https://img.shields.io/badge/Python-3-3776AB?style=flat-square&logo=python&logoColor=white)
 
-[Quick start](#quick-start) · [iOS 14.8](#ios-148) · [iOS 15.8.8](#ios-1588-in-progress) · [Features](#features) · [Advanced usage](#advanced-usage) · [Author](#author) · [Support the project](#support-the-project)
+[Quick start](#quick-start) · [iOS 14.8](#ios-148) · [iOS 15.8.8](#ios-1588) · [Features](#features) · [Advanced usage](#advanced-usage) · [Author](#author) · [Support the project](#support-the-project)
 
 </div>
 
@@ -23,7 +23,7 @@ By default, the tool rebuilds the KC from a clean J96 kernel and also generates 
 
 The project has been run end to end. The final boot bundle includes the hardware adaptation, DataB decryption and checkra1n. Technical conclusions are in [docs/conclusions/13.md](docs/conclusions/13.md) (Chinese). Touch ID is connected through the iOS 12 SEP transport bridge.
 
-iOS 14.8 boots and is jailbroken, with all hardware and system features working. See [iOS 14.8](#ios-148). iOS 15.8.8 boots and activates; the remaining features are being verified one by one. See [iOS 15.8.8](#ios-1588-in-progress).
+iOS 14.8 boots and is jailbroken, with all hardware and system features working. See [iOS 14.8](#ios-148). iOS 15.8.8 also boots and is jailbroken (palera1n rootless), with all hardware and system features working. See [iOS 15.8.8](#ios-1588).
 
 > [!WARNING]
 > This tool creates volumes and writes system files on your device, so back up first. This project is not affiliated with Apple. It is provided as is, and you use it at your own risk.
@@ -112,13 +112,30 @@ sudo python3 n56patcher.py all --target n56-ios14
 | --- |
 | Touch screen, display, Wi-Fi, Bluetooth, baseband, audio, vibration, sensors, camera, Health, activation and iCloud, jailbreak, Touch ID, NFC/Apple Pay, Apple Watch pairing, iCloud backup (needs encrypted Data) |
 
-Touch ID (`touchid`) is enabled by default. The kernel includes an iOS 12 SEP transport bridge with initialization, enrollment and matching protocol conversion, on both 13.7 and 14.8. The sensor must keep its factory pairing with the SEP: a device with a replaced sensor cannot enroll, the same as on native iOS 12.
+Touch ID (`touchid`) is enabled by default. The kernel includes an iOS 12 SEP transport bridge with initialization, enrollment and matching protocol conversion. The sensor must keep its factory pairing with the SEP: a device with a replaced sensor cannot enroll, the same as on native iOS 12.
 
 Storage on the 16 GB model is tight. Read the storage section of [docs/conclusions/14.md](docs/conclusions/14.md) (Chinese) before installing. That document also covers the current status, first boot and technical details.
 
-## iOS 15.8.8 (in progress)
+## iOS 15.8.8
 
-Target `n56-ios15`: J96 / N66 15.8.8 on separate System15 / Data15 volumes, jailbroken with palera1n rootless. Verified on device: boot, encrypted Data15, activation, Wi-Fi, audio, camera, Bluetooth, Health, the regulatory page in Settings, and rootless SSH. Baseband also works; Touch ID cannot be verified on this unit because its sensor was replaced. Build command, required IPSWs and status are in [docs/conclusions/15.md](docs/conclusions/15.md).
+The `n56-ios15` target uses the J96 15.8.8 kernel and system image plus N66 15.8.8 drivers and iPhone resources. It installs to separate System15 / Data15 volumes; Data15 is encrypted by default, and the jailbreak is palera1n rootless (rootful is optional). Also put these in `ipsw/`:
+
+```text
+ipsw/iPhone_5.5_15.8.8_19H422_Restore.ipsw           # N66
+ipsw/iPad_64bit_TouchID_15.8.8_19H422_Restore.ipsw   # J96
+```
+
+First run `python3 -m patches.ios15.impl.rootfs.rootless_bootstrap` once to download the upstream jailbreak packages. After restoring iOS 12.5.8, put the device in DFU and run the command below once to install everything. In the web interface, choosing target `n56-ios15` and the End to end stage does the same:
+
+```sh
+sudo python3 n56patcher.py all --target n56-ios15
+```
+
+| Working |
+| --- |
+| Touch screen, display, Wi-Fi, Bluetooth, baseband, audio, vibration, charging, sensors, camera, Health, activation and iCloud, iCloud backup, NFC/Apple Pay, Apple Watch pairing, jailbreak (rootless/rootful, Sileo, SSH) |
+
+The Touch ID transport bridge is connected; it cannot be verified on this unit because its sensor was replaced. Status and technical details are in [docs/conclusions/15.md](docs/conclusions/15.md) (Chinese).
 
 ## Features
 
@@ -185,7 +202,7 @@ python3 n56patcher.py build --exclude kc.audio --workdir build/no-audio
 </details>
 
 <details>
-<summary><b>Install the second system step by step</b></summary>
+<summary><b>Install another system step by step</b></summary>
 
 The volume layout is `disk0s1s4` SystemB and `disk0s1s5` DataB.
 
@@ -241,7 +258,7 @@ The current profile targets SystemA 16H88 and N66/J96 17H35. The flow checks the
 
 If this project helped you, [tips are welcome](DONATE.md) 🥺
 
-Honestly: getting iOS 13 and 14 running bit by bit has used **over US$1,500 worth of AI token quota** so far… If it saved you some time, even the price of a coffee would mean a lot 🥺🙏
+Honestly: getting newer iOS running bit by bit has used **over US$1,500 worth of AI token quota** so far… If it saved you some time, even the price of a coffee would mean a lot 🥺🙏
 
 ## License
 
