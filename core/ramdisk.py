@@ -247,8 +247,15 @@ class Ramdisk:
 
     # ---- 远端命令 ----
     def sh(self, cmd, data=None, check=True, timeout=120):
-        r = subprocess.run(self._ssh_base + [cmd], input=data,
-                           capture_output=True, timeout=timeout)
+        # 修补 dyld 等阶段会连开几千次短连接，偶发登录阶段被拒（Permission denied，退出码 255）。
+        # 这种拒绝发生在命令执行之前，重试是安全的；命令执行中途的失败不重试。
+        for attempt in range(5):
+            r = subprocess.run(self._ssh_base + [cmd], input=data,
+                               capture_output=True, timeout=timeout)
+            if r.returncode == 255 and b"Permission denied" in (r.stderr or b"") and attempt < 4:
+                time.sleep(1 + attempt)
+                continue
+            break
         if check and r.returncode != 0:
             log.die(f"远端命令失败({r.returncode}): {cmd}\n"
                     f"{(r.stderr or b'').decode(errors='replace')}")
