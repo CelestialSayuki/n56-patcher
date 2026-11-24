@@ -30,6 +30,11 @@ def exclude_built(submodule, rules):
         exclude.write_text(current + "\n" + rules)
 
 
+def img4_build_args(system=None):
+    """Use Apple's CommonCrypto on macOS and OpenSSL on Linux."""
+    return ["COMMONCRYPTO=1"] if (system or platform.system()) == "Darwin" else []
+
+
 def ensure_donors(checkra1n=True):
     """补齐 donors/ 与 Python 依赖：已存在的跳过。dualra1n 还没拉下来时先跑完整 setup。
     checkra1n=False：目标用不到 checkra1n（iOS 15 rootless），不下载。"""
@@ -73,7 +78,7 @@ def setup(checkra1n=True):
     img4lib = REPO / "tools/img4lib"
     run("git", "submodule", "update", "--init", "lzfse", cwd=img4lib)
     run("make", "-C", str(img4lib / "lzfse"))
-    run("make", "-C", str(img4lib))
+    run("make", "-C", str(img4lib), *img4_build_args())
     dtparse = REPO / "tools/devicetree-parse"
     run("make", "-C", str(dtparse), f"ARCH={platform.machine()}")
     exclude_built(dtparse, "*.o\n/devicetree-parse\n/devicetree-repack\n")
