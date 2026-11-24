@@ -16,7 +16,12 @@ inject_chestnut.py — 把 n66 的 AppleChestnutDisplayPMU kext 注入 j96 preli
   python3 -I chestnut_port/inject_chestnut.py            # dry-run, 只报告
   python3 -I chestnut_port/inject_chestnut.py <in> <out> # 实际注入 (稍后启用)
 """
-import struct, sys, os, subprocess, base64
+import struct, sys, os, subprocess, base64, platform, shutil
+
+
+def nm_binary():
+    candidates = ("nm", "llvm-nm") if platform.system() == "Darwin" else ("llvm-nm", "nm")
+    return next((c for c in candidates if shutil.which(c)), candidates[-1])
 
 from pathlib import Path
 
@@ -84,7 +89,7 @@ def mkv2o(segs):
 
 def nm_map(path):
     out = {}
-    for line in subprocess.run(["nm","-n",path],capture_output=True,text=True).stdout.splitlines():
+    for line in subprocess.run([nm_binary(),"-n",path],capture_output=True,text=True).stdout.splitlines():
         a = line.split()
         if len(a) >= 3:
             try: out[a[2]] = int(a[0],16)

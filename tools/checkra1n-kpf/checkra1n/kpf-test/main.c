@@ -25,6 +25,9 @@
  *
  */
 #undef panic
+#ifdef __linux__
+void panic(const char *str, ...);
+#endif
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -35,17 +38,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <unistd.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+#ifndef __linux__
 #include <mach/mach.h>
+#endif
 #include <mach-o/fat.h>
 #include <mach-o/loader.h>
 #include <TargetConditionals.h>
-#if TARGET_OS_OSX
-#   include <pthread.h>
-#   include <libkern/OSCacheControl.h>
+#if defined(__linux__)
+#   include <time.h>
+#else
+#   if TARGET_OS_OSX
+#       include <pthread.h>
+#       include <libkern/OSCacheControl.h>
+#   endif
 #endif
 
 #define SWAP32(x) (((x & 0xff000000) >> 24) | ((x & 0xff0000) >> 8) | ((x & 0xff00) << 8) | ((x & 0xff) << 24))
@@ -92,7 +102,9 @@ typedef struct boot_args
     };
 } __attribute__((packed)) boot_args;
 
+#ifndef __linux__
 extern kern_return_t mach_vm_protect(vm_map_t task, mach_vm_address_t addr, mach_vm_size_t size, boolean_t set_max, vm_prot_t prot);
+#endif
 
 extern void module_entry(void);
 extern void (*preboot_hook)(void);
@@ -127,7 +139,11 @@ static struct {
 
 uint64_t get_ticks(void)
 {
-#if defined(__aarch64__)
+#if defined(__linux__)
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (uint64_t)ts.tv_sec * 1000000000ULL + (uint64_t)ts.tv_nsec;
+#elif defined(__aarch64__)
     return __builtin_arm_rsr64("cntpct_el0");
 #else
     // 非 arm64 主机只跑补丁逻辑（不执行注入的 arm64 字节），计时用 TSC 即可。
@@ -152,7 +168,10 @@ void invalidate_icache(void)
     {
         if(jits[i].addr)
         {
-#if TARGET_OS_OSX
+#if defined(__linux__)
+            __builtin___clear_cache((char *)jits[i].addr,
+                                    (char *)jits[i].addr + jits[i].size);
+#elif TARGET_OS_OSX
             sys_icache_invalidate(jits[i].addr, jits[i].size);
 #else
             register uint64_t addr __asm__("x0") = (uint64_t)jits[i].addr;
@@ -175,11 +194,16 @@ void* jit_alloc(size_t count, size_t size)
         exit(-1);
     }
 
+#ifdef __linux__
+    int prot  = PROT_READ | PROT_WRITE | PROT_EXEC;
+    int flags = MAP_ANONYMOUS | MAP_PRIVATE;
+#else
     int prot  = PROT_READ | PROT_WRITE;
     int flags = MAP_ANON | MAP_PRIVATE;
 #if TARGET_OS_OSX
     prot  |= PROT_EXEC;
     flags |= MAP_JIT;
+#endif
 #endif
     void *mem = mmap(NULL, len, prot, flags, -1, 0);
     if(mem == MAP_FAILED)
@@ -194,7 +218,7 @@ void* jit_alloc(size_t count, size_t size)
 
     bzero(mem, len);
 
-#if !TARGET_OS_OSX
+#if !TARGET_OS_OSX && !defined(__linux__)
     kern_return_t ret = mach_vm_protect(mach_task_self(), (mach_vm_address_t)mem, len, 0, VM_PROT_READ | VM_PROT_WRITE | VM_PROT_EXECUTE);
     if(ret != KERN_SUCCESS)
     {

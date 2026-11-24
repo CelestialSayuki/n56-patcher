@@ -7,6 +7,7 @@
 
 移植自 boot_ios13.sh 的 IPSW 提取逻辑 + launchd_cache.py。
 """
+import importlib
 import os
 import plistlib
 import re
@@ -118,6 +119,5 @@ class TrustCache:
         log.die(f"codesign 未输出 cdhash: {path}")
 
     def build_full(self):
-        import importlib
         builder = importlib.import_module(self.ctx.t["trustcache_builder"])
         return builder.build(self.ctx)

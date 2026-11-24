@@ -19,7 +19,7 @@ def patches(source):
         instruction = disassemble(source, address, 4)[0]
         assert instruction.operands[1].imm == 437
         word = struct.unpack('<I', source.read(address, 4))[0]
-        if instruction.mnemonic == 'mov':
+        if instruction.mnemonic in ('mov', 'movz'):
             changed = (word & ~(0xffff << 5)) | (439 << 5)
         else:
             assert instruction.mnemonic == 'cmp'

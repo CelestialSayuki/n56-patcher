@@ -17,6 +17,6 @@ fi
 "$UV" python install --no-bin 3.12.12
 "$UV" venv --allow-existing --managed-python --python 3.12.12 .venv
 "$UV" pip install --reinstall --python .venv/bin/python -r requirements.txt
-# pip is needed by setup's legacy tools/bin/pydeps installation.
+# pip is needed by setup's host-specific tools/bin/pydeps installation.
 "$UV" pip install --python .venv/bin/python pip
 exec .venv/bin/python tools/setup.py "$@"

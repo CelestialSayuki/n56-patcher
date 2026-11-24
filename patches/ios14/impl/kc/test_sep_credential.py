@@ -8,6 +8,7 @@ from pathlib import Path
 
 from capstone import Cs, CS_ARCH_ARM64, CS_MODE_LITTLE_ENDIAN
 
+from core import iosbuild
 from core.context import REPO
 from patches.ios14.impl.kc import sep_credential
 from patches.ios14.impl.kc.sep_rpc import object_code
@@ -134,7 +135,7 @@ class ServiceTableTest(unittest.TestCase):
         cls.dir = tempfile.TemporaryDirectory()
         obj = Path(cls.dir.name) / "sep-endpoint.o"
         try:
-            subprocess.run(["xcrun", "clang", "-target", "arm64-apple-macos11", "-c",
+            subprocess.run([*iosbuild.freestanding_clang(), "-target", "arm64-apple-macos11", "-c",
                             str(source), "-o", str(obj)], check=True, capture_output=True)
         except (OSError, subprocess.CalledProcessError) as error:
             raise unittest.SkipTest(f"assembler unavailable: {error}")

@@ -96,7 +96,6 @@ class BluetoothdPatchTests(unittest.TestCase):
         from core.tools import Tools
         from core.trustcache import TrustCache
         from patches.ios14.impl.rootfs.bluetoothd import BLUETOOL_CDHASH, build_bluetoothd
-        from patches.ios14.impl.rootfs.keybag_boot import build as build_trustcache
         from targets.n56_ios14 import TARGET
 
         with tempfile.TemporaryDirectory() as work:
@@ -109,7 +108,7 @@ class BluetoothdPatchTests(unittest.TestCase):
                     capture_output=True, text=True,
                 )
                 self.assertEqual(signature.returncode, 0, signature.stderr)
-                _, entries = TrustCache._entries(Path(build_trustcache(ctx)).read_bytes())
+                _, entries = TrustCache._entries(Path(TrustCache(ctx).build_full()).read_bytes())
                 self.assertIn(TrustCache._cdhash(bluetoothd), entries)
                 self.assertIn(BLUETOOL_CDHASH, entries)
             finally:

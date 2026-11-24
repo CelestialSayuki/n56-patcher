@@ -11,7 +11,7 @@ import plistlib
 import re
 
 from . import log
-from .apfs import Apfs
+from .apfs import Apfs, NAME_OFF
 from .slots import DATA_MARKER, VERSION_BY_BUILD
 from .volume_identify import MOUNT, _read_plist
 
@@ -23,11 +23,38 @@ def slot_volume_name(version, kind):
     return f"System{version}" if kind == "Sys" else f"Data{version}"
 
 
+def volume_name(volume):
+    """从卷超级块读取 APFS 卷名。"""
+    return volume[2][NAME_OFF:NAME_OFF + 256].split(b"\0")[0].decode(errors="replace")
+
+
+def validate_slot_volume_names(ctx, volumes):
+    """清空前核对槽位上的已有卷名；编号对上但卷不属于这个槽位就拒绝。
+
+    必须在任何 wipe 之前调用：卷名不符时宁可失败，也不能先清空别人的分区。
+    s1/s2 是原机卷，改作他用时沿用 System/Data 名字，不参与槽位命名检查。
+    """
+    slot = ctx.slot
+    present = {v[0]: v for v in volumes}
+    for index, kind in ((slot["system"], "Sys"), (slot["data"], "Data")):
+        if index in (1, 2) or index not in present:
+            continue
+        name = volume_name(present[index])
+        expected = slot_volume_name(slot["version"], kind)
+        if name != expected:
+            log.die(f"s{index} 的卷名为 {name}，与槽位 {expected} 不符；拒绝使用")
+
+
 def ensure_slot_volumes(ctx, rd):
-    """缺失的槽位卷按计划号建立。号码必须空闲；允许留空洞，但不会占用已释放的号。"""
+    """核对已有卷名，再把缺失的槽位卷按计划号建立。
+
+    号码必须空闲；允许留空洞，但不会占用已释放的号。卷名校验在任何写入之前完成。
+    """
     slot = ctx.slot
     apfs = Apfs(ctx)
-    present = {v[0] for v in apfs.volumes()}
+    volumes = apfs.volumes()
+    validate_slot_volume_names(ctx, volumes)
+    present = {v[0] for v in volumes}
     for index, kind in ((slot["system"], "Sys"), (slot["data"], "Data")):
         if index in present:
             continue
@@ -99,7 +126,8 @@ def snapshot_device(ctx, rd, dest, device_id, expected_build):
     return donors.snapshot_device(rd, ctx.t["mounts"]["system12"], dest, device_id, expected_build)
 
 
-__all__ = ["slot_volume_name", "ensure_slot_volumes", "wipe_slice", "delete_slice",
+__all__ = ["slot_volume_name", "volume_name", "validate_slot_volume_names",
+           "ensure_slot_volumes", "wipe_slice", "delete_slice",
            "identify_slice", "write_data_marker", "snapshot_device", "MOUNT"]
 
 

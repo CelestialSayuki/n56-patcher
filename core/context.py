@@ -22,8 +22,13 @@ import time
 import zipfile
 from pathlib import Path
 
+from . import dmg as dmgmod
 from . import log
+from .codesign import ensure_path as ensure_codesign_path
 from .host import tool_issue
+
+# Linux 需要把本地 codesign shim 放到 PATH 前面；macOS 上是 no-op。
+ensure_codesign_path()
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # n56-patcher/
 TARGETS_DIR = os.path.join(REPO, "targets")
@@ -272,47 +277,64 @@ class Context:
 
     def mount_rootfs(self, kind):
         if kind in self._source_mounts:
-            return self._source_mounts[kind]
+            return self._source_mounts[kind][1]
         dmg = self.rootfs_dmg(kind)
-        info = subprocess.run(["hdiutil", "info", "-plist"], check=True, capture_output=True)
-        mountpoint = next((entity["mount-point"]
+        mountpoint = self.wk(os.path.join("mounts", kind))
+        owned = True
+        if sys.platform == "darwin":
+            # 上游行为：复用已经用 hdiutil 挂载的只读 rootfs，避免重复 attach。
+            info = subprocess.run(["hdiutil", "info", "-plist"], check=True, capture_output=True)
+            reused = next((entity["mount-point"]
                            for image in plistlib.loads(info.stdout).get("images", [])
                            if os.path.realpath(image.get("image-path", "")) == os.path.realpath(dmg)
                            and not image.get("writeable", True)
                            for entity in image.get("system-entities", [])
                            if "mount-point" in entity), None)
-        owned = mountpoint is None
-        if owned:
-            mountpoint = self.wk(os.path.join("mounts", kind))
-            os.makedirs(mountpoint, exist_ok=True)
-            subprocess.run(["hdiutil", "attach", "-readonly", "-owners", "on", "-nobrowse",
-                            "-mountpoint", mountpoint, dmg], check=True, capture_output=True)
-        else:
-            log.log(f"复用 {kind} 只读 rootfs：{mountpoint}")
-        mounts = subprocess.run(["/sbin/mount"], check=True, capture_output=True, text=True).stdout
-        line = next((line for line in mounts.splitlines() if f" on {mountpoint} " in line), "")
-        if not line or "noowners" in line:
+            if reused:
+                mountpoint = reused
+                owned = False
+                log.log(f"复用 {kind} 只读 rootfs：{mountpoint}")
+        source = dmgmod.mount(dmg, mountpoint) if owned else mountpoint
+
+        version_path = os.path.join(source, "System/Library/CoreServices/SystemVersion.plist")
+        try:
+            with open(version_path, "rb") as stream:
+                version = plistlib.load(stream)
+        except Exception as exc:
             if owned:
-                subprocess.run(["hdiutil", "detach", mountpoint], capture_output=True)
-            log.die(f"{kind} rootfs 未以 owners 模式挂载")
-        version_path = os.path.join(mountpoint, "System/Library/CoreServices/SystemVersion.plist")
-        with open(version_path, "rb") as stream:
-            version = plistlib.load(stream)
+                dmgmod.unmount(mountpoint)
+            log.die(f"无法读取 {kind} rootfs 版本文件: {exc}")
+
+        # 旧版用 /sbin/mount 的 noowners 检查，只覆盖 hdiutil。这里直接核验
+        # 关键文件的 APFS 属主和 Apple 压缩文件是否透明解压，Linux/macOS 通用。
+        info_stat = os.stat(version_path)
+        if info_stat.st_uid != 0 or info_stat.st_gid != 0:
+            if owned:
+                dmgmod.unmount(mountpoint)
+            log.die(f"{kind} rootfs 未保留 APFS 属主（{info_stat.st_uid}:{info_stat.st_gid}）；"
+                    "不要给 apfs-fuse 传 uid=/gid=")
+        launchd = os.path.join(source, "sbin/launchd")
+        if os.path.exists(launchd) and os.path.getsize(launchd) == 0:
+            if owned:
+                dmgmod.unmount(mountpoint)
+            log.die(f"{kind} rootfs 的 Apple 压缩文件未解压（{launchd} 为空）；"
+                    "需要支持 decmpfs 的 apfs-fuse，而不是 7z")
+
         actual = version.get("ProductBuildVersion")
         expected = self.t.get("source_profiles", {}).get(kind, {}).get("build")
         if expected and actual != expected:
             if owned:
-                subprocess.run(["hdiutil", "detach", mountpoint], capture_output=True)
+                dmgmod.unmount(mountpoint)
             log.die(f"{kind} rootfs build 为 {actual}，当前 profile 需要 {expected}")
-        self._source_mounts[kind] = mountpoint
+        self._source_mounts[kind] = (mountpoint, source)
         if owned:
             self._owned_source_mounts.add(mountpoint)
-        return mountpoint
+        return source
 
     def close_source_mounts(self):
-        for mountpoint in reversed(list(self._source_mounts.values())):
+        for mountpoint, _source in reversed(list(self._source_mounts.values())):
             if mountpoint in self._owned_source_mounts:
-                subprocess.run(["hdiutil", "detach", mountpoint], capture_output=True)
+                dmgmod.unmount(mountpoint)
         self._source_mounts.clear()
         self._owned_source_mounts.clear()
 

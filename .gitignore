@@ -25,8 +25,13 @@ __pycache__/
 *.pyc
 .DS_Store
 
+# Generated tools and Python dependencies; tools/setup.py installs them per host.
 /tools/bin/
+/tools/apfs-fuse/
+/tools/ldid/
 /tools/checkra1n-kpf/checkra1n/kpf-test/kpf-test.macos
+# kpf-test.linux is checked in for the offline Linux KPF path.
+/tools/checkra1n-kpf/checkra1n/kpf-test/linux-build/
 # kpf 宿主侧反汇编产物（make host-blobs 生成，make clean 删除）
 /tools/checkra1n-kpf/checkra1n/kpf-test/host-blobs/
 .venv/

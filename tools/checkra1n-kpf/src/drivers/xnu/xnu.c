@@ -1069,6 +1069,11 @@ void xnu_pf_jit_dump(uint32_t* insn_start, uint32_t* insn_end) {
     puts("==== KPFJIT DUMP END ====");
 }
 void xnu_pf_emit(xnu_pf_patchset_t* patchset) { // converts a patchset to JIT
+#ifdef N56_NO_PF_JIT
+    /* The emitted matcher is AArch64 code; host builds use the C interpreter. */
+    (void)patchset;
+    return;
+#endif
     uint32_t* pf_iter_loop_head_start, *pf_iter_loop_head_end;
     uint32_t* pf_iter_loop_tail_start, *pf_iter_loop_tail_end;
 
@@ -1163,7 +1168,9 @@ void xnu_pf_emit(xnu_pf_patchset_t* patchset) { // converts a patchset to JIT
     insn_stream = xnu_pf_emit_insns(insn_stream, &pf_jit_iter_loop_end_start, &pf_jit_iter_loop_end_end);
     invalidate_icache();
     xnu_pf_jit_dump(jit_entry, insn_stream_end_real);
+#ifndef N56_NO_PF_JIT
     patchset->jit_matcher = (void*) jit_entry;
+#endif
 }
 
 void xnu_pf_apply_8(xnu_pf_range_t* range, xnu_pf_patchset_t* patchset) {

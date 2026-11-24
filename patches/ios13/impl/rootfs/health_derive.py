@@ -2,6 +2,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import platform
 import shutil
 import struct
 import subprocess
@@ -15,6 +16,8 @@ from patches.ios13.impl.rootfs.mrm import build_mrm
 
 HERE = Path(__file__).resolve().parent
 TOOLCHAIN = HERE / "health_toolchain"
+# 上游改用 build.json 回执核对生成结果；Linux 的签名哈希清单保留作参考，
+# 但不再作为硬校验（签名器不同，cdhash 由实际产物计算后写进信任缓存）。
 LIBRARIES = tuple(json.loads((TOOLCHAIN / "library-plan.json").read_text()))
 
 
@@ -111,7 +114,8 @@ def _extractor(ctx, project):
                                 cwd=extractor, capture_output=True, text=True)
         if result.returncode:
             log.die(f"Health 抽取器补丁应用失败：\n{result.stderr or result.stdout}")
-        shutil.copytree(runtime, extractor / "runtime")
+        # 旧工作目录也需要拿到新补的 Python 依赖（例如 capstone）。
+        shutil.copytree(runtime, extractor / "runtime", dirs_exist_ok=True)
         stamp.write_text(inputs)
     return extractor
 
@@ -143,7 +147,7 @@ def _extract_libraries(ctx, extractor):
                                  "-o", str(partial), str(cache)], env=env, capture_output=True, text=True)
         if result.returncode:
             partial.unlink(missing_ok=True)
-            detail = (result.stderr or result.stdout).strip()
+            detail = (result.stderr or result.stdout or "").strip()
             raise RuntimeError(f"Health 抽库失败：{library}（退出码 {result.returncode}）\n"
                                f"Python：{sys.executable}\n{detail}")
         partial.replace(output)

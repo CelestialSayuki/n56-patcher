@@ -23,8 +23,15 @@ ifeq ($(HOST_ARCH),arm64)
 	KPF_ASM    := $(RA1N)/shellcode.S $(SRC)/drivers/xnu/xnu.S
 	IOS_TARGET := kpf-test.ios
 else
+	# Linux 的 kpf-test.linux 用 linux/gen_blob.py 单独生成 arm64 字节数据，
+	# 不能把 macOS 的 host-blobs 规则拉进依赖图（那条规则调用 clang -arch）。
+ifeq ($(HOST_OS),Linux)
+	KPF_ASM    :=
+	IOS_TARGET :=
+else
 	KPF_ASM    := host-blobs/shellcode.host.S host-blobs/xnu.host.S
 	IOS_TARGET :=
+endif
 endif
 
 CHECKRA1N_C             := main.c $(RA1N)/main.c $(KPF_ASM) $(SRC)/drivers/xnu/xnu.c
@@ -39,8 +46,22 @@ ifeq ($(HOST_OS),Darwin)
 	SIGN                ?= codesign -s - --entitlements ent.plist
 else
 ifeq ($(HOST_OS),Linux)
-# TODO: macOS target
-	IOS_CC              ?= arm64-apple-ios12.0.0-clang -arch arm64
+	LINUX_COMPAT        := $(ROOT)/compat/linux
+	LINUX_DIR           := $(ROOT)/checkra1n/kpf-test/linux
+	LINUX_BUILD         := $(ROOT)/checkra1n/kpf-test/linux-build
+	LINUX_CC            ?= clang
+	LINUX_BLOB_CC       ?= clang
+	LINUX_OBJDUMP       ?= llvm-objdump
+	LINUX_NM            ?= llvm-nm
+	LINUX_PYTHON        ?= python3
+	LINUX_JIT_DEF       := '-Djit_set_exec(m)='
+	LINUX_CFLAGS        := -std=gnu17 -Wall -Wno-error -O2 -ffunction-sections -fdata-sections \
+		-I$(LINUX_COMPAT)/include -I$(INC) -I$(SRC)/kernel -I$(SRC)/drivers \
+		-DCHECKRAIN_VERSION='' -Diprintf=printf -Dpanic=realpanic \
+		-DOVERRIDE_CACHEABLE_VIEW=0x800000000ULL -DDEV_BUILD=1 \
+		$(LINUX_JIT_DEF) -DN56_NO_PF_JIT=1 $(CFLAGS)
+	LINUX_HOST_OBJS     := $(LINUX_BUILD)/kpftest-main.o $(LINUX_BUILD)/kpf-main.o \
+		$(LINUX_BUILD)/xnu-host.o $(LINUX_BUILD)/linux_shim.o $(LINUX_BUILD)/linux_stubs.o
 	SIGN                ?= ldid -Sent.plist
 endif
 endif
@@ -48,7 +69,11 @@ endif
 
 .PHONY: all clean host-blobs
 
+ifeq ($(HOST_OS),Linux)
+all: kpf-test.linux
+else
 all: kpf-test.macos $(IOS_TARGET)
+endif
 
 host-blobs:
 	mkdir -p $@
@@ -66,6 +91,28 @@ kpf-test.ios: $(CHECKRA1N_C)
 kpf-test.macos: $(CHECKRA1N_C)
 	$(MACOS_CC) -o $@ $(CHECKRA1N_C) $(CHECKRA1N_FLAGS) $(MACOS_FLAGS)
 
+kpf-test.linux: $(CHECKRA1N_C) $(LINUX_DIR)/gen_blob.py $(LINUX_DIR)/linux_shim.c $(LINUX_DIR)/linux_stubs.c
+	mkdir -p $(LINUX_BUILD)
+	$(LINUX_BLOB_CC) -target arm64-apple-macos11 -c $(RA1N)/shellcode.S -o $(LINUX_BUILD)/shellcode.o
+	$(LINUX_BLOB_CC) -target arm64-apple-macos11 -c $(SRC)/drivers/xnu/xnu.S -o $(LINUX_BUILD)/xnu.o
+	$(LINUX_PYTHON) $(LINUX_DIR)/gen_blob.py --obj $(LINUX_BUILD)/shellcode.o \
+		--blob-name kpf_shellcode_blob \
+		--asm-out $(LINUX_BUILD)/shellcode-host.S \
+		--binary-out $(LINUX_BUILD)/shellcode.bin \
+		--objdump $(LINUX_OBJDUMP) --nm $(LINUX_NM)
+	$(LINUX_PYTHON) $(LINUX_DIR)/gen_blob.py --obj $(LINUX_BUILD)/xnu.o \
+		--blob-name kpf_xnu_blob \
+		--asm-out $(LINUX_BUILD)/xnu-host.S \
+		--binary-out $(LINUX_BUILD)/xnu.bin \
+		--objdump $(LINUX_OBJDUMP) --nm $(LINUX_NM)
+	$(LINUX_CC) $(LINUX_CFLAGS) -c main.c -o $(LINUX_BUILD)/kpftest-main.o
+	$(LINUX_CC) $(LINUX_CFLAGS) -c $(RA1N)/main.c -o $(LINUX_BUILD)/kpf-main.o
+	$(LINUX_CC) $(LINUX_CFLAGS) -c $(SRC)/drivers/xnu/xnu.c -o $(LINUX_BUILD)/xnu-host.o
+	$(LINUX_CC) -c $(LINUX_DIR)/linux_shim.c -o $(LINUX_BUILD)/linux_shim.o
+	$(LINUX_CC) -c $(LINUX_DIR)/linux_stubs.c -o $(LINUX_BUILD)/linux_stubs.o
+	$(LINUX_CC) -o $@ $(LINUX_HOST_OBJS) \
+		$(LINUX_BUILD)/shellcode-host.S $(LINUX_BUILD)/xnu-host.S -Wl,--gc-sections
+
 clean:
-	rm -f kpf-test.ios kpf-test.macos
-	rm -rf host-blobs
+	rm -f kpf-test.ios kpf-test.macos kpf-test.linux
+	rm -rf $(LINUX_BUILD) host-blobs

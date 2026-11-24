@@ -1,0 +1,19 @@
+--- !tapi-tbd
+tbd-version:     3
+targets:         [ arm64-ios ]
+install-name:    /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation
+current-version: 1.0
+compatibility-version: 1.0
+# Only used to give ld64.lld the LC_LOAD_DYLIB and two-level namespace bindings
+# for helpers built on Linux. The stub is never deployed; dyld resolves these
+# symbols from CoreFoundation in the device's shared cache.
+exports:
+  - targets:         [ arm64-ios ]
+    symbols:         [
+      _CFStringCreateWithCString,
+      _CFStringGetCString,
+      _CFGetTypeID,
+      _CFStringGetTypeID,
+      _CFRelease
+    ]
+...

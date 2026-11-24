@@ -9,10 +9,19 @@ int main(void) {
         fprintf(stderr, "MobileGestalt unavailable\n");
         return 1;
     }
-    CFTypeRef answer = copy_answer(CFSTR("RegulatoryModelNumber"));
+
+    CFStringRef key = CFStringCreateWithCString(NULL, "RegulatoryModelNumber",
+                                                kCFStringEncodingUTF8);
+    if (!key) {
+        fprintf(stderr, "RegulatoryModelNumber key unavailable\n");
+        return 1;
+    }
+    CFTypeRef answer = copy_answer(key);
+    CFRelease(key);
+
     char model[64];
     if (!answer || CFGetTypeID(answer) != CFStringGetTypeID() ||
-        !CFStringGetCString(answer, model, sizeof(model), kCFStringEncodingUTF8)) {
+        !CFStringGetCString((CFStringRef)answer, model, sizeof(model), kCFStringEncodingUTF8)) {
         fprintf(stderr, "RegulatoryModelNumber unavailable\n");
         if (answer) CFRelease(answer);
         return 1;

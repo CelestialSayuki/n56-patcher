@@ -7,10 +7,14 @@ import argparse
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 import tempfile
 import zipfile
 
 REPO = Path(__file__).resolve().parents[1]
+if str(REPO) not in sys.path:
+    sys.path.insert(0, str(REPO))
+from core.dmg import mount as mount_dmg, unmount as unmount_dmg
 IMG4 = REPO / 'tools/img4lib/img4'
 DT_PARSE = REPO / 'tools/devicetree-parse/devicetree-parse'
 OUT = REPO / 'ipsw/cache/derived'
@@ -66,13 +70,13 @@ def copy_wifi(ipsw, dest, work):
     dmg = extract_member(ipsw, N56_ROOTFS, work)
     mountpoint = work / 'n56-rootfs'
     mountpoint.mkdir()
-    run('hdiutil', 'attach', '-readonly', '-nobrowse', '-mountpoint', mountpoint, dmg)
+    source = mount_dmg(dmg, mountpoint)
     try:
         dest.mkdir(parents=True, exist_ok=True)
         for name in WIFI_FILES:
-            shutil.copyfile(mountpoint / WIFI / name, dest / name)
+            shutil.copyfile(Path(source) / WIFI / name, dest / name)
     finally:
-        run('hdiutil', 'detach', mountpoint)
+        unmount_dmg(mountpoint)
 
 
 def decrypt_iboot(ipsw, gaster, patcher, out=OUT):

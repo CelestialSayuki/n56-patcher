@@ -215,9 +215,11 @@ class Apfs:
 
         加密与 role 是独立字段：建卷时 -P 置加密标志，事后照旧 apfs_setrole 改 role，
         不冲突（见 sep_bringup/20261030/data-encryption/FINDINGS.md 第2点）。
-        iOS12 ramdisk 的 newfs_apfs 中 -P/-E 均进入 "encrypted" 选项分支（已逆向确认）。
+        iOS12 ramdisk 的 newfs_apfs 将 -P（protected volume）与 -E（passphrase encryption）
+        视为互斥选项；DataB 使用 -P，不能用 -E 替代。
         返回是否新建。
         """
+        names = list(names)
         s = self.ssh.slices()
         if any("disk0s1s5" in x for x in s):
             log.log(f"s4/s5 已存在，跳过: {' '.join(s)}")
@@ -227,20 +229,36 @@ class Apfs:
             log.warn(f"s4 已存在，只补建 {names[-1]}: {' '.join(s)}")
             names = names[1:]
         if encrypt_data:
-            # 未加载 SEP 时 -P 建卷会一直卡住，并锁住整个容器
             self.ssh.mount(self.ctx.t["mounts"]["system12"], "/mnt1", ro=True)
+            if names and "System" in names[0] and not any("disk0s1s4" in x for x in s):
+                system_name = names.pop(0)
+                system_cmd = f"/sbin/newfs_apfs -A -o role=0 -v {system_name} /dev/disk0s1"
+                log.log(f"建卷 {system_name} (role 0)…")
+                try:
+                    self.ssh.sh(system_cmd)
+                except subprocess.TimeoutExpired as exc:
+                    log.die(f"建卷 {system_name} 超时，未尝试创建 DataB。")
+            # SystemB is a writable staging area when the installed iOS 12
+            # system does not contain a personalized SEP IMG4.
+            self.ssh.mount(self.ctx.t["mounts"]["system_b"], "/mnt6")
             self.ssh.ensure_sep()
-        cmds = []
         for n in names:
             flag = " -P" if (encrypt_data and "Data" in n) else ""
-            cmds.append(f"/sbin/newfs_apfs -A{flag} -v {n} /dev/disk0s1")
+            cmd = f"/sbin/newfs_apfs -A -o role=0{flag} -v {n} /dev/disk0s1"
             log.log(f"建卷 {n} (role 0{', 加密' if flag else ''})…")
-        try:
-            self.ssh.sh(" && ".join(cmds))
-        except subprocess.TimeoutExpired:
-            log.die("建卷超时，容器可能已被锁住。请重启设备进入 DFU 后重试。")
+            try:
+                self.ssh.sh(cmd)
+            except subprocess.TimeoutExpired as exc:
+                output = []
+                for label, value in (("stdout", exc.stdout), ("stderr", exc.stderr)):
+                    if value:
+                        if isinstance(value, bytes):
+                            value = value.decode(errors="replace")
+                        output.append(f"{label}: {value.strip()}")
+                detail = "\n" + "\n".join(output) if output else ""
+                log.die(f"建卷 {n} 超时，容器可能已被锁住。请重启设备进入 DFU 后再检查卷状态。{detail}")
         if encrypt_data:
-            self.ssh.umount("/mnt1")
+            self.ssh.umount("/mnt6", "/mnt1")
         log.log(f"当前卷: {' '.join(self.ssh.slices())}")
         if encrypt_data:
             self.report_data_encryption(names)

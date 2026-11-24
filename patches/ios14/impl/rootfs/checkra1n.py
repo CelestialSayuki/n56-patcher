@@ -15,7 +15,9 @@ from pathlib import Path
 import plistlib
 import shutil
 import subprocess
+import sys
 
+from core import iosbuild
 from core.context import REPO
 from core.tools import run
 
@@ -54,6 +56,19 @@ exec /binpack/usr/sbin/dropbear -F -E -p 127.0.0.1:44 -S /binpack/bin/bash -r /p
 """
 
 
+def _build_info_helper(helper):
+    """Build and ad-hoc sign n56-jb-info; Linux needs no iPhoneOS SDK."""
+    source = Path(REPO) / "tools/n56-jb-info.c"
+    if sys.platform == "darwin":
+        sdk = subprocess.check_output(["xcrun", "--sdk", "iphoneos", "--show-sdk-path"], text=True).strip()
+        run(["clang", "-arch", "arm64", "-isysroot", sdk, "-miphoneos-version-min=14.0", "-Os",
+             str(source), "-o", str(helper)])
+    else:
+        iosbuild.build_macho(source, helper, min_version="14.0", optimize="-Os")
+    run(["codesign", "-s", "-", "-f", "--digest-algorithm=sha1,sha256", "--pagesize", "4096",
+         "--entitlements", str(Path(REPO) / "tools/n56-jb-info.entitlements"), str(helper)])
+
+
 def prepare(ctx):
     """准备 overlay 目录树，返回 {"root": str, "machos": [str], "daemons": {str: dict}}。"""
     if hasattr(ctx, "_checkra1n_overlay_ios14"):
@@ -72,11 +87,7 @@ def prepare(ctx):
     script.write_text(INIT)
     script.chmod(0o755)
     helper = root / "binpack/usr/bin/n56-jb-info"
-    sdk = subprocess.check_output(["xcrun", "--sdk", "iphoneos", "--show-sdk-path"], text=True).strip()
-    run(["clang", "-arch", "arm64", "-isysroot", sdk, "-miphoneos-version-min=14.0", "-Os",
-         str(Path(REPO) / "tools/n56-jb-info.c"), "-o", str(helper)])
-    run(["codesign", "-s", "-", "-f", "--digest-algorithm=sha1,sha256", "--pagesize", "4096",
-         "--entitlements", str(Path(REPO) / "tools/n56-jb-info.entitlements"), str(helper)])
+    _build_info_helper(helper)
     daemon = {
         "Label": LABEL,
         "ProgramArguments": ["/binpack/bin/bash", "--noprofile", "--norc", "/binpack/n56-init.sh"],

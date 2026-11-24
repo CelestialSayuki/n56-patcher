@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Rebuild the installed iPhone libraries and their boot trust cache."""
+import hashlib
 import json
 from pathlib import Path
 import re
@@ -19,6 +20,18 @@ CURRENT_CACHE = PROJECT / 'extracted/launchd_cache'
 CACHE = 'System/Library/Caches/com.apple.dyld/dyld_shared_cache_arm64'
 sys.path.insert(0, str(PROJECT / 'baseband_bringup/20261026'))
 from patch_dyld_baseband import trust_cache
+
+
+def write_manifest(outdir, names):
+    """写 shasum -a 256 兼容的 manifest（避免依赖 macOS 独有的 shasum）。
+
+    格式与 ``shasum -a 256`` 完全一致：每行 ``<64位十六进制>␠␠<相对路径>``，
+    Linux/macOS 通用，设备侧 check_manifest 与 mock_boot 都按两空格解析。
+    """
+    with (outdir / 'manifest.sha256').open('w') as stream:
+        for name in names:
+            digest = hashlib.sha256((outdir / name).read_bytes()).hexdigest()
+            stream.write(f'{digest}  {name}\n')
 
 
 def check_layout(path):
@@ -105,10 +118,8 @@ def main():
                  fairplay_daemon='fairplayd.H2')
     (OUT / 'manifest.json').write_text(json.dumps(prior, ensure_ascii=False, indent=2) + '\n')
     (OUT / 'library-results.json').write_text(json.dumps(results, ensure_ascii=False, indent=2) + '\n')
-    with (OUT / 'manifest.sha256').open('w') as stream:
-        subprocess.run(['shasum', '-a', '256',
-                        *['images/' + p.name for p in sorted((OUT / 'images').iterdir())],
-                        'bin/gaster', 'bin/irecovery', 'boot.sh'], cwd=OUT, check=True, stdout=stream)
+    write_manifest(OUT, ['images/' + p.name for p in sorted((OUT / 'images').iterdir())]
+                   + ['bin/gaster', 'bin/irecovery', 'boot.sh'])
     print(f'动态库更正包已准备，{total / 1048576:.1f} MiB。', flush=True)
 
 

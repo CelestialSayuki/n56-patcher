@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 """声明式 rootfs 来源覆盖层。"""
 from . import log
+from .codesign import ensure_path as ensure_codesign_path
 from .patch import Patch
+
+ensure_codesign_path()
 import hashlib
 import os
 import plistlib

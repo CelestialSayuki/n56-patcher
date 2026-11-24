@@ -27,7 +27,7 @@ def package():
             destination.unlink()
         shutil.copyfile(tools / name, destination)
         destination.chmod(0o755)
-        subprocess.run(['/usr/bin/codesign', '--force', '--sign', '-', str(destination)], check=True)
+        subprocess.run(['codesign', '--force', '--sign', '-', str(destination)], check=True)
     shutil.copyfile(HERE / 'launch_boot.sh', launch / 'boot.sh')
     (launch / 'boot.command').write_text(
         '#!/bin/bash\nROOT="$(cd "$(dirname "$0")" && pwd)"\n'

@@ -26,6 +26,8 @@ from urllib.parse import urlparse, parse_qs
 
 REPO = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, REPO)
+import n56_deps
+n56_deps.prepend_sys_path()
 
 from core.context import load_target, TARGETS_DIR
 from core import patch as patchmod
@@ -579,6 +581,7 @@ input:focus-visible+.sw{outline:2px solid var(--amber);outline-offset:2px}
   <section class="dws" aria-labelledby="h-risk">
    <div class="ph"><h2 id="h-risk" data-i18n="risk"></h2></div>
    <label class="optrow"><span><b>allow-manual</b><em data-i18n="manualDesc"></em></span><input type="checkbox" role="switch" id="manual" autocomplete="off"><span class="sw"></span></label>
+   <label class="optrow"><span><b data-i18n="recreateDataB"></b><em data-i18n="recreateDataBDesc"></em></span><input type="checkbox" role="switch" id="recreatedb" autocomplete="off"><span class="sw"></span></label>
    <label class="optrow"><span><b data-i18n="noid"></b><em data-i18n="noidDesc"></em></span><input type="checkbox" role="switch" id="noid" autocomplete="off"><span class="sw"></span></label>
   </section>
   <section class="dws" aria-labelledby="h-input">
@@ -646,7 +649,7 @@ const I18N={
   combos:"一键组合",console:"控制台",copy:"复制",copied:"已复制",copyFail:"复制失败",clear:"清屏",clearTitle:"只清空显示，不影响后端缓冲",jump:"回到底部",logEmpty:"尚无输出。选中阶段并点击执行后，日志会显示在这里。",
   openOpts:"打开选项",options:"选项",close:"关闭",restore:"恢复默认",selectAll:"全选",featNone:"未选 feature：仅构建基础层。",featHint:"功能选择用于构建、自动构建启动和安装阶段，真实依赖自动补齐。",
   jbMode:"palera1n 布局",jbRootless:"rootless（推荐）",jbRootful:"rootful",jbHint:"iOS 15 及以上开启 palera1n 后可选；切换模式需重建启动包和 bootstrap。",jbPending:"此目标的 rootful 后端尚未实现：可选择或 dry-run，但禁止实际构建和写盘。",
-  risk:"放宽检查",manualDesc:"执行标记为 manual 的 patch",noid:"不校验设备身份",noidDesc:"boot 时跳过身份检查",input:"输入与覆盖",dp:"Data 加密",dpDefaultEnc:"清单默认",ipswPh:"已导入 DMG 时可留空",bootargs:"boot-args 覆盖",bootargsPh:"留空用清单默认",
+  risk:"放宽检查",manualDesc:"执行标记为 manual 的 patch",recreateDataB:"自动重建 DataB",recreateDataBDesc:"清理失败时只重建 s5/DataB（会清空该卷）",noid:"不校验设备身份",noidDesc:"boot 时跳过身份检查",input:"输入与覆盖",dp:"Data 加密",dpDefaultEnc:"清单默认",ipswPh:"已导入 DMG 时可留空",bootargs:"boot-args 覆盖",bootargsPh:"留空用清单默认",
   cancel:"取消",confirm:"确认执行",modified:"改",
   "tag.sudo":"写盘 · sudo","tag.edit":"写设备","tag.must":"刷机后必做","tag.opt":"可选",
   "result.run":"运行中","result.ok":"成功","result.dry":"演练通过（未实际执行）","result.fail":"失败","result.stop":"已停止","result.none":"本次未运行",
@@ -680,7 +683,7 @@ const I18N={
   combos:"Combos",console:"Console",copy:"Copy",copied:"Copied",copyFail:"Copy failed",clear:"Clear",clearTitle:"Clears the display only, not the server buffer",jump:"Back to bottom",logEmpty:"No output yet. Select a stage and run it to see logs here.",
   openOpts:"Open options",options:"Options",close:"Close",restore:"Restore defaults",selectAll:"Select all",featNone:"No features selected: only the base layer is built.",featHint:"Feature selection applies to the build, auto-build boot and install stages. Real dependencies are added automatically.",
   jbMode:"palera1n layout",jbRootless:"rootless (recommended)",jbRootful:"rootful",jbHint:"Available with palera1n on iOS 15+. Changing layout requires rebuilding boot artifacts and bootstrap.",jbPending:"Rootful is not implemented for this target: selection/dry-run is available, real builds and device writes are blocked.",
-  risk:"Relaxed checks",manualDesc:"Run patches marked as manual",noid:"Skip device identity check",noidDesc:"Skips the identity check during boot",input:"Inputs and overrides",dp:"Data encryption",dpDefaultEnc:"Manifest default",ipswPh:"Optional if the DMG is already imported",bootargs:"boot-args override",bootargsPh:"Leave empty for the manifest default",
+  risk:"Relaxed checks",manualDesc:"Run patches marked as manual",recreateDataB:"Recreate DataB",recreateDataBDesc:"If cleanup fails, recreate only s5/DataB (erases it)",noid:"Skip device identity check",noidDesc:"Skips the identity check during boot",input:"Inputs and overrides",dp:"Data encryption",dpDefaultEnc:"Manifest default",ipswPh:"Optional if the DMG is already imported",bootargs:"boot-args override",bootargsPh:"Leave empty for the manifest default",
   cancel:"Cancel",confirm:"Run",modified:"edited",
   "tag.sudo":"Writes · sudo","tag.edit":"Writes device","tag.must":"Required after restore","tag.opt":"Optional",
   "result.run":"Running","result.ok":"Succeeded","result.dry":"Dry run passed (nothing executed)","result.fail":"Failed","result.stop":"Stopped","result.none":"Not run this session",
@@ -714,7 +717,7 @@ const I18N={
   combos:"一鍵組合",console:"主控台",copy:"複製",copied:"已複製",copyFail:"複製失敗",clear:"清除",clearTitle:"只清除顯示，不影響後端緩衝",jump:"回到底部",logEmpty:"尚無輸出。選取階段並點擊執行後，日誌會顯示在這裡。",
   openOpts:"開啟選項",options:"選項",close:"關閉",restore:"恢復預設",selectAll:"全選",featNone:"未選 feature：僅建置基礎層。",featHint:"功能選擇用於建置、自動建置啟動和安裝階段，實際相依項目自動補齊。",
   jbMode:"palera1n 佈局",jbRootless:"rootless（建議）",jbRootful:"rootful",jbHint:"iOS 15 以上啟用 palera1n 後可選；切換模式需重建啟動包與 bootstrap。",jbPending:"此目標的 rootful 後端尚未實作：可選擇或 dry-run，但禁止實際建置與寫入。",
-  risk:"放寬檢查",manualDesc:"執行標記為 manual 的 patch",noid:"不驗證裝置身分",noidDesc:"boot 時略過身分檢查",input:"輸入與覆蓋",dp:"Data 加密",dpDefaultEnc:"清單預設",ipswPh:"已匯入 DMG 時可留空",bootargs:"boot-args 覆蓋",bootargsPh:"留空使用清單預設",
+  risk:"放寬檢查",manualDesc:"執行標記為 manual 的 patch",recreateDataB:"自動重建 DataB",recreateDataBDesc:"清理失敗時只重建 s5/DataB（會清空該卷）",noid:"不驗證裝置身分",noidDesc:"boot 時略過身分檢查",input:"輸入與覆蓋",dp:"Data 加密",dpDefaultEnc:"清單預設",ipswPh:"已匯入 DMG 時可留空",bootargs:"boot-args 覆蓋",bootargsPh:"留空使用清單預設",
   cancel:"取消",confirm:"確認執行",modified:"改",
   "tag.sudo":"寫入磁碟 · sudo","tag.edit":"寫入裝置","tag.must":"刷機後必做","tag.opt":"選用",
   "result.run":"執行中","result.ok":"成功","result.dry":"演練通過（未實際執行）","result.fail":"失敗","result.stop":"已停止","result.none":"本次未執行",
@@ -748,7 +751,7 @@ const I18N={
   combos:"ワンクリック",console:"コンソール",copy:"コピー",copied:"コピーしました",copyFail:"コピー失敗",clear:"クリア",clearTitle:"表示のみクリアし、サーバーのバッファには影響しません",jump:"一番下へ",logEmpty:"出力はまだありません。ステージを選択して実行すると、ここにログが表示されます。",
   openOpts:"オプションを開く",options:"オプション",close:"閉じる",restore:"デフォルトに戻す",selectAll:"すべて選択",featNone:"feature 未選択：ベースレイヤーのみビルドします。",featHint:"機能の選択はビルド、自動ビルド起動、インストールの各ステージに適用され、依存関係は自動で補完されます。",
   jbMode:"palera1n レイアウト",jbRootless:"rootless（推奨）",jbRootful:"rootful",jbHint:"iOS 15 以降で palera1n を有効にすると選択できます。変更時は起動ファイルと bootstrap の再ビルドが必要です。",jbPending:"このターゲットの rootful バックエンドは未実装です。選択と dry-run は可能ですが、実ビルドと書き込みは拒否されます。",
-  risk:"チェックの緩和",manualDesc:"manual と指定された patch を実行",noid:"デバイス ID を検証しない",noidDesc:"boot 時に ID チェックをスキップ",input:"入力と上書き",dp:"Data 暗号化",dpDefaultEnc:"マニフェスト既定",ipswPh:"DMG をインポート済みなら空欄可",bootargs:"boot-args の上書き",bootargsPh:"空欄でマニフェスト既定を使用",
+  risk:"チェックの緩和",manualDesc:"manual と指定された patch を実行",recreateDataB:"DataB を自動再作成",recreateDataBDesc:"クリーンアップ失敗時に s5/DataB のみ再作成（内容は消去）",noid:"デバイス ID を検証しない",noidDesc:"boot 時に ID チェックをスキップ",input:"入力と上書き",dp:"Data 暗号化",dpDefaultEnc:"マニフェスト既定",ipswPh:"DMG をインポート済みなら空欄可",bootargs:"boot-args の上書き",bootargsPh:"空欄でマニフェスト既定を使用",
   cancel:"キャンセル",confirm:"実行する",modified:"変更",
   "tag.sudo":"書き込み · sudo","tag.edit":"デバイス書き込み","tag.must":"復元後に必須","tag.opt":"任意",
   "result.run":"実行中","result.ok":"成功","result.dry":"ドライラン成功（実行なし）","result.fail":"失敗","result.stop":"停止しました","result.none":"今回は未実行",
@@ -1135,6 +1138,7 @@ function renderFlags(){
  const mode=selectedJailbreakMode();
  if(mode)flags.push(['palera1n · '+mode,jailbreakMeta.implemented.includes(mode)?'info':'risk']);
  if($('manual').checked)flags.push(['allow-manual','risk']);
+ if($('recreatedb').checked)flags.push([t('recreateDataB'),'risk']);
  if($('noid').checked)flags.push([t('flagNoid'),'risk']);
  if(volCfg)flags.push(['s'+volCfg.system+'/s'+volCfg.data+' · '+volCfg.dp,volCfg.dp==='none'?'risk':'info']);
  if($('bootargs').value.trim())flags.push(['boot-args','info']);
@@ -1179,6 +1183,7 @@ $('target').addEventListener('change',()=>{loadFeats();vload()});
 $('featall').addEventListener('click',()=>setAllFeats(()=>true));
 $('featdef').addEventListener('click',()=>setAllFeats(f=>featDefault.includes(f)));
 $('dry').addEventListener('change',render);
+for(const id of ['manual','recreatedb','noid'])$(id).addEventListener('change',renderFlags);
 $('jailbreakmode').addEventListener('change',()=>{jailbreakPrefs[$('target').value]=$('jailbreakmode').value;syncJailbreakMode();renderFlags()});
 const drawer=$('drawer');
 for(const id of ['fsum','openopts'])$(id).addEventListener('click',()=>drawer.showModal());
@@ -1216,7 +1221,7 @@ function mkStages(){
 }
 function payload(stage){
  return {stage,target:$('target').value,features:selectedFeats(),
-  dry:$('dry').checked,manual:$('manual').checked,noid:$('noid').checked,
+  dry:$('dry').checked,manual:$('manual').checked,recreatedb:$('recreatedb').checked,noid:$('noid').checked,
   bootargs:$('bootargs').value,dp:'',jailbreak_mode:selectedJailbreakMode(),
   n66ipsw:$('n66ipsw').value,j96ipsw:$('j96ipsw').value};
 }
@@ -1230,6 +1235,7 @@ function confirmRun(body,meta){
  if(body.n66ipsw.trim())items.push(['N66 IPSW',body.n66ipsw.trim()]);
  if(body.j96ipsw.trim())items.push(['J96 IPSW',body.j96ipsw.trim()]);
  if(body.manual)items.push(['allow-manual',t('dlg.on')]);
+ if(body.recreatedb)items.push(['recreate-data-b',t('dlg.on')]);
  $('dlgtitle').textContent=t(edit?'dlg.titleEdit':'dlg.titleWipe',{name:label(body.stage)});
  $('dlgnote').textContent=(body.stage==='all'?t('dlg.clean')+' ':'')+t(edit?'dlg.noteEdit':'dlg.noteWipe',{ready:t(meta.ready)});
  $('dlgrows').replaceChildren(...items.flatMap(([k,v])=>[h('dt',null,k),h('dd',null,v)]));
@@ -1929,6 +1935,8 @@ class Handler(BaseHTTPRequestHandler):
             a.append("--dry-run")
         if b.get("manual"):
             a.append("--allow-manual")
+        if b.get("recreatedb"):
+            a.append("--recreate-data-b")
         if b.get("noid"):
             a.append("--no-identity-check")
         if (b.get("bootargs") or "").strip():

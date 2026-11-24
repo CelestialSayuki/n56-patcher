@@ -4,6 +4,7 @@ import struct
 import subprocess
 
 from .sep_rpc import object_code
+from core import iosbuild
 from patches.shared.impl.kc.sn2400.port import encode_pc
 
 SKS_INIT = 0xfffffff0066f1110
@@ -26,7 +27,7 @@ def adapt(kernel, work):
     work = Path(work)
     work.mkdir(parents=True, exist_ok=True)
     obj = work / "sep-endpoint.o"
-    subprocess.run(["xcrun", "clang", "-target", "arm64-apple-macos11", "-c",
+    subprocess.run([*iosbuild.freestanding_clang(), "-target", "arm64-apple-macos11", "-c",
                     str(Path(__file__).with_suffix(".S")), "-o", str(obj)], check=True)
     raw, labels = object_code(obj)
     code = bytearray(raw)
