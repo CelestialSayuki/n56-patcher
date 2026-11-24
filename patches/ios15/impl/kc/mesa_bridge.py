@@ -11,6 +11,7 @@ import re
 import struct
 import subprocess
 
+from core import iosbuild
 from patches.shared.impl.common.macho import Kernel
 from .mesa_payload import Payload
 from .sep_biometric import publish
@@ -175,7 +176,7 @@ def allocate_payload(kernel, size, near):
 
 
 def _compile(work, *, gt_v2=False):
-    flags = ['xcrun', 'clang', '-target', 'arm64-apple-macos11',
+    flags = [*iosbuild.freestanding_clang(), '-target', 'arm64-apple-macos11',
              '-mcpu=generic', '-march=armv8-a', '-mno-outline-atomics']
     obj, dispatch = work / 'mesa-transport.o', work / 'mesa-dispatch.o'
     subprocess.run([*flags, *(['-DMESA_GT_V2'] if gt_v2 else []), '-Oz', '-ffreestanding', '-fno-builtin', '-fno-stack-protector',

@@ -1,10 +1,24 @@
 """构建 ARM64 汇编，返回代码与符号偏移。"""
+import shutil
 import struct
+import sys
+
+from . import log
 from .tools import run
 
 
+def _compiler():
+    """macOS keeps its clang-backed ``cc``; Linux needs clang for ELF targets."""
+    if sys.platform == "darwin":
+        return "cc"
+    clang = shutil.which("clang")
+    if not clang:
+        log.die("缺少 clang：Linux 构建 ARM64 汇编需要 clang（cc 通常是 GCC）")
+    return clang
+
+
 def assemble(source, output):
-    run(["cc", "-target", "aarch64-none-elf", "-c", "-x", "assembler-with-cpp",
+    run([_compiler(), "-target", "aarch64-none-elf", "-c", "-x", "assembler-with-cpp",
          str(source), "-o", str(output)])
     obj = output.read_bytes()
     section_offset = struct.unpack_from("<Q", obj, 40)[0]

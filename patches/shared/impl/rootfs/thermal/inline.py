@@ -1,9 +1,15 @@
-"""Embed N56 code and Objective-C class metadata in the native daemon."""
+"""Embed N56 code and Objective-C class metadata in the native daemon.
+
+macOS keeps the original ``xcrun clang`` invocation. Linux cross-compiles the
+same assembly with the system clang (same arm64-apple-macos11 target) so no
+Xcode command line tools are needed.
+"""
 from pathlib import Path
 from dataclasses import dataclass
 import json
 import struct
 import subprocess
+import sys
 
 from patches.ios14.impl.kc.mesa_payload import Payload
 from patches.shared.impl.kc.sn2400.port import encode_pc
@@ -34,8 +40,17 @@ def compile_model(output):
     source = output / "n56-model.S"
     source.write_text((HERE / "model.S").read_text() + "\n" + (HERE / "factory.S").read_text())
     obj = output / "n56-model.o"
-    subprocess.run(["xcrun", "clang", "-target", "arm64-apple-macos11", "-c",
-                    str(source), "-o", str(obj)], check=True, capture_output=True)
+    if sys.platform == "darwin":
+        cmd = ["xcrun", "clang", "-target", "arm64-apple-macos11", "-c",
+               str(source), "-o", str(obj)]
+    else:
+        from core.iosbuild import _clang
+        cmd = [_clang(), "-target", "arm64-apple-macos11", "-c",
+               str(source), "-o", str(obj)]
+    result = subprocess.run(cmd, check=False, capture_output=True)
+    if result.returncode:
+        raise RuntimeError(f"N56 model assembly failed: "
+                           f"{(result.stderr or result.stdout).decode(errors='replace').strip()}")
     payload = Payload(obj)
     if len(payload.sections) != 2:
         raise ValueError("N56 model must contain text and data sections")

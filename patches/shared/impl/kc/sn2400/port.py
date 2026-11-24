@@ -46,6 +46,9 @@ def kmod_plan(kmod, source_slots, remap):
 def instructions(data, va):
     md = Cs(CS_ARCH_ARM64, CS_MODE_LITTLE_ENDIAN)
     md.detail = True
+    # capstone 4 does not decode ARM64 UDF; keep walking padding/data words so
+    # callers still see one entry per word, as with capstone 5 on macOS.
+    md.skipdata = True
     out = list(md.disasm(data, va))
     if sum(x.size for x in out) != len(data):
         raise ValueError(f'incomplete ARM64 disassembly at {va:#x}')
@@ -92,6 +95,9 @@ def relocate_code(data, va, remap):
     for origin, x in enumerate(ins):
         word = struct.unpack_from('<I', data, x.address - va)[0]
         pc = remap(x.address)
+        if x.mnemonic.startswith('.'):
+            # capstone 4 skipdata padding: capstone 5 decodes UDF instead.
+            continue
         ops = x.operands
         if x.mnemonic == 'adrp':
             old_page = ops[1].imm & MASK

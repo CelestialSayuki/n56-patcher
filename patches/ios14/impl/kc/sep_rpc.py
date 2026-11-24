@@ -5,6 +5,7 @@ import struct
 import subprocess
 
 from .boot_volumes import REPO, allocate_hook
+from core import iosbuild
 from patches.shared.impl.kc.sn2400.port import encode_pc, instructions
 
 V0 = {
@@ -56,7 +57,7 @@ def object_code(path):
 
 
 def assemble(source, obj):
-    subprocess.run(["xcrun", "clang", "-target", "arm64-apple-macos11", "-c",
+    subprocess.run([*iosbuild.freestanding_clang(), "-target", "arm64-apple-macos11", "-c",
                     str(source), "-o", str(obj)], check=True)
     return object_code(obj)
 

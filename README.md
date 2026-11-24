@@ -45,6 +45,8 @@ source .venv/bin/activate
 iOS 15 的状态见 [15.8.8 结论](docs/conclusions/15.md)。
 下文的 `python3` 指激活环境后的 Python；使用 sudo 时请显式指定 `.venv/bin/python`，避免退回系统 3.9。
 
+Python 依赖不入库：`tools/bin/pydeps/` 由 `tools/setup.py` 按当前系统、CPU 和 Python ABI 现场安装并校验（macOS 装 `libcapstone.dylib`，Linux 装 `libcapstone.so`），换机器或换 Python 后重新运行即可。只需重装依赖时可执行 `python3 tools/setup.py --deps-only`。
+
 `tools/setup.py` 会生成 `donors/`（checkra1n 用户态，以及 apfsios14 工具集中的 fsck、apfs.fs）并从源码构建 gaster；之后缺的 donor 和 IPSW 派生输入由 `n56patcher.py init` 补齐（`all` 会自动先跑）。首次构建需设备处于 DFU，用于解密 iBSS、iBEC。
 
 下载 checkra1n 时若报 `CERTIFICATE_VERIFY_FAILED`，是 python.org 版 Python 没装根证书：脚本会自动改用系统证书或 `curl`；也可运行 Python 目录下的 `Install Certificates.command`，或手动下载 0.12.4 DMG 后用 `CHECKRA1N_DMG=/path/checkra1n.dmg python3 tools/setup.py` 离线完成。

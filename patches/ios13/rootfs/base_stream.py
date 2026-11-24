@@ -4,8 +4,9 @@
 移植自 install_ios13.sh cmd_rootfs + run_rootfs_stream.sh。
 
 踩坑（务必保留）：
-  - 源 dmg 必须以 owners 方式挂载（sudo hdiutil attach -owners on），且本步以 root 运行，
-    否则 tar 记录的属主全变 501:20（曾把整个 rootfs 变成 mobile 所有）。
+  - 源 dmg 必须保留原始 APFS 属主：macOS 用 hdiutil -owners on，Linux 用 apfs-fuse
+    （不要传 uid=/gid=）；且本步以 root 运行，否则 tar 记录的属主会失真
+    （曾把整个 rootfs 变成 mobile 所有）。
   - 不在设备上放 dmg 再 cp（需 ~9.5G 空间不够）；改为从 Mac 流式 tar。rootfs 无关键
     xattr/flags，只需保属主。
   - 9GB 级数据：必须用真正的流式管道（tar | ssh tar），不可把流读进内存。现在经共用的

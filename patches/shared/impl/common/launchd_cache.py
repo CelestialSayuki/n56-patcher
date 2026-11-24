@@ -33,8 +33,13 @@ import sys
 
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+# 仓库根目录入 sys.path，既支持 core.impl 调用也支持直接运行；
+# Linux 的 codesign shim 需要 ensure_path() 注入 PATH。
+sys.path.insert(0, str(Path(__file__).resolve().parents[4]))
+from core.codesign import ensure_path
 from patches.shared.impl.paths import ROOT, DERIVED, WORK
+
+ensure_path()
 
 CACHE_DIR = WORK / "launchd_cache"
 ORIG_PLIST = DERIVED / "extracted/launchd_cache/mrm.plist.orig"

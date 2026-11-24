@@ -13,6 +13,14 @@ from core.slots import VERSION_BY_BUILD
 PREFIX = slots_device.MOUNT + "/"
 
 
+def apfs_volume(index, name):
+    """测试用卷记录：只填 APFS 超级块里的卷名字段。"""
+    sb = bytearray(slots_device.NAME_OFF + 256)
+    encoded = name.encode()
+    sb[slots_device.NAME_OFF:slots_device.NAME_OFF + len(encoded)] = encoded
+    return (index, 0, bytes(sb))
+
+
 class FakeRamdisk:
     """模拟 ramdisk：每个分区对应一个本地目录；挂载后探测挂载点指向它。"""
 
@@ -199,7 +207,7 @@ class VolumeCreationTests(unittest.TestCase):
                 pass
 
             def volumes(self):
-                return [(1, 0, b""), (4, 0, b"")]
+                return [(1, 0, b""), apfs_volume(4, "System13")]
 
             def append_volume(self, name, encrypted=False, index=None):
                 created.append(name)
@@ -208,6 +216,63 @@ class VolumeCreationTests(unittest.TestCase):
         with mock.patch.object(slots_device, "Apfs", FakeApfs):
             slots_device.ensure_slot_volumes(ctx, None)
         self.assertEqual(created, ["Data13"])
+
+    def test_wrong_system_volume_name_fails_before_any_change(self):
+        created = []
+
+        class FakeApfs:
+            def __init__(self, ctx):
+                pass
+
+            def volumes(self):
+                return [apfs_volume(4, "SystemB"), apfs_volume(5, "Data13")]
+
+            def append_volume(self, name, encrypted=False, index=None):
+                created.append(name)
+
+        ctx = SimpleNamespace(slot={"version": "13", "system": 4, "data": 5}, t={})
+        with mock.patch.object(slots_device, "Apfs", FakeApfs), self.assertRaises(SystemExit) as caught:
+            slots_device.ensure_slot_volumes(ctx, None)
+        self.assertIn("SystemB", str(caught.exception.message))
+        self.assertIn("System13", str(caught.exception.message))
+        self.assertEqual(created, [])
+
+    def test_wrong_data_volume_name_fails_before_any_change(self):
+        created = []
+
+        class FakeApfs:
+            def __init__(self, ctx):
+                pass
+
+            def volumes(self):
+                return [apfs_volume(4, "System13"), apfs_volume(5, "Data14")]
+
+            def append_volume(self, name, encrypted=False, index=None):
+                created.append(name)
+
+        ctx = SimpleNamespace(slot={"version": "13", "system": 4, "data": 5}, t={})
+        with mock.patch.object(slots_device, "Apfs", FakeApfs), self.assertRaises(SystemExit):
+            slots_device.ensure_slot_volumes(ctx, None)
+        self.assertEqual(created, [])
+
+    def test_original_slice_names_are_allowed(self):
+        """s1/s2 改作他用时仍叫 System/Data，不应被槽位命名检查拒绝。"""
+        created = []
+
+        class FakeApfs:
+            def __init__(self, ctx):
+                pass
+
+            def volumes(self):
+                return [apfs_volume(1, "System"), apfs_volume(2, "Data")]
+
+            def append_volume(self, name, encrypted=False, index=None):
+                created.append(name)
+
+        ctx = SimpleNamespace(slot={"version": "13", "system": 1, "data": 2}, t={})
+        with mock.patch.object(slots_device, "Apfs", FakeApfs):
+            slots_device.ensure_slot_volumes(ctx, None)
+        self.assertEqual(created, [])
 
 
 class MarkerTests(unittest.TestCase):

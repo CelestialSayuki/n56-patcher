@@ -1,6 +1,6 @@
 # 工具
 
-macOS 安装完整 Xcode（`n56-jb-info`、`create_systembag` 需要 iPhoneOS SDK）后，在仓库根目录运行：
+macOS 安装完整 Xcode（`n56-jb-info`、`create_systembag` 使用 iPhoneOS SDK）；Linux 改用 clang/ld64.lld 与 `tools/ios-minimal-sdk/include` 交叉编译，不需要 Xcode。然后在仓库根目录运行：
 
 ```sh
 python3 -m pip install -r requirements.txt
@@ -10,6 +10,7 @@ python3 tools/setup.py
 | 上游 submodule | 用途 | 本地路径 |
 | --- | --- | --- |
 | [SSHRD_Script](https://github.com/verygenericname/SSHRD_Script) | gaster、irecovery、iBoot64Patcher、KPlooshFinder、sshpass、iproxy | `tools/SSHRD_Script/Darwin/` |
+| [Legacy iOS Kit usbmuxd](https://github.com/g1lbertJB/g1lbertJB) | Linux x86_64 USB multiplexing daemon for ramdisk SSH; GPL-3.0 | `tools/vendor/linux/x86_64/usbmuxd-legacykit` |
 | [img4lib](https://github.com/xerub/img4lib) | IMG4 解包、封装 | `tools/img4lib/img4` |
 | [dualra1n](https://github.com/dualra1n/dualra1n) | Kernel64Patcher、kairos、dtree_patcher；iOS14 的 fsck 与 apfs.fs | `tools/dualra1n/binaries/Darwin/`；复制到 `donors/projects/dualra1n-bin/apfsios14` |
 | [gaster](https://github.com/verygenericname/gaster) | DFU 利用与 iBoot 解密，从源码构建 | `tools/SSHRD_Script/Darwin/gaster` |
@@ -20,3 +21,5 @@ python3 tools/setup.py
 setup 还会下载官方 [checkra1n 0.12.4](https://checkra.in/releases/) DMG，校验 SHA-256 后把用户态提取到 `donors/checkra1n/`，见 `tools/fetch_checkra1n.py`。
 
 本机额外工具可放在 `tools/bin/`。
+
+Legacy iOS Kit `usbmuxd` SHA-256: `428b9ae3faa05bdf816266d5e280e83657d79823c3080acf45449e6470b4c16f`。Linux x86_64 的 ramdisk SSH 阶段会临时停止 systemd 的 `usbmuxd.service`、以前台模式启动该二进制，命令退出时终止它并恢复原本处于 active 的系统服务。

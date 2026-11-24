@@ -5,6 +5,9 @@ import struct
 import subprocess
 import xml.etree.ElementTree as ET
 
+from patches.shared.impl.common.macho import nm_binary
+
+
 class Kernel:
     def __init__(self, path):
         self.path = Path(path)
@@ -83,7 +86,8 @@ class Kernel:
         return self.segments(self.offset(self.kexts[bundle]['_PrelinkExecutableLoadAddr']))
 
     def symbols(self):
-        process = subprocess.run(['nm', '-n', str(self.path)], capture_output=True, text=True, check=True)
+        process = subprocess.run([nm_binary(), '-n', str(self.path)],
+                                 capture_output=True, text=True, check=True)
         out = {}
         for line in process.stdout.splitlines():
             fields = line.split()

@@ -84,7 +84,8 @@ TARGET = {
         "sep",        # SEP 固件（boot 必备）+ fairplayd.H2
         "health",     # 健康 App 框架 repair-v7
         "checkra1n",  # 离线 KPF、用户态工具与 USB SSH
-        "touchid",    # Mesa ↔ iOS 12 SEP 收发桥
+        # touchid/pinot 是后加的可选 KC 变换；默认链保持与已验证可启动的
+        # 13.7-only 项目一致（到 kc.audio 为止），需要时在 GUI/CLI 单独勾选。
     ],
     # 显式追加的 patch id（不靠 feature）
     "patches": [],

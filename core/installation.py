@@ -2,9 +2,10 @@
 import json
 from pathlib import Path
 import re
+import struct
 
 from . import log
-from .apfs import Apfs, NAME_OFF
+from .apfs import Apfs, NAME_OFF, ROLE_OFF, FS_FLAGS_OFF, APFS_FS_UNENCRYPTED
 from .volume_inventory import inventory
 
 
@@ -12,10 +13,31 @@ def volume_name(volume):
     return volume[2][NAME_OFF:NAME_OFF + 256].split(b"\0")[0].decode()
 
 
-def named_volume(volumes, name):
+def volume_summary(volumes):
+    """卷号/role/加密状态：多个同名卷时给出可行动的清单。"""
+    parts = []
+    for volume in volumes:
+        role = struct.unpack_from("<H", volume[2], ROLE_OFF)[0]
+        flags = struct.unpack_from("<Q", volume[2], FS_FLAGS_OFF)[0]
+        protection = "none" if flags & APFS_FS_UNENCRYPTED else "encrypted"
+        parts.append(f"s{volume[0]}(role=0x{role:x}, {protection})")
+    return ", ".join(parts)
+
+
+def named_volume(volumes, name, preferred=None):
+    """按名字找卷；重名时优先沿用 layout.json / --system/--data 指定的卷号。"""
     matches = [v for v in volumes if volume_name(v) == name]
     if len(matches) > 1:
-        log.die(f"存在多个 {name} 卷")
+        if len({v[0] for v in matches}) == 1:
+            # NXSB 里残留的旧 OID 会让同一个卷被列出两次；卷号相同就是同一卷。
+            log.warn(f"{name} 在 APFS 清单中重复出现（同为 s{matches[0][0]}），按单个卷处理")
+            return matches[0]
+        chosen = [v for v in matches if v[0] == preferred] if preferred is not None else []
+        if len(chosen) == 1:
+            log.warn(f"存在多个 {name} 卷（{volume_summary(matches)}）；沿用布局中的 s{preferred}")
+            return chosen[0]
+        log.die(f"存在多个 {name} 卷：{volume_summary(matches)}。"
+                "请用 --system/--data 指定实际卷号，或先删除多余卷（n56patcher.py status 可查看）")
     return matches[0] if matches else None
 
 
@@ -82,7 +104,9 @@ class IndependentInstallation:
         config = self.ctx.t["volumes"]
         apfs = Apfs(self.ctx)
         volumes = apfs.volumes()
-        selected = {kind: named_volume(volumes, name) for kind, name in config["names"].items()}
+        mounts = self.ctx.t["mounts"]
+        selected = {kind: named_volume(volumes, name, preferred=mounts.get(kind + "_b"))
+                    for kind, name in config["names"].items()}
         for volume in selected.values():
             if volume and volume[0] < config["min_slice"]:
                 log.die(f"{volume_name(volume)} 位于保留卷 s{volume[0]}")
@@ -121,7 +145,8 @@ class IndependentInstallation:
                 if kind == "data" and self.ctx.t.get("version") == "ios15":
                     self.ctx._ios15_created_data_here = True
         volumes = apfs.volumes()
-        selected = {kind: named_volume(volumes, name) for kind, name in config["names"].items()}
+        selected = {kind: named_volume(volumes, name, preferred=mounts.get(kind + "_b"))
+                    for kind, name in config["names"].items()}
         if any(v is None for v in selected.values()):
             log.die("独立卷创建未完成")
         encrypted = apfs.enc_state(selected["data"][2]) == "encrypted"
@@ -154,14 +179,9 @@ class IndependentInstallation:
         if encrypted != self.encrypted_data:
             log.die(f"s{slot['data']} 的保护模式与目标不符")
         # 非原机分区（s1、s2 之外）的卷名必须与槽位一致，编号对上但卷不是我们的就拒绝。
-        from .slots_device import slot_volume_name
-        for index, kind in ((slot["system"], "Sys"), (slot["data"], "Data")):
-            if index in (1, 2):
-                continue
-            name = present[index][2][NAME_OFF:NAME_OFF + 256].split(b"\0")[0].decode()
-            expected = slot_volume_name(slot["version"], kind)
-            if name != expected:
-                log.die(f"s{index} 的卷名为 {name}，与槽位 {expected} 不符；拒绝使用")
+        # 与 _slot_prepare_volumes 共用同一校验，避免格式化阶段漏检。
+        from .slots_device import validate_slot_volume_names
+        validate_slot_volume_names(self.ctx, present.values())
         # 槽位的权限由 core/slots.py 管理；这里不再使用目标的保留卷下限。
         self.ctx.t["volumes"]["min_slice"] = 1
         bind_volumes(self.ctx, slot["system"], slot["data"])

@@ -12,7 +12,12 @@ chestnut 移植 - 阶段1 解析器 (不改任何字节, 只验证)
   3. 散项: ___cxa_pure_virtual / Dispatch / gMetaClass 等按符号名
 用法: python3 -I chestnut_port/resolve.py
 """
-import struct, sys, os
+import struct, sys, os, subprocess, platform, shutil
+
+
+def nm_binary():
+    candidates = ("nm", "llvm-nm") if platform.system() == "Darwin" else ("llvm-nm", "nm")
+    return next((c for c in candidates if shutil.which(c)), candidates[-1])
 
 from pathlib import Path
 
@@ -45,7 +50,7 @@ def v2o_f(segs):
 def syms_by_name(path):
     # returns {name: vaddr}
     import subprocess
-    out = subprocess.run(["nm", "-n", path], capture_output=True, text=True).stdout
+    out = subprocess.run([nm_binary(), "-n", path], capture_output=True, text=True).stdout
     m = {}
     for line in out.splitlines():
         a = line.split()

@@ -24,18 +24,24 @@ def apply_profile(ctx, stock, generic):
     返回   : 合并后的 KC 路径。
     """
     source = Path(REPO) / "tools/checkra1n-kpf/checkra1n/kpf-test"
-    binary = source / "kpf-test.macos"
-    # KPF's JIT/no-JIT choice follows this Python's CPU, so Rosetta compatibility
-    # alone is not sufficient here: rebuild a genuinely matching host binary.
-    force = ["-B"] if tool_issue(binary) or architecture_issue(binary) else []
-    run(["make", *force, "-C", str(source), "kpf-test.macos",
-         f"HOST_ARCH={platform.machine()}", f"PYTHON={sys.executable}",
-         "CFLAGS=-Wno-error=unused-but-set-variable"])
+    if platform.system() == "Linux":
+        helper = "kpf-test.linux"
+        run(["make", "-C", str(source), helper,
+             "CFLAGS=-Wno-error=unused-but-set-variable"])
+    else:
+        helper = "kpf-test.macos"
+        binary = source / helper
+        # KPF's JIT/no-JIT choice follows this Python's CPU, so Rosetta compatibility
+        # alone is not sufficient here: rebuild a genuinely matching host binary.
+        force = ["-B"] if tool_issue(binary) or architecture_issue(binary) else []
+        run(["make", *force, "-C", str(source), helper,
+             f"HOST_ARCH={platform.machine()}", f"PYTHON={sys.executable}",
+             "CFLAGS=-Wno-error=unused-but-set-variable"])
     output = ctx.wk("kc.checkra1n.raw")
     env = dict(os.environ, N56_KPF_OUTPUT=output, N56_KPF_GENERIC=str(generic))
     if platform.machine() != "arm64":
         env["N56_KPF_NOJIT"] = "1"
-    run([str(source / "kpf-test.macos"), "-n", str(stock)], env=env)
+    run([str(source / helper), "-n", str(stock)], env=env)
     original = Path(stock).read_bytes()
     boot = Path(generic).read_bytes()
     patched = bytearray(Path(output).read_bytes())

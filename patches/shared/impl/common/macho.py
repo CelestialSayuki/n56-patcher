@@ -1,9 +1,21 @@
 """Read classic split prelinked Mach-O images, including plist IDREFs."""
 from pathlib import Path
 import base64
+import platform
+import shutil
 import struct
 import subprocess
 import xml.etree.ElementTree as ET
+
+
+def nm_binary():
+    """GNU nm cannot read arm64 Mach-O; prefer llvm-nm on Linux hosts."""
+    candidates = ('nm', 'llvm-nm') if platform.system() == 'Darwin' else ('llvm-nm', 'nm')
+    for candidate in candidates:
+        if shutil.which(candidate):
+            return candidate
+    return candidates[-1]
+
 
 class Kernel:
     def __init__(self, path):
@@ -83,7 +95,7 @@ class Kernel:
         return self.segments(self.offset(self.kexts[bundle]['_PrelinkExecutableLoadAddr']))
 
     def symbols(self):
-        process = subprocess.run(['nm', '-n', str(self.path)], capture_output=True, text=True, check=True)
+        process = subprocess.run([nm_binary(), '-n', str(self.path)], capture_output=True, text=True, check=True)
         out = {}
         for line in process.stdout.splitlines():
             fields = line.split()

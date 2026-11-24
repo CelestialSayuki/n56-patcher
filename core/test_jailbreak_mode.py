@@ -139,7 +139,7 @@ class GUIArgsTests(unittest.TestCase):
 const assert=require('assert');
 let featsReady=true,jailbreakMeta={available:true,implemented:['rootless']},features=['palera1n'];
 const elements={target:{value:'n56-ios15'},jailbreakmode:{value:'rootless'},jailbreaksection:{},jailbreakwarning:{},
- dry:{checked:false},manual:{checked:false},noid:{checked:false},bootargs:{value:''},n66ipsw:{value:''},j96ipsw:{value:''}};
+ dry:{checked:false},manual:{checked:false},recreatedb:{checked:false},noid:{checked:false},bootargs:{value:''},n66ipsw:{value:''},j96ipsw:{value:''}};
 const $=id=>elements[id],selectedFeats=()=>features;
 """+'\n'.join(functions)+"""
 syncJailbreakMode();assert.equal(elements.jailbreaksection.hidden,false);assert.equal(elements.jailbreakmode.disabled,false);

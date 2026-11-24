@@ -5,6 +5,9 @@
 import subprocess
 
 from . import log
+from .codesign import ensure_path as ensure_codesign_path
+
+ensure_codesign_path()
 
 
 def run(cmd, data=None, check=True, capture=True, timeout=None, env=None):

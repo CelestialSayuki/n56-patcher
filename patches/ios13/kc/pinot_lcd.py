@@ -8,7 +8,7 @@ from patches.ios13.impl.kc.pinot.transplant import build
 class PinotLCD(Patch):
     id = "kc.pinot_lcd"
     layer = "kc"
-    feature = "chestnut"
+    feature = "pinot"
     requires = ("kc.chestnut_kext",)
     after = ("kc.audio", "kc.legacy_sep", "kc.touchid")
     note = "ApplePinotLCD：面板上电与 DCS 休眠唤醒"

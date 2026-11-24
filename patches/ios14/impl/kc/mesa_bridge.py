@@ -6,6 +6,7 @@ import subprocess
 
 from .boot_volumes import allocate_hook
 from .mesa_payload import Payload
+from core import iosbuild
 from patches.shared.impl.kc.sn2400.port import encode_pc
 
 # iOS 14.8 AppleSEPGenericTransfer (BiometricKit-233).
@@ -88,7 +89,7 @@ def install(data, kernel, work, profile=IOS14):
     work.mkdir(parents=True, exist_ok=True)
     source = Path(__file__).with_name("mesa_transport.c")
     obj = work / "mesa-transport.o"
-    subprocess.run(["xcrun", "clang", "-target", "arm64-apple-macos11", "-Oz",
+    subprocess.run([*iosbuild.freestanding_clang(), "-target", "arm64-apple-macos11", "-Oz",
                     "-ffreestanding", "-fno-builtin", "-fno-stack-protector",
                     "-fno-unwind-tables", "-fno-asynchronous-unwind-tables", "-fno-jump-tables",
                     *profile["defines"], "-c", str(source), "-o", str(obj)], check=True)

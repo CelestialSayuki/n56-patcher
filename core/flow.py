@@ -128,7 +128,8 @@ class Flow:
         """槽位模式的卷准备：缺失的卷按序追加，清空 Sys；Data 默认清空（--keep-data 时保留）。
 
         每清空一个分区就把它记为已清空并保存记录：中途失败时，记录不会再说它还是原内容。
-        权限与 donor 门禁已在 CLI 入口（make_flow）检查过。
+        权限与 donor 门禁已在 CLI 入口（make_flow）检查过。ensure_slot_volumes 会先核对
+        已有卷名，卷名不符时在任何 wipe 之前就失败。
         """
         from .slots_device import ensure_slot_volumes, wipe_slice
         from . import slots
@@ -249,6 +250,26 @@ class Flow:
                 self.ctx.installation.close()
             self.ctx.close_source_mounts()
 
+    def rootfs_finalize(self):
+        """只重试 finalize 阶段，不重放已经应用过的 stream/overlay 补丁。
+
+        用于 rootfs 写入完成后单独重试收尾（private/var→DataB / fsck / SEP / keybags / role）。
+        只清 finalize 角色的断点，已完成的 overlay 断点保持不动。
+        """
+        self._need_ramdisk()
+        if not self.ctx.dry_run:
+            self._clear_checkpoints(only=[p.id for p in self.sel.get("rootfs", [])
+                                          if p.role == "finalize"])
+        try:
+            if self.ctx.installation and not self.ctx.dry_run:
+                self.ctx.installation.prepare()
+                self.ctx.installation.mount_system()
+            self._run_patches(["finalize"])
+        finally:
+            if self.ctx.installation:
+                self.ctx.installation.close()
+            self.ctx.close_source_mounts()
+
     def install(self):
         self._jailbreak_guard("install")
         if self.ctx.t.get("version") == "ios15" and not self.ctx.dry_run:
@@ -282,7 +303,9 @@ class Flow:
             return
         from .installation import named_volume
         names = self.ctx.t["volumes"]["names"]
-        system_present = named_volume(Apfs(self.ctx).volumes(), names["system"]) is not None
+        system_present = named_volume(
+            Apfs(self.ctx).volumes(), names["system"],
+            preferred=self.ctx.t["mounts"].get("system_b")) is not None
         if system_present:
             log.log("System 卷已存在：只清 Data 侧断点，System 侧已完成的补丁保持跳过。")
             self._clear_checkpoints(only=self.DATA_SIDE_PATCHES)
@@ -543,4 +566,3 @@ class Flow:
         for name, run_stage in stages:
             log.stage(name)
             run_stage()
-

@@ -39,7 +39,6 @@ class BasebandProductTests(unittest.TestCase):
             CACHE, HASH_AFTER, HASH_BEFORE, HASH_OFFSET, PATCHED_CDHASH, SOURCE_SIZE,
             page_hash_edit)
         from patches.ios14.impl.rootfs.dyld_cache import combined_cdhash
-        from patches.ios14.impl.rootfs.keybag_boot import build as build_trustcache
         from patches.ios14.impl.rootfs.motion_platform import CACHE_HASH_EDITS
         from targets.n56_ios14 import TARGET
 
@@ -55,7 +54,7 @@ class BasebandProductTests(unittest.TestCase):
                 self.assertIn("motion", TARGET["features"])
                 deployed = combined_cdhash(
                     cache, [(HASH_OFFSET, HASH_BEFORE, HASH_AFTER), *CACHE_HASH_EDITS])
-                _, entries = TrustCache._entries(Path(build_trustcache(ctx)).read_bytes())
+                _, entries = TrustCache._entries(Path(TrustCache(ctx).build_full()).read_bytes())
                 self.assertIn(deployed, entries)
                 self.assertNotIn(PATCHED_CDHASH, entries)
             finally:

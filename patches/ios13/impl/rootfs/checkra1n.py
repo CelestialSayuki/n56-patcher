@@ -3,9 +3,9 @@ import os
 from pathlib import Path
 import plistlib
 import shutil
-import subprocess
 
 from core.context import REPO
+from core.iosbuild import build_macho
 from core.tools import run
 
 LABEL = "com.n56.checkra1n"
@@ -49,9 +49,9 @@ def prepare(ctx):
     script.write_text(INIT)
     script.chmod(0o755)
     helper = root / "binpack/usr/bin/n56-jb-info"
-    sdk = subprocess.check_output(["xcrun", "--sdk", "iphoneos", "--show-sdk-path"], text=True).strip()
-    run(["clang", "-arch", "arm64", "-isysroot", sdk, "-miphoneos-version-min=13.0", "-Os",
-         str(Path(REPO) / "tools/n56-jb-info.c"), "-o", str(helper)])
+    helper.parent.mkdir(parents=True, exist_ok=True)
+    build_macho(Path(REPO) / "tools/n56-jb-info.c", helper,
+                min_version="13.0", optimize="-Os")
     run(["codesign", "-s", "-", "-f", "--digest-algorithm=sha1,sha256", "--pagesize", "4096",
          "--entitlements", str(Path(REPO) / "tools/n56-jb-info.entitlements"), str(helper)])
     daemon = {

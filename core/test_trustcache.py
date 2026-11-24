@@ -1,5 +1,6 @@
 import shutil
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -30,6 +31,7 @@ class CdhashTests(unittest.TestCase):
         self.assertEqual(digest.hex(), "b501e1aba6dca0d414d34d2f1084b2f26e2fe028")
         self.assertEqual(kind, TrustCache.HASH_SHA1)
 
+    @unittest.skipUnless(sys.platform == "darwin", "requires Apple codesign -d")
     def test_sha256_preferred_and_matches_cdhash(self):
         path = self.signed("sha1,sha256")
         digest, kind = TrustCache._cdhash_any(path)
