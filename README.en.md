@@ -41,6 +41,8 @@ python3 tools/setup.py
 
 `tools/setup.py` generates `donors/` (the checkra1n userland plus fsck and apfs.fs from the apfsios14 tool set) and builds gaster from source. The first build needs the device in DFU to decrypt iBSS and iBEC.
 
+**Linux is supported too**: `tools/setup.py` builds `apfs-fuse` for read-only rootfs mounting and `ldid` for a local `codesign` shim — no Apple `xcrun`, `hdiutil`, or iPhoneOS SDK required. Use a clean Python environment, e.g. `sudo -H env -u PYTHONPATH -u PYTHONHOME PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3 n56patcher.py ...`, and always pass an existing `--workdir`. On Linux, `rootfs-finalize` retries only the finalize stage.
+
 If downloading checkra1n fails with `CERTIFICATE_VERIFY_FAILED`, the python.org build of Python has no root certificates installed: the script falls back to the system CA bundle or `curl`. You can also run `Install Certificates.command` from the Python folder, or download the 0.12.4 DMG manually and run `CHECKRA1N_DMG=/path/checkra1n.dmg python3 tools/setup.py`.
 
 Generate the SSH ramdisk once while the device is in DFU (requires internet access):

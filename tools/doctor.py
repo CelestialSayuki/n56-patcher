@@ -28,17 +28,26 @@ def audit(target):
     def add(name, status, detail, **extra):
         checks.append(dict(name=name, status=status, detail=detail, **extra))
 
-    add("host", "ok" if platform.system() == "Darwin" else "error",
+    linux = platform.system() == "Linux"
+    add("host", "ok" if platform.system() in ("Darwin", "Linux") else "error",
         f"{platform.system()} {platform.release()} / {host_arch()}")
     add("python", "ok" if sys.version_info >= MIN_PYTHON else "error",
         f"{platform.python_version()} / {sys.executable} (requires 3.10+)")
-    for sdk in ("macosx", "iphoneos"):
-        code, output = probe(["xcrun", "--sdk", sdk, "--show-sdk-path"])
-        add(sdk + "-sdk", ("warn" if sdk == "iphoneos" else "error") if code else "ok", output)
+    if linux:
+        for sdk in ("macosx", "iphoneos"):
+            add(sdk + "-sdk", "ok", "Linux 构建不需要 Apple SDK")
+    else:
+        for sdk in ("macosx", "iphoneos"):
+            code, output = probe(["xcrun", "--sdk", sdk, "--show-sdk-path"])
+            add(sdk + "-sdk", ("warn" if sdk == "iphoneos" else "error") if code else "ok", output)
 
     tools = dict(target["tools"])
-    tools["devicetree-parse"] = "tools/devicetree-parse/devicetree-parse"
-    tools["kpf-test"] = "tools/checkra1n-kpf/checkra1n/kpf-test/kpf-test.macos"
+    if not linux:
+        # macOS setup builds this additional helper; Linux uses devicetree-repack
+        # from the target tool list.
+        tools["devicetree-parse"] = "tools/devicetree-parse/devicetree-parse"
+    tools["kpf-test"] = ("tools/checkra1n-kpf/checkra1n/kpf-test/kpf-test.linux" if linux
+                         else "tools/checkra1n-kpf/checkra1n/kpf-test/kpf-test.macos")
     for key, candidates in tools.items():
         candidates = candidates if isinstance(candidates, (list, tuple)) else [candidates]
         problems = []
@@ -90,7 +99,10 @@ def main(argv=None):
         for item in report["checks"]:
             print(f"[{item['status'].upper()}] {item['name']}: {item['detail']}")
         print("\n环境可用" if report["ok"] else "\n修复入口：tools/bootstrap.sh --host-only")
-        print("iPhoneOS SDK 仅设备端辅助程序需要；宿主构建不需要完整 Xcode。")
+        if platform.system() == "Linux":
+            print("Linux 使用 apfs-fuse / ldid；不需要 Apple SDK 或完整 Xcode。")
+        else:
+            print("iPhoneOS SDK 仅设备端辅助程序需要；宿主构建不需要完整 Xcode。")
     return 0 if report["ok"] else 1
 
 

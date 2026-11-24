@@ -13,12 +13,21 @@
 """
 import hashlib
 import os
+import plistlib
+import shlex
+import shutil
+import socket
+import stat
 import subprocess
+import sys
 import tempfile
 import time
+import zipfile
 
 from . import decmpfs, log
+from .tarutil import normalize_args, owner_args
 from .tools import run
+from .usbmux import LegacyUsbMuxd
 
 SEP_FIRMWARE = "/mnt1/usr/standalone/firmware/sep-firmware.img4"
 
@@ -31,6 +40,8 @@ class Ramdisk:
         self.port = ctx.t.get("ramdisk_port", 2222)
         self.password = ctx.t.get("ramdisk_password", "alpine")
         self._proxy = None
+        # Linux 需要用 LegacyKit 的 usbmuxd 替代系统 usbmuxd；macOS 上 start() 是 no-op。
+        self._usbmux = LegacyUsbMuxd()
         # 快速通道（见「大块数据」一节）：设备端另起一个大接收窗口的 dropbear
         self.bulk_port = self.port + 100
         self._bulk_proxy = None
@@ -65,9 +76,52 @@ class Ramdisk:
         time.sleep(1)
 
     # ---- 引导 ramdisk ----
+    def ensure_images(self):
+        """镜像缺失时现场生成 SSHRD iOS 12 镜像（Linux 上替换 PlistBuddy 调用）。"""
+        rd = self.ctx.t["ramdisk_dir"]
+        rd_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), rd)
+        required = ["iBSS", "iBEC", "ramdisk", "devicetree", "trustcache", "kernelcache"]
+
+        def missing():
+            return [name for name in required
+                    if not os.path.isfile(os.path.join(rd_dir, f"{name}.img4"))]
+
+        if not missing():
+            return
+        script = os.path.join(os.path.dirname(rd_dir), "sshrd.sh")
+        if not os.path.isfile(script):
+            log.die(f"缺少 SSHRD 构建脚本: {script}")
+        log.log("SSH ramdisk 镜像不存在或不完整，正在生成 iOS 12.5.8 镜像（需要网络和 DFU）…")
+        script_to_run = script
+        if sys.platform.startswith("linux"):
+            helper = os.path.join(os.path.dirname(os.path.dirname(__file__)),
+                                  "tools", "sshrd_plist.py")
+            replacement = f"{shlex.quote(sys.executable)} {shlex.quote(helper)}"
+            with open(script, encoding="utf-8") as source:
+                contents = source.read()
+            contents = contents.replace("../Linux/PlistBuddy", replacement)
+            contents = contents.replace("Linux/PlistBuddy", replacement)
+            descriptor, script_to_run = tempfile.mkstemp(
+                prefix=".sshrd-linux-", suffix=".sh", dir=os.path.dirname(script))
+            with os.fdopen(descriptor, "w", encoding="utf-8") as patched:
+                patched.write(contents)
+        try:
+            result = subprocess.run(["bash", script_to_run, "12.5.8"],
+                                    cwd=os.path.dirname(script))
+        finally:
+            if script_to_run != script:
+                os.unlink(script_to_run)
+        if result.returncode != 0:
+            log.die(f"SSHRD 镜像生成失败，退出码 {result.returncode}")
+        still_missing = missing()
+        if still_missing:
+            log.die("SSHRD 镜像生成后仍缺少: " +
+                    ", ".join(f"{name}.img4" for name in still_missing))
+
     def boot(self):
         """发送 SSHRD 启动链（iBSS→iBEC→ramdisk→DT→TC→KC→bootx），然后起 iproxy。"""
         rd = self.ctx.t["ramdisk_dir"]
+        self.ensure_images()
         rd_dir = self.ctx.local(rd)
         irecovery = self.ctx.tool("irecovery")
 
@@ -131,6 +185,24 @@ class Ramdisk:
         # failures against the ramdisk.
         if self._alive():
             return
+        # Linux 上先用 LegacyKit usbmuxd 接管 USB 多路复用；macOS 是 no-op。
+        self._usbmux.start()
+        configured_port = self.port
+        for candidate in range(configured_port, min(configured_port + 101, 65536)):
+            with socket.socket() as probe:
+                try:
+                    probe.bind(("127.0.0.1", candidate))
+                except OSError:
+                    continue
+            self.port = candidate
+            break
+        else:
+            log.die(f"本地端口 {configured_port} 起连续 101 个端口均不可用")
+        if self.port != configured_port:
+            port_index = self._ssh_base.index("-p", 3) + 1
+            self._ssh_base[port_index] = str(self.port)
+            self.bulk_port = self.port + 100
+            log.warn(f"本地端口 {configured_port} 已占用，SSH 代理改用 {self.port}")
         self._kill_stale_proxy()
         self._proxy = subprocess.Popen(
             [self.ctx.tool("iproxy"), f"{self.port}:22"],
@@ -167,9 +239,15 @@ class Ramdisk:
         for proxy in (self._bulk_proxy, self._proxy):
             if proxy and proxy.poll() is None:
                 proxy.terminate()
-                proxy.wait(timeout=5)
+                try:
+                    proxy.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    proxy.kill()
+                    proxy.wait()
+        self._proxy = None
         self._bulk_proxy = None
         self._bulk_ok = None
+        self._usbmux.close()
 
     def verify_ramdisk(self):
         model = self.sh("/usr/sbin/sysctl -n hw.model").decode().strip().lower()
@@ -281,27 +359,65 @@ class Ramdisk:
         self.sh("sync")
 
     # ---- SEP ----
+    def _build_sep_firmware(self):
+        """s1 和 donor 快照都没有固件时，从 IPSW 提取并用本机 IM4M 个性化（sepi）。"""
+        im4m = self.ctx.im4m()
+        with open(im4m, "rb") as ticket:
+            ticket_id = hashlib.sha256(ticket.read()).hexdigest()[:16]
+        output = self.ctx.wk(f"sep-firmware.n56-{ticket_id}.img4")
+        im4p = self.ctx.wk("sep-firmware.n56.im4p")
+        if os.path.isfile(output) and os.path.getsize(output) > 0:
+            return output
+        ipsw = self.ctx.ipsw_input("n56")
+        with zipfile.ZipFile(ipsw) as archive:
+            manifest = plistlib.loads(archive.read("BuildManifest.plist"))
+            sep_member = None
+            for identity in manifest.get("BuildIdentities", []):
+                info = identity.get("Info", {})
+                if info.get("DeviceClass") != self.ctx.t["device"]["model"]:
+                    continue
+                sep_member = identity.get("Manifest", {}).get("SEP", {}).get("Info", {}).get("Path")
+                if sep_member:
+                    break
+            if not sep_member:
+                log.die("N56 IPSW 中找不到 SEP firmware component")
+            os.makedirs(os.path.dirname(im4p), exist_ok=True)
+            with archive.open(sep_member) as source, open(im4p, "wb") as target:
+                shutil.copyfileobj(source, target)
+        log.log(f"从 N56 IPSW 个性化 SEP firmware: {sep_member} (sepi)…")
+        run([self.ctx.tool("img4"), "-i", im4p, "-o", output, "-M", im4m, "-T", "sepi"])
+        if not os.path.isfile(output) or os.path.getsize(output) == 0:
+            log.die("个性化 SEP IMG4 为空")
+        return output
+
     def ensure_sep(self):
         """ramdisk 启动时 SEP 未加载，加密建卷和 systembag 都依赖它。
-        有 donor 快照时固件取自电脑上的快照（iOS 12 删了也能装）；没有快照才读 s1。"""
+        优先 s1 原机固件；其次 donor 快照；最后从 IPSW 个性化生成。"""
         ping = "/usr/libexec/seputil --ping 2>&1"
-        if b"ping failed" not in self.sh(ping, check=False):
+        if b"ping failed" not in self.sh(ping, check=False).lower():
             return
-        log.log("加载原生 SEP 固件…")
-        # 优先用 s1 上的固件（实机验证过）。从快照暂存到 System 卷再加载，实机加载时内核崩溃，
-        # 所以只在 s1 已没有固件（iOS 12 已删）时才走快照，且那条路尚未查清。
+        log.log("加载 SEP firmware IMG4…")
         if b"/mnt1" not in self.sh("/sbin/mount", check=False):
             self.mount_install_volume(self.ctx.t["mounts"].get("system12", 1), "/mnt1", ro=True)
         donor = getattr(self.ctx, "donor_dir", None)
-        if self.sh(f'test -f "{SEP_FIRMWARE}" && echo yes', check=False).strip() == b"yes":
+        donor_firmware = (os.path.join(donor, "usr/standalone/firmware/sep-firmware.img4")
+                          if donor else None)
+        local = None
+        if self.sh(f'test -s "{SEP_FIRMWARE}" && echo yes', check=False).strip() == b"yes":
             self.sh(f'/usr/libexec/seputil --load "{SEP_FIRMWARE}"', check=False)
-        elif donor:
+        elif donor_firmware and os.path.isfile(donor_firmware):
             log.warn("s1 上没有 SEP 固件，改用 donor 快照（此路径实机曾内核崩溃，未查清）")
-            self._load_sep_from(os.path.join(donor, "usr/standalone/firmware/sep-firmware.img4"))
+            local = donor_firmware
         else:
-            log.die(f"s1 上找不到原机 SEP 固件 {SEP_FIRMWARE}，无法加载 SEP")
-        if b"ping failed" in self.sh(ping, check=False):
+            log.log("s1 / donor 均无 SEP 固件，改从 IPSW 个性化加载。")
+            local = self._build_sep_firmware()
+        if local:
+            self._load_sep_from(local)
+        result = self.sh(ping, check=False)
+        if b"ping failed" in result.lower():
             log.warn("SEP 加载后仍无响应，后续加密操作可能卡住。")
+        else:
+            log.log("SEP ping 已响应: " + result.decode(errors="replace").strip())
 
     def _load_sep_from(self, local):
         """ramdisk 的根（含 /tmp）只读，快照里的固件要先放到一个可写的 APFS 卷上才能加载：
@@ -328,7 +444,8 @@ class Ramdisk:
     # ---- tar 落盘 ----
     def deploy_tar_bytes(self, tar_bytes, dest_mnt):
         """把一段 tar 字节流解包到设备 dest_mnt（保属主）。"""
-        self.sh(f"umask 022; /usr/bin/tar --numeric-owner -xpf - -C {dest_mnt}", data=tar_bytes)
+        self.sh(f"umask 022; COPYFILE_DISABLE=1 /usr/bin/tar --numeric-owner -xpf - -C {dest_mnt}",
+                data=tar_bytes)
 
     def read_tar(self, remote_path_expr):
         """从设备打包并读回（例如备份）。remote_path_expr 形如 '-C /mnt7 keybags'。"""
@@ -348,7 +465,8 @@ class Ramdisk:
             return
         self._deploy_file(source, dest)
 
-    def deploy_relative_paths(self, root, paths, dest, uid=None, gid=None):
+    def deploy_relative_paths(self, root, paths, dest, uid=None, gid=None,
+                              overwrite=False, timeout=3600):
         """从本地 root 流式部署指定相对路径集合，保留目录结构；给了 uid/gid 就统一属主。"""
         root = os.path.abspath(root)
         paths = list(paths)
@@ -492,18 +610,16 @@ class Ramdisk:
             self.sh(f'rm -f "{tool}"', check=False)
 
     def _tar_batch(self, root, entries, dest, uid, gid, recursive, bulk):
-        owner = []
-        if uid is not None:
-            owner += ["--uid", str(uid)]
-        if gid is not None:
-            owner += ["--gid", str(gid)]
+        # macOS bsdtar 用 --uid/--gid，GNU tar 用 --owner/--group；owner_args 同时覆盖两者。
+        owner = owner_args(uid, gid)
         # 条目可能很多，经 NUL 分隔的清单传给 tar，避免命令行超长。
         listing = tempfile.NamedTemporaryFile("wb", suffix=".list", delete=False)
         listing.write(b"".join(os.fsencode(entry) + b"\0" for entry in entries))
         listing.close()
-        command = ["/usr/bin/tar", "--no-xattrs", *owner, *([] if recursive else ["-n"]),
+        command = ["/usr/bin/tar", "--no-xattrs", *normalize_args(), *owner,
+                   *([] if recursive else ["-n"]),
                    "--null", "-cpf", "-", "-C", root, "-T", listing.name]
-        remote = f'umask 022; /usr/bin/tar --numeric-owner -xpf - -C "{dest}"'
+        remote = f'umask 022; COPYFILE_DISABLE=1 /usr/bin/tar --numeric-owner --overwrite -xpf - -C "{dest}"'
 
         def feed(stdin):
             producer = subprocess.Popen(command, stdout=stdin, stderr=subprocess.PIPE,

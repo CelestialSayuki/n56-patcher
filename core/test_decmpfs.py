@@ -4,6 +4,7 @@ import os
 import shutil
 import struct
 import subprocess
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -33,6 +34,7 @@ def decode(stream):
     return records
 
 
+@unittest.skipUnless(sys.platform == "darwin", "requires macOS ditto/APFS compressed xattrs")
 class DecmpfsTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.mkdtemp()

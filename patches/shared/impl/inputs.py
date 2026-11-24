@@ -44,14 +44,14 @@ def extract(archive, board, build, directory):
 
 @contextmanager
 def mounted(image, directory):
+    directory = Path(directory)
     directory.mkdir(parents=True, exist_ok=True)
-    subprocess.run(["hdiutil", "attach", "-readonly", "-owners", "on", "-nobrowse",
-                    "-noverify", "-mountpoint", str(directory), str(image)],
-                   check=True, capture_output=True)
+    from core import dmg
+    root = dmg.mount(str(image), str(directory))
     try:
-        yield directory
+        yield Path(root)
     finally:
-        subprocess.run(["hdiutil", "detach", str(directory)], check=True, capture_output=True)
+        dmg.unmount(str(directory))
 
 
 def prepare(source, archives, build):

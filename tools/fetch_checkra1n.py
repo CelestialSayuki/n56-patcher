@@ -136,6 +136,14 @@ def overlay_image(blob):
 
 
 def fetch(dest=DEST, dmg=None):
+    if os.name == "posix" and hasattr(os, "uname") and os.uname().sysname == "Linux":
+        # Linux 没有 hdiutil；走 7z/mount 后端的独立提取器。dmg 参数仅 macOS 使用。
+        tools_dir = str(Path(__file__).resolve().parent)
+        if tools_dir not in sys.path:
+            sys.path.insert(0, tools_dir)
+        from fetch_checkra1n_linux import fetch_linux
+        return fetch_linux(dest)
+
     if all((dest / name).is_dir() for name in ("overlay-files", "ramdisk-files", "loader.app")):
         return
     print("下载并提取 checkra1n 0.12.4…")

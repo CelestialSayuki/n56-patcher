@@ -64,7 +64,8 @@ class HostTests(unittest.TestCase):
             module = importlib.import_module(f"patches.{version}.impl.kc.checkra1n")
             for mismatch in (None, "wrong CPU"):
                 with self.subTest(version=version, mismatch=mismatch):
-                    with patch.object(module, "tool_issue", return_value=None), \
+                    with patch.object(module.platform, "system", return_value="Darwin"), \
+                         patch.object(module, "tool_issue", return_value=None), \
                          patch.object(module, "architecture_issue", return_value=mismatch), \
                          patch.object(module, "run", side_effect=RuntimeError("stop after make")) as runner:
                         with self.assertRaisesRegex(RuntimeError, "stop after make"):
@@ -72,6 +73,19 @@ class HostTests(unittest.TestCase):
                     command = runner.call_args.args[0]
                     self.assertEqual("-B" in command, mismatch is not None)
                     self.assertIn("PYTHON=" + sys.executable, command)
+
+    def test_kpf_linux_build_uses_host_helper(self):
+        for version in ("ios13", "ios14"):
+            module = importlib.import_module(f"patches.{version}.impl.kc.checkra1n")
+            with self.subTest(version=version):
+                with patch.object(module.platform, "system", return_value="Linux"), \
+                     patch.object(module, "run", side_effect=RuntimeError("stop after make")) as runner:
+                    with self.assertRaisesRegex(RuntimeError, "stop after make"):
+                        module.apply_profile(None, None, None)
+                command = runner.call_args.args[0]
+                self.assertIn("kpf-test.linux", command)
+                self.assertNotIn("-B", command)
+                self.assertFalse(any(arg.startswith("PYTHON=") for arg in command))
 
     def test_malformed_headers(self):
         for raw in (b"\xcf\xfa\xed\xfe", b"\xca\xfe\xba\xbe",

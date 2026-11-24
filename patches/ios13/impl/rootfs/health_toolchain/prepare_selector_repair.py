@@ -7,7 +7,7 @@ import shutil
 import struct
 import subprocess
 
-from prepare_runtime_repair import PROJECT, check_layout, trust_cache
+from prepare_runtime_repair import PROJECT, check_layout, trust_cache, write_manifest
 from runtime_libraries import CacheIndex
 from selector_loads import restore
 
@@ -70,10 +70,8 @@ def main():
                     selector_repairs=repairs, selector_unresolved=unresolved)
     manifest.pop('patches', None)
     (OUT / 'manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n')
-    with (OUT / 'manifest.sha256').open('w') as stream:
-        subprocess.run(['shasum', '-a', '256',
-                        *['images/' + p.name for p in sorted((OUT / 'images').iterdir())],
-                        'bin/gaster', 'bin/irecovery', 'boot.sh'], cwd=OUT, check=True, stdout=stream)
+    write_manifest(OUT, ['images/' + p.name for p in sorted((OUT / 'images').iterdir())]
+                   + ['bin/gaster', 'bin/irecovery', 'boot.sh'])
     print(f'选择子修复包已生成：{sum(len(p) for p in repairs.values())} 处，{total / 1048576:.1f} MiB。')
     if unresolved:
         print('待继续核对：', unresolved)

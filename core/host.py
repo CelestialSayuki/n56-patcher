@@ -66,13 +66,26 @@ def executable_arches(arch, system):
 
 
 def architecture_issue(path, arch=None, *, executable=False):
-    """Strict CPU check for dylibs, with optional macOS executable compatibility."""
+    """Strict CPU check for dylibs, with optional macOS executable compatibility.
+
+    跨平台候选工具清单依赖这里拒绝“另一个平台的二进制”：Linux 上不能选 Mach-O，
+    macOS 上不能选 ELF，否则 ctx.tool() 会挑到跑不起来的第一个候选。
+    """
     arch = arch or host_arch()
+    system = platform.system()
+    try:
+        with open(path, "rb") as stream:
+            head = stream.read(4)
+    except OSError:
+        return None
+    if head == b"\x7fELF" and system == "Darwin":
+        return "ELF 可执行文件无法在 macOS 上运行"
     try:
         arches = macho_arches(path)
     except (OSError, ValueError) as exc:
         return str(exc)
-    system = platform.system()
+    if arches and system != "Darwin":
+        return "Mach-O 可执行文件无法在 Linux 上运行"
     allowed = executable_arches(arch, system) if executable else (arch,)
     if system == "Darwin" and arches and not set(arches).intersection(allowed):
         return f"架构不匹配：文件为 {'/'.join(arches)}，当前 Python/主机为 {arch}"

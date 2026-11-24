@@ -14,6 +14,7 @@ import os
 import stat
 import struct
 import subprocess
+import sys
 from pathlib import Path
 
 UF_COMPRESSED = 0x20
@@ -32,7 +33,9 @@ _libc.getxattr.restype = ctypes.c_ssize_t
 
 
 def enabled():
-    return os.environ.get("N56_DECMPFS", "1") != "0"
+    # macOS XATTR_SHOWCOMPRESSION 是 Darwin 专有接口；Linux 上 apfs-fuse/hdiutil
+    # 已经把 Apple 压缩文件透明解压，改走普通 tar 流即可。
+    return sys.platform == "darwin" and os.environ.get("N56_DECMPFS", "1") != "0"
 
 
 def _xattr(path, name):

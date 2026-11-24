@@ -26,6 +26,7 @@ from urllib.parse import urlparse, parse_qs
 
 REPO = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, REPO)
+sys.path.insert(0, os.path.join(REPO, "tools", "bin", "pydeps"))
 
 from core.context import load_target, TARGETS_DIR
 from core import patch as patchmod

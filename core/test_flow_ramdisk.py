@@ -2,6 +2,7 @@ import os
 import tempfile
 import unittest
 from types import SimpleNamespace
+from unittest.mock import patch
 
 from core.flow import Flow
 
@@ -36,7 +37,9 @@ class RamdiskReuseTests(unittest.TestCase):
 
     def test_boots_when_no_ramdisk(self):
         rd = FakeRamdisk(alive=False)
-        bare_flow(rd, SimpleNamespace(dry_run=False)).ramdisk()
+        # init() needs a real target/donor setup; this test only covers reuse logic.
+        with patch.object(Flow, "init"):
+            bare_flow(rd, SimpleNamespace(dry_run=False)).ramdisk()
         self.assertTrue(rd.booted)
 
     def test_decrypted_iboot_needs_no_dfu(self):

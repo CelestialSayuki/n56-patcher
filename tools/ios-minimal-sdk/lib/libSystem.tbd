@@ -1,0 +1,33 @@
+--- !tapi-tbd
+tbd-version:     3
+targets:         [ arm64-ios ]
+install-name:    /usr/lib/libSystem.B.dylib
+current-version: 1.0
+compatibility-version: 1.0
+# 仅用于 Linux 交叉链接 iOS 助手：让 ld64.lld 产生
+# LC_LOAD_DYLIB /usr/lib/libSystem.B.dylib 与 two-level namespace 绑定。
+# Stub 本身不会被部署；设备上 dyld 从共享缓存加载真正的 libSystem。
+exports:
+  - targets:         [ arm64-ios ]
+    symbols:         [
+      dyld_stub_binder,
+      _dyld_stub_binder,
+      _dlopen, _dlsym, _dlerror, _dlclose,
+      _lstat, _stat, _fstat, _mkdir, _chmod, _unlink, _rmdir,
+      _open, _close, _read, _write, _lseek, _fsync, _sync, _umask,
+      _snprintf, _vsnprintf, _printf, _fprintf, _sprintf, _vprintf,
+      _puts, _putchar, _fflush, _perror, _strerror, _snprintf,
+      _strcmp, _strncmp, _strcpy, _strncpy, _strlen, _strdup,
+      _memcpy, _memset, _memmove, _memcmp,
+      _malloc, _calloc, _realloc, _free,
+      _getpid, _getuid, _getgid, _geteuid, _getegid,
+      _sysctl, _sysctlbyname,
+      _mach_host_self, _mach_task_self, _host_get_special_port,
+      _task_for_pid, _task_info, _mach_error_string,
+      _mach_msg, _vm_allocate, _vm_deallocate,
+      ___error, ___stderrp, ___stdoutp, ___stdinp,
+      ___stack_chk_guard, ___stack_chk_fail,
+      _pthread_self, _pthread_mutex_lock, _pthread_mutex_unlock,
+      _abort, _exit
+    ]
+...

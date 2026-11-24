@@ -1,0 +1,510 @@
+#!/usr/bin/env python3
+"""Minimal codesign-compatible CLI for Linux, backed by vendored ldid.
+
+This implements the codesign subset used by n56patcher:
+  * ad-hoc Mach-O signing with optional metadata preservation
+  * detached ad-hoc signatures for plist files (stock launchd cache format)
+  * cdhash display and verification
+
+It is only put on PATH on Linux; macOS keeps using Apple's codesign.
+"""
+import hashlib
+import os
+from pathlib import Path
+import platform
+import re
+import shutil
+import struct
+import subprocess
+import sys
+import tempfile
+
+REPO = Path(__file__).resolve().parents[1]
+
+CSMAGIC_REQUIREMENTS = 0xfade0c01
+CSMAGIC_CODEDIRECTORY = 0xfade0c02
+CSMAGIC_BLOBWRAPPER = 0xfade0b01
+CSMAGIC_EMBEDDED_SIGNATURE = 0xfade0cc0
+CSMAGIC_DETACHED_SIGNATURE = 0xfade0cc1
+
+CSSLOT_CODEDIRECTORY = 0
+CSSLOT_REQUIREMENTS = 2
+CSSLOT_ALTERNATE_CODEDIRECTORIES = 0x1000
+CSSLOT_SIGNATURE = 0x10000
+CSSLOT_ENTITLEMENTS = 0x10001
+
+EMPTY_REQUIREMENTS = struct.pack(">III", CSMAGIC_REQUIREMENTS, 12, 0)
+EMPTY_ENTITLEMENTS = (
+    b'<?xml version="1.0" encoding="UTF-8"?>\n'
+    b'<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" '
+    b'"http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n'
+    b'<plist version="1.0"><dict/></plist>\n'
+)
+HASH_TYPES = {1: "sha1", 2: "sha256"}
+TYPE_HASHES = {value: key for key, value in HASH_TYPES.items()}
+
+# Codesign flag names that ldid can reproduce with -C<name>.
+LDID_FLAGS = {
+    "adhoc", "enforcement", "hard", "host", "kill", "library-validation",
+    "restrict", "runtime", "expires",
+}
+
+IGNORED_OPTIONS = {
+    "--all-architectures", "--no-strict", "--deep", "--timestamp=none",
+    "--generate-entitlement-der", "--preserve-metadata",
+}
+
+
+def die(message):
+    print(f"codesign: {message}", file=sys.stderr)
+    raise SystemExit(1)
+
+
+def parse_args(argv):
+    opt = {
+        "sign": None, "force": False, "preserve": set(), "entitlements": None,
+        "digests": None, "pagesize": 4096, "detached": None, "verify": False,
+        "strict": False, "remove": False, "display": False, "verbose": 0,
+        "paths": [],
+    }
+    i = 0
+
+    def next_value(option):
+        nonlocal i
+        if i + 1 >= len(argv):
+            die(f"missing value for {option}")
+        i += 1
+        return argv[i]
+
+    while i < len(argv):
+        arg = argv[i]
+        if arg in ("-s", "--sign"):
+            opt["sign"] = next_value(arg)
+        elif arg.startswith("--sign="):
+            opt["sign"] = arg.split("=", 1)[1]
+        elif arg in ("-f", "--force"):
+            opt["force"] = True
+        elif arg.startswith("--preserve-metadata="):
+            opt["preserve"].update(
+                part.strip() for part in arg.split("=", 1)[1].split(",") if part.strip())
+        elif arg in ("--entitlements",):
+            opt["entitlements"] = next_value(arg)
+        elif arg.startswith("--entitlements="):
+            opt["entitlements"] = arg.split("=", 1)[1]
+        elif arg in ("--digest-algorithm",):
+            opt["digests"] = [part.strip().lower() for part in next_value(arg).split(",")
+                              if part.strip()]
+        elif arg.startswith("--digest-algorithm="):
+            opt["digests"] = [part.strip().lower() for part in arg.split("=", 1)[1].split(",")
+                              if part.strip()]
+        elif arg in ("--pagesize",):
+            try:
+                opt["pagesize"] = int(next_value(arg))
+            except ValueError:
+                die(f"invalid page size: {arg}")
+        elif arg.startswith("--pagesize="):
+            try:
+                opt["pagesize"] = int(arg.split("=", 1)[1])
+            except ValueError:
+                die(f"invalid page size: {arg}")
+        elif arg == "--detached":
+            opt["detached"] = next_value(arg)
+        elif arg.startswith("--detached="):
+            opt["detached"] = arg.split("=", 1)[1]
+        elif arg == "--verify":
+            opt["verify"] = True
+        elif arg == "--strict":
+            opt["strict"] = True
+        elif arg == "--remove-signature":
+            opt["remove"] = True
+        elif arg in ("-d", "--display", "--display-info"):
+            opt["display"] = True
+        elif arg.startswith("-d") and len(arg) > 2 and set(arg[2:]) <= {"v", "h"}:
+            opt["display"] = True
+            opt["verbose"] = max(opt["verbose"], arg.count("v"))
+        elif re.fullmatch(r"-v+", arg):
+            opt["verbose"] = max(opt["verbose"], len(arg) - 1)
+        elif arg in IGNORED_OPTIONS:
+            pass
+        elif arg.startswith("-"):
+            die(f"unsupported option: {arg}")
+        else:
+            opt["paths"].append(arg)
+        i += 1
+
+    if opt["pagesize"] <= 0 or opt["pagesize"] & (opt["pagesize"] - 1):
+        die(f"invalid page size: {opt['pagesize']}")
+    if opt["digests"] is not None:
+        for algorithm in opt["digests"]:
+            if algorithm not in TYPE_HASHES:
+                die(f"unsupported digest algorithm: {algorithm}")
+    return opt
+
+
+def ldid_path():
+    env = os.environ.get("N56_LDID")
+    candidates = []
+    if env:
+        candidates.append(env)
+    candidates.append(REPO / "tools" / "vendor" / "linux" / platform.machine() / "ldid")
+    found = shutil.which("ldid")
+    if found:
+        candidates.append(found)
+    for candidate in candidates:
+        path = Path(candidate)
+        if path.is_file() and (path.stat().st_mode & 0o111):
+            return str(path)
+    die("Linux ad-hoc signing needs ldid: run python3 tools/build_ldid.py "
+        "(or tools/setup.py), or set N56_LDID")
+
+
+def run_ldid(args, check=True):
+    result = subprocess.run([ldid_path(), *map(str, args)], capture_output=True)
+    if check and result.returncode:
+        die(f"ldid failed: {result.stderr.decode(errors='replace').strip()}")
+    return result
+
+
+def ldid_info(path):
+    result = run_ldid(["-h", path], check=False)
+    if result.returncode:
+        die(f"cannot read signature from {path}: "
+            f"{result.stderr.decode(errors='replace').strip()}")
+    return result.stdout.decode(errors="replace")
+
+
+def dyld_directories(path):
+    """Read the embedded CodeDirectory from a dyld shared cache."""
+    with open(path, "rb") as stream:
+        header = stream.read(0x40)
+        if len(header) < 0x38 or not header.startswith(b"dyld_v"):
+            return None
+        offset, = struct.unpack_from("<Q", header, 0x28)
+        if not offset:
+            die(f"dyld shared cache has no code signature: {path}")
+        stream.seek(offset)
+        prefix = stream.read(12)
+        if len(prefix) < 12:
+            die(f"truncated dyld shared cache signature: {path}")
+        magic, length, count = struct.unpack_from(">III", prefix)
+        if magic != CSMAGIC_EMBEDDED_SIGNATURE:
+            die(f"bad dyld shared cache signature magic: {magic:#x}")
+        stream.seek(offset)
+        signature = stream.read(length)
+    if len(signature) != length:
+        die(f"truncated dyld shared cache signature: {path}")
+    slots = superblob_slots(signature)
+    directories = [parse_code_directory(signature, slots[slot])
+                   for slot in (CSSLOT_CODEDIRECTORY, CSSLOT_ALTERNATE_CODEDIRECTORIES)
+                   if slot in slots]
+    if not directories:
+        die(f"dyld shared cache signature has no CodeDirectory: {path}")
+    return directories
+
+
+def signature_info(path):
+    with open(path, "rb") as stream:
+        magic = stream.read(16)
+    if magic.startswith(b"dyld_v"):
+        return format_directories(path, dyld_directories(path), "embedded")
+    return ldid_info(path)
+
+
+def ldid_entitlements(path):
+    result = run_ldid(["-e", path], check=False)
+    if result.returncode or not result.stdout.strip():
+        return None
+    return result.stdout
+
+
+def ldid_requirements(path):
+    result = run_ldid(["-q", path], check=False)
+    if result.returncode or not result.stdout:
+        return None
+    return result.stdout
+
+
+def info_value(info, key):
+    match = re.search(rf"^{re.escape(key)}=(.*)$", info, re.MULTILINE)
+    return match.group(1).strip() if match else None
+
+
+def info_flags(info):
+    match = re.search(r"flags=0x[0-9a-fA-F]+\(([^)]*)\)", info)
+    if not match:
+        return set()
+    return {name.strip() for name in match.group(1).split("|")
+            if name.strip() and name.strip() != "none"}
+
+
+def sign_macho(path, opt):
+    preserve = opt["preserve"]
+    info = ldid_info(path) if preserve & {"identifier", "flags"} else ""
+    identifier = info_value(info, "Identifier") if "identifier" in preserve else None
+    flags = info_flags(info) if "flags" in preserve else set()
+    entitlements = ldid_entitlements(path) if "entitlements" in preserve else None
+    requirements = ldid_requirements(path) if "requirements" in preserve else None
+
+    if opt["entitlements"]:
+        source = Path(opt["entitlements"])
+        if not source.is_file():
+            die(f"entitlements file not found: {source}")
+        entitlements = source.read_bytes()
+
+    flags.discard("adhoc")
+    args = ["-Cadhoc"]
+    args += [f"-C{name}" for name in sorted(flags & LDID_FLAGS)]
+    if identifier:
+        args.append(f"-I{identifier}")
+    if opt["digests"]:
+        args += [f"-H{algorithm}" for algorithm in opt["digests"]]
+
+    with tempfile.TemporaryDirectory(prefix="n56-codesign-") as temporary:
+        directory = Path(temporary)
+        if requirements:
+            requirements_file = directory / "requirements"
+            requirements_file.write_bytes(requirements)
+            args.append(f"-Q{requirements_file}")
+        # ldid's -s dereferences a missing LC_CODE_SIGNATURE on freshly linked
+        # Mach-O files.  -S with an empty plist produces the same ad-hoc
+        # signature safely, even when there are no entitlements to preserve.
+        entitlements_file = directory / "entitlements"
+        entitlements_file.write_bytes(entitlements or EMPTY_ENTITLEMENTS)
+        args.append(f"-S{entitlements_file}")
+        args.append(path)
+        run_ldid(args)
+
+
+def verify_macho(path, strict):
+    info = signature_info(path)
+    if strict and "CodeDirectory" not in info:
+        die(f"no CodeDirectory in {path}")
+
+
+def display_macho(path):
+    sys.stderr.write(signature_info(path))
+    sys.stderr.flush()
+
+
+def print_entitlements(path):
+    """Match `codesign -d --entitlements :-` for the Linux ad-hoc shim."""
+    data = ldid_entitlements(path)
+    if data:
+        sys.stdout.buffer.write(data if data.endswith(b"\n") else data + b"\n")
+        sys.stdout.buffer.flush()
+
+
+def blob(magic, payload=b""):
+    return struct.pack(">II", magic, 8 + len(payload)) + payload
+
+
+def code_directory(data, algorithm, identifier, page_size):
+    digest_size = hashlib.new(algorithm).digest_size
+    hash_type = TYPE_HASHES[algorithm]
+    pages = [data[start:start + page_size]
+             for start in range(0, len(data), page_size)] or [b""]
+    hash_offset = 48 + len(identifier) + 1 + 2 * digest_size
+    special = [hashlib.new(algorithm, EMPTY_REQUIREMENTS).digest(), bytes(digest_size)]
+    hashes = [hashlib.new(algorithm, page).digest() for page in pages]
+    body = identifier + b"\0" + b"".join(special + hashes)
+    header = struct.pack(
+        ">IIIIIIIIIBBBBII",
+        CSMAGIC_CODEDIRECTORY, 48 + len(body), 0x20100, 0x2,
+        hash_offset, 48, 2, len(pages), len(data), digest_size, hash_type,
+        0, page_size.bit_length() - 1, 0, 0,
+    )
+    return header + body
+
+
+def build_detached_signature(data, source, opt):
+    identifier = (Path(source).stem + "-" + hashlib.sha1(data).hexdigest()).encode()
+    algorithms = opt["digests"] or ["sha1", "sha256"]
+    directories = [code_directory(data, algorithm, identifier, opt["pagesize"])
+                   for algorithm in algorithms]
+
+    slots = [(CSSLOT_CODEDIRECTORY, directories[0]),
+             (CSSLOT_REQUIREMENTS, EMPTY_REQUIREMENTS)]
+    if len(directories) > 1:
+        slots.append((CSSLOT_ALTERNATE_CODEDIRECTORIES, directories[1]))
+    slots.append((CSSLOT_SIGNATURE, blob(CSMAGIC_BLOBWRAPPER)))
+    # Apple's ad-hoc detached signature stores a 20-byte content digest here.
+    content_digest = hashlib.new(algorithms[0], data).digest()[:20]
+    slots.append((CSSLOT_ENTITLEMENTS, blob(CSMAGIC_BLOBWRAPPER, content_digest)))
+
+    length = 12 + 8 * len(slots) + sum(len(item[1]) for item in slots)
+    output = bytearray(struct.pack(">III", CSMAGIC_EMBEDDED_SIGNATURE,
+                                   length, len(slots)))
+    offset = 12 + 8 * len(slots)
+    for slot, item in slots:
+        output += struct.pack(">II", slot, offset)
+        offset += len(item)
+    for _, item in slots:
+        output += item
+    return bytes(output)
+
+
+def superblob_slots(signature):
+    if len(signature) < 12:
+        die("truncated detached signature")
+    magic, length, count = struct.unpack_from(">III", signature)
+    if magic not in (CSMAGIC_EMBEDDED_SIGNATURE, CSMAGIC_DETACHED_SIGNATURE):
+        die(f"bad detached signature magic: {magic:#x}")
+    if length != len(signature):
+        die(f"bad detached signature length: {length} != {len(signature)}")
+    if 12 + 8 * count > len(signature):
+        die("truncated detached signature slot table")
+    slots = {}
+    for index in range(count):
+        slot, offset = struct.unpack_from(">II", signature, 12 + 8 * index)
+        slots[slot] = offset
+    return slots
+
+
+def parse_code_directory(signature, offset):
+    if offset + 48 > len(signature):
+        die("truncated CodeDirectory")
+    fields = struct.unpack_from(">IIIIIIIIIBBBBII", signature, offset)
+    (magic, length, version, flags, hash_offset, ident_offset, n_special,
+     n_code, code_limit, digest_size, hash_type, _platform, page_size,
+     _spare2, _spare3) = fields
+    if magic != CSMAGIC_CODEDIRECTORY or hash_type not in HASH_TYPES:
+        die("unsupported CodeDirectory")
+    if offset + length > len(signature):
+        die("truncated CodeDirectory body")
+    end = signature.find(b"\0", offset + ident_offset, offset + length)
+    if end < 0:
+        die("unterminated CodeDirectory identifier")
+    identifier = signature[offset + ident_offset:end].decode(errors="replace")
+    special = signature[end + 1:offset + hash_offset]
+    hashes = signature[offset + hash_offset:offset + hash_offset + n_code * digest_size]
+    if len(hashes) != n_code * digest_size:
+        die("truncated CodeDirectory hashes")
+    return {
+        "data": signature[offset:offset + length], "version": version,
+        "flags": flags, "identifier": identifier, "n_special": n_special,
+        "n_code": n_code, "code_limit": code_limit, "digest_size": digest_size,
+        "hash_type": hash_type, "algorithm": HASH_TYPES[hash_type],
+        "page_size": 1 << page_size, "special": special, "hashes": hashes,
+    }
+
+
+def verify_detached(data, signature, path):
+    slots = superblob_slots(signature)
+    directories = []
+    for slot in (CSSLOT_CODEDIRECTORY, CSSLOT_ALTERNATE_CODEDIRECTORIES):
+        if slot not in slots:
+            continue
+        directory = parse_code_directory(signature, slots[slot])
+        algorithm = directory["algorithm"]
+        size = directory["digest_size"]
+        if directory["code_limit"] != len(data):
+            die(f"{path}: detached signature code limit mismatch")
+        if directory["page_size"] <= 0:
+            die(f"{path}: invalid detached signature page size")
+        pages = [data[start:start + directory["page_size"]]
+                 for start in range(0, len(data), directory["page_size"])] or [b""]
+        if len(pages) != directory["n_code"]:
+            die(f"{path}: detached signature page count mismatch")
+        for page, expected in zip(pages, iter_bytes(directory["hashes"], size)):
+            if hashlib.new(algorithm, page).digest() != expected:
+                die(f"{path}: detached signature content mismatch")
+        if CSSLOT_REQUIREMENTS in slots:
+            requirement_offset = slots[CSSLOT_REQUIREMENTS]
+            requirement_length, = struct.unpack_from(">I", signature, requirement_offset + 4)
+            requirements = signature[requirement_offset:requirement_offset + requirement_length]
+        else:
+            requirements = EMPTY_REQUIREMENTS
+        expected_requirement = hashlib.new(algorithm, requirements).digest()
+        if directory["special"][:size] != expected_requirement:
+            die(f"{path}: detached signature requirements mismatch")
+        directories.append(directory)
+    if not directories:
+        die(f"{path}: detached signature has no CodeDirectory")
+    return directories
+
+
+def iter_bytes(data, size):
+    for start in range(0, len(data), size):
+        yield data[start:start + size]
+
+
+def format_directories(path, directories, location):
+    primary = directories[0]
+    lines = [
+        f"Executable={path}",
+        f"Identifier={primary['identifier']}",
+        f"CodeDirectory v={primary['version']:x} size={len(primary['data'])} "
+        f"flags=0x{primary['flags']:x}(adhoc) "
+        f"hashes={primary['n_code']}+{primary['n_special']} location={location}",
+    ]
+    digests = []
+    for directory in directories:
+        digest = hashlib.new(directory["algorithm"], directory["data"]).digest()
+        digests.append((directory["algorithm"], digest))
+        lines.append(f"Hash type={directory['algorithm']} size={directory['digest_size']}")
+        lines.append(f"CandidateCDHash {directory['algorithm']}={digest[:20].hex()}")
+        lines.append(f"CandidateCDHashFull {directory['algorithm']}={digest.hex()}")
+    lines.append("Hash choices=" + ",".join(algorithm for algorithm, _ in digests))
+    lines.append(f"CDHash={digests[-1][1][:20].hex()}")
+    lines.append("Authority=(unavailable)")
+    lines.append("TeamIdentifier=not set")
+    return "\n".join(lines) + "\n"
+
+
+def display_detached(path, signature, directories):
+    sys.stderr.write(format_directories(path, directories, "detached"))
+    sys.stderr.flush()
+
+
+def main(argv):
+    opt = parse_args(argv)
+    if not opt["paths"]:
+        die("no file specified")
+
+    if opt["remove"]:
+        for path in opt["paths"]:
+            run_ldid(["-r", path])
+
+    if opt["detached"]:
+        signature = Path(opt["detached"])
+        paths = opt["paths"]
+        if len(paths) != 1:
+            die("--detached expects exactly one signed file")
+        source = Path(paths[0])
+        if opt["verify"] or opt["display"]:
+            if not source.is_file():
+                die(f"file not found: {source}")
+            if not signature.is_file():
+                die(f"detached signature not found: {signature}")
+            directories = verify_detached(source.read_bytes(), signature.read_bytes(), str(source))
+            if opt["display"]:
+                display_detached(str(source), signature.read_bytes(), directories)
+            return 0
+        if not source.is_file():
+            die(f"file not found: {source}")
+        signature.write_bytes(build_detached_signature(source.read_bytes(), source, opt))
+        if opt["display"]:
+            display_detached(str(source), signature.read_bytes(),
+                             verify_detached(source.read_bytes(), signature.read_bytes(),
+                                             str(source)))
+        return 0
+
+    if opt["verify"] or opt["display"] or opt["remove"]:
+        for path in opt["paths"]:
+            if opt["verify"]:
+                verify_macho(path, opt["strict"])
+            if opt["display"]:
+                display_macho(path)
+                if opt["entitlements"] == ":-":
+                    print_entitlements(path)
+        return 0
+
+    if opt["sign"] != "-":
+        die("only ad-hoc signing (-s -) is supported on Linux")
+    for path in opt["paths"]:
+        sign_macho(path, opt)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

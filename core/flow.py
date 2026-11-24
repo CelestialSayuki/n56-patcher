@@ -249,6 +249,26 @@ class Flow:
                 self.ctx.installation.close()
             self.ctx.close_source_mounts()
 
+    def rootfs_finalize(self):
+        """只重试 finalize 阶段，不重放已经应用过的 stream/overlay 补丁。
+
+        用于 rootfs 写入完成后单独重试收尾（private/var→DataB / fsck / SEP / keybags / role）。
+        只清 finalize 角色的断点，已完成的 overlay 断点保持不动。
+        """
+        self._need_ramdisk()
+        if not self.ctx.dry_run:
+            self._clear_checkpoints(only=[p.id for p in self.sel.get("rootfs", [])
+                                          if p.role == "finalize"])
+        try:
+            if self.ctx.installation and not self.ctx.dry_run:
+                self.ctx.installation.prepare()
+                self.ctx.installation.mount_system()
+            self._run_patches(["finalize"])
+        finally:
+            if self.ctx.installation:
+                self.ctx.installation.close()
+            self.ctx.close_source_mounts()
+
     def install(self):
         self._jailbreak_guard("install")
         if self.ctx.t.get("version") == "ios15" and not self.ctx.dry_run:
@@ -543,4 +563,3 @@ class Flow:
         for name, run_stage in stages:
             log.stage(name)
             run_stage()
-

@@ -40,6 +40,9 @@ tools/bootstrap.sh
 source .venv/bin/activate
 ```
 
+**Linux 同样可运行**：`tools/setup.py` 会自动构建 `apfs-fuse`（只读挂载 rootfs）和 `ldid`（本地 codesign shim），无需 Apple `xcrun` / `hdiutil` / iPhoneOS SDK。使用干净的 Python 环境，例如
+`sudo -H env -u PYTHONPATH -u PYTHONHOME PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3 n56patcher.py ...`，并且始终显式传入已存在的 `--workdir`。Linux 上 `rootfs-finalize` 可单独重试收尾阶段。
+
 已有源码、仅修复 Intel / ARM 工具架构时，使用 `tools/bootstrap.sh --host-only`。
 可运行 `.venv/bin/python tools/doctor.py --target n56-ios15` 检查宿主环境；
 iOS 15 的状态见 [15.8.8 结论](docs/conclusions/15.md)。

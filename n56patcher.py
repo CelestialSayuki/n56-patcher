@@ -9,6 +9,7 @@
   volumes       建 System / Data 卷
   rootfs        清空目标 System 卷并写入系统镜像（需要 root）
   patch-rootfs  写入 overlay 补丁、初始化 Data、设置卷 role
+  rootfs-finalize  仅重试收尾（private/var→DataB / fsck / SEP / keybags / role），不重放 overlay
   install       volumes + rootfs + patch-rootfs（需要 root）
   build         构建 iBSS / iBEC / DeviceTree / TrustCache / KernelCache
   boot          经 DFU 发送启动链（缺启动包时先 build）
@@ -37,12 +38,19 @@ import subprocess
 
 REPO = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, REPO)
+# 部分实现脚本在模块发现阶段就需要 capstone；不依赖外部 PYTHONPATH，
+# 这样 sudo -H env -u PYTHONPATH ... 的干净环境也能直接列阶段/跑流程。
+sys.path.insert(0, os.path.join(REPO, "tools", "bin", "pydeps"))
 
 from core import log, patch as patchmod
+from core.codesign import ensure_path as ensure_codesign_path
 from core.context import Context
 
 
 from core.flow import Flow
+
+# Linux 需要把本地 codesign shim 放到 PATH 前面；macOS 上是 no-op。
+ensure_codesign_path()
 
 
 def build_parser():
@@ -52,7 +60,7 @@ def build_parser():
         description=__doc__)
     p.add_argument("stage", choices=[
         "init", "ramdisk", "extract-im4m", "volumes", "rootfs", "patch-rootfs",
-        "build", "boot", "install", "all", "list", "status"])
+        "rootfs-finalize", "build", "boot", "install", "all", "list", "status"])
     from core.context import TARGETS_DIR
     targets = sorted(fn[:-3].replace("_", "-") for fn in os.listdir(TARGETS_DIR)
                      if fn.endswith(".py") and not fn.startswith("_"))
@@ -220,6 +228,7 @@ def main(argv=None):
         "volumes": flow.volumes,
         "rootfs": flow.rootfs,
         "patch-rootfs": flow.patch_rootfs,
+        "rootfs-finalize": flow.rootfs_finalize,
         "build": flow.build,
         "boot": flow.boot,
         "install": flow.install,
