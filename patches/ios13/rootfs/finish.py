@@ -86,7 +86,9 @@ class RootfsFinish(Patch):
                    '[ "$p" = /mnt7/keybags ] || ')
         ssh.sh('if command -v chgflags >/dev/null 2>&1; then '
                + entries + 'chgflags -R nouchg,noschg "$p" 2>/dev/null || true; done; fi')
-        ssh.sh(entries + '/bin/rm -rf "$p"; done')
+        # rm 遇到受保护残留会非 0 退出；交给 filter_residual 判定，才能触发
+        # apply() 里的 DataBCleanupError → --recreate-data-b 恢复路径。
+        ssh.sh(entries + '/bin/rm -rf "$p"; done', check=False)
         leftover = filter_residual(ssh, ssh.sh(entries + 'echo "$p"; done', check=False))
         if leftover:
             raise DataBCleanupError("DataB 清理后仍有残留，拒绝继续写入:\n" + leftover)

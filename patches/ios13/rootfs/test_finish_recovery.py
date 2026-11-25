@@ -19,6 +19,15 @@ class FakeSsh:
         self.commands.append("require_sep")
 
 
+class StrictRmSsh(FakeSsh):
+    """Mimic ssh.sh(check=True) aborting when rm hits protected leftovers."""
+
+    def sh(self, command, check=True, **kwargs):
+        if check and "/bin/rm -rf" in command:
+            raise AssertionError("cleanup must tolerate rm failures")
+        return super().sh(command, check=check, **kwargs)
+
+
 class FakeCtx:
     def __init__(self, ssh):
         self.ssh = ssh
@@ -36,6 +45,16 @@ class DataBRecoveryTests(unittest.TestCase):
     def test_systembag_wipe_raises_recoverable_error(self):
         with self.assertRaises(DataBCleanupError):
             _wipe_data_b(FakeSsh())
+
+    def test_wipe_records_residual_when_rm_fails(self):
+        ssh = StrictRmSsh(leftover=b"/mnt7/MobileAsset\n/mnt7/mobile")
+        with self.assertRaises(DataBCleanupError):
+            _wipe_data_b(ssh)
+
+    def test_finish_cleanup_records_residual_when_rm_fails(self):
+        ssh = StrictRmSsh(leftover=b"/mnt7/MobileAsset\n/mnt7/mobile")
+        with self.assertRaises(DataBCleanupError):
+            RootfsFinish._clean_data_b(ssh)
 
     def test_recreate_uses_only_s5(self):
         ssh = FakeSsh()

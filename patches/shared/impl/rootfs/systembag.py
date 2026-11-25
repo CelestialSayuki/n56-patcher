@@ -130,7 +130,9 @@ def _wipe_data_b(ssh):
                '{ [ -e "$p" ] || [ -L "$p" ]; } || continue; ')
     ssh.sh('if command -v chgflags >/dev/null 2>&1; then '
            + entries + 'chgflags -R nouchg,noschg "$p" 2>/dev/null || true; done; fi')
-    ssh.sh(entries + '/bin/rm -rf "$p"; done')
+    # 受保护残留会让 rm 返回非 0；不能在这里中断，必须留给 filter_residual
+    # 判定并抛出 DataBCleanupError，这样上层的 --recreate-data-b 才有机会生效。
+    ssh.sh(entries + '/bin/rm -rf "$p"; done', check=False)
     leftover = filter_residual(ssh, ssh.sh(entries + 'echo "$p"; done', check=False))
     if leftover:
         raise DataBCleanupError("DataB 清理后仍有残留，拒绝重建 systembag:\n" + leftover)
