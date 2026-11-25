@@ -35,6 +35,37 @@ def img4_build_args(system=None):
     return ["COMMONCRYPTO=1"] if (system or platform.system()) == "Darwin" else []
 
 
+DEVICETREE_EXCLUDE = "*.o\n/devicetree-parse\n/devicetree-repack\n"
+
+
+def build_devicetree_tools(dtparse, system=None):
+    """Build only what the host needs; Linux has no Apple SDK/Foundation."""
+    exclude_built(dtparse, DEVICETREE_EXCLUDE)
+    if (system or platform.system()) == "Linux":
+        source_dir = Path(__file__).resolve().parent
+        for name in ("devicetree-parse", "devicetree-repack"):
+            source = source_dir / (name.replace("-", "_") + ".py")
+            target = dtparse / name
+            shutil.copy2(source, target)
+            target.chmod(0o755)
+    else:
+        run("make", "-C", str(dtparse), f"ARCH={platform.machine()}")
+
+
+def ensure_linux_gaster():
+    """SSHRD's Linux scripts expect gaster in their own tools directory."""
+    target = REPO / "tools/SSHRD_Script/Linux/gaster"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    if not target.exists():
+        source = REPO / "tools/dualra1n/binaries/Linux/gaster"
+        if not source.is_file():
+            raise FileNotFoundError(
+                "Linux Gaster missing; run setup again to fetch tools/dualra1n."
+            )
+        shutil.copy2(source, target)
+    target.chmod(0o755)
+
+
 def ensure_donors(checkra1n=True):
     """补齐 donors/ 与 Python 依赖：已存在的跳过。dualra1n 还没拉下来时先跑完整 setup。
     checkra1n=False：目标用不到 checkra1n（iOS 15 rootless），不下载。"""
@@ -52,6 +83,9 @@ def ensure_donors(checkra1n=True):
 
 
 def setup(checkra1n=True):
+    # Install requirements into tools/bin/pydeps first: this is distro-independent
+    # (pip --target), so Arch/Debian/Fedora don't need system Python packages.
+    print(n56_deps.ensure_installed() or "Python 依赖已就绪")
     modules = configparser.ConfigParser()
     modules.read(REPO / ".gitmodules")
     for name in ("SSHRD_Script", "img4lib", "devicetree-parse", "DyldExtractor", "gaster"):
@@ -80,8 +114,7 @@ def setup(checkra1n=True):
     run("make", "-C", str(img4lib / "lzfse"))
     run("make", "-C", str(img4lib), *img4_build_args())
     dtparse = REPO / "tools/devicetree-parse"
-    run("make", "-C", str(dtparse), f"ARCH={platform.machine()}")
-    exclude_built(dtparse, "*.o\n/devicetree-parse\n/devicetree-repack\n")
+    build_devicetree_tools(dtparse)
 
     # sshrd.sh downloads gaster only when this path is missing; that download is unreliable.
     gaster = REPO / "tools/gaster"
@@ -91,16 +124,7 @@ def setup(checkra1n=True):
         from build_ldid import build as build_ldid
         build_apfs_fuse()
         build_ldid()
-
-        linux_gaster = gaster / "gaster"
-        linux_target = REPO / "tools/SSHRD_Script/Linux/gaster"
-
-        if not linux_target.exists():
-            raise FileNotFoundError(
-                "Linux Gaster missing. Build tools/gaster first."
-            )
-
-        linux_target.chmod(0o755)
+        ensure_linux_gaster()
 
     elif not target.exists():
         run("make", "-C", str(gaster), "macos")

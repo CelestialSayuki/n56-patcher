@@ -16,13 +16,20 @@ def extract_image(image, destination):
     destination.mkdir(parents=True, exist_ok=True)
 
     # First try 7zip.
-    result = subprocess.run(
-        ["7z", "x", "-y", f"-o{destination}", str(image)],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    )
+    try:
+        result = subprocess.run(
+            ["7z", "x", "-y", f"-o{destination}", str(image)],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+    except FileNotFoundError:
+        result = None
 
-    if result.returncode == 0 and any(destination.iterdir()):
+    # 7z exits 2 for HFS images containing relative links it refuses to create
+    # (e.g. terminfo/x -> x); the files themselves are extracted correctly and
+    # the callers below verify the payload they need.  Accept that case instead
+    # of requiring sudo to mount the image.
+    if result is not None and result.returncode in (0, 2) and any(destination.iterdir()):
         return
 
     # Fallback: mount a raw HFS/HFSX image read-only.

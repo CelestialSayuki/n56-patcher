@@ -42,10 +42,9 @@ def audit(target):
             add(sdk + "-sdk", ("warn" if sdk == "iphoneos" else "error") if code else "ok", output)
 
     tools = dict(target["tools"])
-    if not linux:
-        # macOS setup builds this additional helper; Linux uses devicetree-repack
-        # from the target tool list.
-        tools["devicetree-parse"] = "tools/devicetree-parse/devicetree-parse"
+    # setup.py installs both helpers on each platform: repack is in the target
+    # tool list, while parse is needed by the offline IPSW input extractor.
+    tools["devicetree-parse"] = "tools/devicetree-parse/devicetree-parse"
     tools["kpf-test"] = ("tools/checkra1n-kpf/checkra1n/kpf-test/kpf-test.linux" if linux
                          else "tools/checkra1n-kpf/checkra1n/kpf-test/kpf-test.macos")
     for key, candidates in tools.items():
