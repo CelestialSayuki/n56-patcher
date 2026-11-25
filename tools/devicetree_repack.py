@@ -55,6 +55,13 @@ def property_bytes(prop):
     if isinstance(value, (int, float)):
         if length not in (1, 2, 4, 8):
             raise ValueError(f"Unhandled int size {length}")
+        if length == 8:
+            # The upstream Linux repack parsed JSON numbers through GNUstep's
+            # NSJSONSerialization, which stores them as double precision.  Large
+            # 64-bit property values therefore lose their low bits before being
+            # written back.  Emulate that here so the rebuilt DeviceTree stays
+            # byte-for-byte compatible with the known-good old build.
+            value = int(float(value))
         number = int(value) & ((1 << (8 * length)) - 1)
         buf[PROPERTY_HEADER:PROPERTY_HEADER + length] = number.to_bytes(length, "little")
     elif isinstance(value, str):

@@ -146,6 +146,14 @@ class DevicetreeRepackTests(unittest.TestCase):
         expected += b"bytes".ljust(32, b"\0") + struct.pack("<HH", 4, 0) + b"\x01\x02\x03\x04"
         self.assertEqual(devicetree_repack.repack(tree), expected)
 
+    def test_large_64bit_value_matches_upstream_repack(self):
+        prop = {"name": "bridge-settings-10", "length": 8, "flags": 0,
+                "value": 0x8001000400000018}
+        expected = b"bridge-settings-10".ljust(32, b"\0")
+        expected += struct.pack("<HH", 8, 0)
+        expected += (0x8001000400000000).to_bytes(8, "little")
+        self.assertEqual(devicetree_repack.property_bytes(prop), expected)
+
 
 if __name__ == "__main__":
     unittest.main()
